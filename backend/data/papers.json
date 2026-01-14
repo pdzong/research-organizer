@@ -1,5 +1,24 @@
 [
   {
+    "id": "2601.08225",
+    "title": "User-Oriented Multi-Turn Dialogue Generation with Tool Use at scale",
+    "authors": [
+      "Jungho Cho",
+      "Minbyul Jeong",
+      "Sungrae Park"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.08225",
+    "arxiv_id": "2601.08225",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-14T12:30:33.308281",
+        "metadata": "2026-01-14T12:31:07.231429"
+      },
+      "markdown": "cache\\2601.08225\\markdown.md",
+      "metadata": "cache\\2601.08225\\metadata.json"
+    }
+  },
+  {
     "id": "2601.06789",
     "title": "MemGovern: Enhancing Code Agents through Learning from Governed Human Experiences",
     "authors": [
@@ -33,7 +52,13 @@
       "Dawoon Jung"
     ],
     "arxiv_url": "https://arxiv.org/abs/2601.07022",
-    "arxiv_id": "2601.07022"
+    "arxiv_id": "2601.07022",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-01-14T12:30:45.695873"
+      },
+      "metadata": "cache\\2601.07022\\metadata.json"
+    }
   },
   {
     "id": "2601.06953",
