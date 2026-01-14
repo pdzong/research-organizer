@@ -1,0 +1,173 @@
+[
+  {
+    "id": "2601.06789",
+    "title": "MemGovern: Enhancing Code Agents through Learning from Governed Human Experiences",
+    "authors": [
+      "Qihao Wang",
+      "Ziming Cheng",
+      "Shuo Zhang",
+      "Fan Liu",
+      "Rui Xu"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.06789",
+    "arxiv_id": "2601.06789",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-01-14T12:21:09.674473",
+        "markdown": "2026-01-14T12:21:14.874239",
+        "analysis": "2026-01-14T12:23:05.575383"
+      },
+      "metadata": "cache\\2601.06789\\metadata.json",
+      "markdown": "cache\\2601.06789\\markdown.md",
+      "analysis": "cache\\2601.06789\\analysis.json"
+    }
+  },
+  {
+    "id": "2601.07022",
+    "title": "Solar Open Technical Report",
+    "authors": [
+      "Sungrae Park",
+      "Sanghoon Kim",
+      "Jungho Cho",
+      "Gyoungjin Gim",
+      "Dawoon Jung"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.07022",
+    "arxiv_id": "2601.07022"
+  },
+  {
+    "id": "2601.06953",
+    "title": "X-Coder: Advancing Competitive Programming with Fully Synthetic Tasks, Solutions, and Tests",
+    "authors": [
+      "Jie Wu",
+      "Haoling Li",
+      "Xin Zhang",
+      "Jiani Guo",
+      "Jane Luo"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.06953",
+    "arxiv_id": "2601.06953",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-01-14T12:23:23.832627",
+        "markdown": "2026-01-14T12:23:26.210062"
+      },
+      "metadata": "cache\\2601.06953\\metadata.json",
+      "markdown": "cache\\2601.06953\\markdown.md"
+    }
+  },
+  {
+    "id": "2601.05242",
+    "title": "GDPO: Group reward-Decoupled Normalization Policy Optimization for Multi-reward RL Optimization",
+    "authors": [
+      "Shih-Yang Liu",
+      "Xin Dong",
+      "Ximing Lu",
+      "Shizhe Diao",
+      "Peter Belcak"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.05242",
+    "arxiv_id": "2601.05242",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-14T12:17:28.641206",
+        "analysis": "2026-01-14T12:18:26.226278"
+      },
+      "markdown": "cache\\2601.05242\\markdown.md",
+      "analysis": "cache\\2601.05242\\analysis.json"
+    }
+  },
+  {
+    "id": "2512.24880",
+    "title": "mHC: Manifold-Constrained Hyper-Connections",
+    "authors": [
+      "Zhenda Xie",
+      "Yixuan Wei",
+      "Huanqi Cao",
+      "Chenggang Zhao",
+      "Chengqi Deng"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2512.24880",
+    "arxiv_id": "2512.24880"
+  },
+  {
+    "id": "1706.03762",
+    "title": "Attention Is All You Need",
+    "authors": [
+      "Vaswani et al."
+    ],
+    "arxiv_url": "https://arxiv.org/abs/1706.03762",
+    "arxiv_id": "1706.03762"
+  },
+  {
+    "id": "2303.08774",
+    "title": "GPT-4 Technical Report",
+    "authors": [
+      "OpenAI"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2303.08774",
+    "arxiv_id": "2303.08774",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-14T12:24:03.491268",
+        "metadata": "2026-01-14T12:24:17.215345"
+      },
+      "markdown": "cache\\2303.08774\\markdown.md",
+      "metadata": "cache\\2303.08774\\metadata.json"
+    }
+  },
+  {
+    "id": "2307.09288",
+    "title": "Llama 2: Open Foundation and Fine-Tuned Chat Models",
+    "authors": [
+      "Touvron et al."
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2307.09288",
+    "arxiv_id": "2307.09288"
+  },
+  {
+    "id": "2005.14165",
+    "title": "Language Models are Few-Shot Learners (GPT-3)",
+    "authors": [
+      "Brown et al."
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2005.14165",
+    "arxiv_id": "2005.14165"
+  },
+  {
+    "id": "2103.00020",
+    "title": "Learning Transferable Visual Models From Natural Language Supervision (CLIP)",
+    "authors": [
+      "Radford et al."
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2103.00020",
+    "arxiv_id": "2103.00020"
+  },
+  {
+    "id": "2010.11929",
+    "title": "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale (ViT)",
+    "authors": [
+      "Dosovitskiy et al."
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2010.11929",
+    "arxiv_id": "2010.11929"
+  },
+  {
+    "id": "1810.04805",
+    "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+    "authors": [
+      "Devlin et al."
+    ],
+    "arxiv_url": "https://arxiv.org/abs/1810.04805",
+    "arxiv_id": "1810.04805"
+  },
+  {
+    "id": "2106.09685",
+    "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+    "authors": [
+      "Hu et al."
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2106.09685",
+    "arxiv_id": "2106.09685"
+  }
+]

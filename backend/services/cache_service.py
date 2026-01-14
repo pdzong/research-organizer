@@ -1,0 +1,167 @@
+import json
+import os
+from pathlib import Path
+from typing import Optional, Dict, Any
+from datetime import datetime
+
+# Cache directory structure
+CACHE_DIR = Path(__file__).parent.parent / "data" / "cache"
+PAPERS_FILE = Path(__file__).parent.parent / "data" / "papers.json"
+
+def ensure_cache_dir(arxiv_id: str) -> Path:
+    """Ensure cache directory exists for a paper."""
+    paper_cache_dir = CACHE_DIR / arxiv_id
+    paper_cache_dir.mkdir(parents=True, exist_ok=True)
+    return paper_cache_dir
+
+def save_metadata(arxiv_id: str, metadata: Dict[str, Any]) -> bool:
+    """Save metadata to cache."""
+    try:
+        cache_dir = ensure_cache_dir(arxiv_id)
+        metadata_file = cache_dir / "metadata.json"
+        
+        with open(metadata_file, 'w', encoding='utf-8') as f:
+            json.dump(metadata, f, indent=2, ensure_ascii=False)
+        
+        update_paper_cache_ref(arxiv_id, "metadata", str(metadata_file.relative_to(CACHE_DIR.parent)))
+        return True
+    except Exception as e:
+        print(f"Error saving metadata cache: {e}")
+        return False
+
+def load_metadata(arxiv_id: str) -> Optional[Dict[str, Any]]:
+    """Load metadata from cache."""
+    try:
+        cache_dir = CACHE_DIR / arxiv_id
+        metadata_file = cache_dir / "metadata.json"
+        
+        if metadata_file.exists():
+            with open(metadata_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return None
+    except Exception as e:
+        print(f"Error loading metadata cache: {e}")
+        return None
+
+def save_markdown(arxiv_id: str, markdown: str) -> bool:
+    """Save markdown to cache."""
+    try:
+        cache_dir = ensure_cache_dir(arxiv_id)
+        markdown_file = cache_dir / "markdown.md"
+        
+        with open(markdown_file, 'w', encoding='utf-8') as f:
+            f.write(markdown)
+        
+        update_paper_cache_ref(arxiv_id, "markdown", str(markdown_file.relative_to(CACHE_DIR.parent)))
+        return True
+    except Exception as e:
+        print(f"Error saving markdown cache: {e}")
+        return False
+
+def load_markdown(arxiv_id: str) -> Optional[str]:
+    """Load markdown from cache."""
+    try:
+        cache_dir = CACHE_DIR / arxiv_id
+        markdown_file = cache_dir / "markdown.md"
+        
+        if markdown_file.exists():
+            with open(markdown_file, 'r', encoding='utf-8') as f:
+                return f.read()
+        return None
+    except Exception as e:
+        print(f"Error loading markdown cache: {e}")
+        return None
+
+def save_analysis(arxiv_id: str, analysis: Dict[str, Any]) -> bool:
+    """Save analysis to cache."""
+    try:
+        cache_dir = ensure_cache_dir(arxiv_id)
+        analysis_file = cache_dir / "analysis.json"
+        
+        with open(analysis_file, 'w', encoding='utf-8') as f:
+            json.dump(analysis, f, indent=2, ensure_ascii=False)
+        
+        update_paper_cache_ref(arxiv_id, "analysis", str(analysis_file.relative_to(CACHE_DIR.parent)))
+        return True
+    except Exception as e:
+        print(f"Error saving analysis cache: {e}")
+        return False
+
+def load_analysis(arxiv_id: str) -> Optional[Dict[str, Any]]:
+    """Load analysis from cache."""
+    try:
+        cache_dir = CACHE_DIR / arxiv_id
+        analysis_file = cache_dir / "analysis.json"
+        
+        if analysis_file.exists():
+            with open(analysis_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return None
+    except Exception as e:
+        print(f"Error loading analysis cache: {e}")
+        return None
+
+def update_paper_cache_ref(arxiv_id: str, cache_type: str, file_path: str):
+    """Update papers.json with cache reference."""
+    try:
+        if not PAPERS_FILE.exists():
+            return
+        
+        with open(PAPERS_FILE, 'r', encoding='utf-8') as f:
+            papers = json.load(f)
+        
+        # Find the paper and update cache reference
+        for paper in papers:
+            if paper.get("arxiv_id") == arxiv_id:
+                if "cached" not in paper:
+                    paper["cached"] = {}
+                if "lastUpdated" not in paper["cached"]:
+                    paper["cached"]["lastUpdated"] = {}
+                
+                paper["cached"][cache_type] = file_path
+                paper["cached"]["lastUpdated"][cache_type] = datetime.utcnow().isoformat()
+                break
+        
+        with open(PAPERS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(papers, f, indent=2, ensure_ascii=False)
+    
+    except Exception as e:
+        print(f"Error updating paper cache reference: {e}")
+
+def get_cache_status(arxiv_id: str) -> Dict[str, bool]:
+    """Check which cache files exist for a paper."""
+    cache_dir = CACHE_DIR / arxiv_id
+    
+    return {
+        "metadata": (cache_dir / "metadata.json").exists(),
+        "markdown": (cache_dir / "markdown.md").exists(),
+        "analysis": (cache_dir / "analysis.json").exists()
+    }
+
+def clear_cache(arxiv_id: str, cache_type: Optional[str] = None) -> bool:
+    """Clear cache for a paper. If cache_type is None, clear all."""
+    try:
+        cache_dir = CACHE_DIR / arxiv_id
+        
+        if not cache_dir.exists():
+            return True
+        
+        if cache_type:
+            # Clear specific cache
+            file_map = {
+                "metadata": "metadata.json",
+                "markdown": "markdown.md",
+                "analysis": "analysis.json"
+            }
+            cache_file = cache_dir / file_map.get(cache_type, "")
+            if cache_file.exists():
+                cache_file.unlink()
+        else:
+            # Clear all cache for this paper
+            import shutil
+            shutil.rmtree(cache_dir)
+        
+        return True
+    except Exception as e:
+        print(f"Error clearing cache: {e}")
+        return False
