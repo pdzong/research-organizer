@@ -1,15 +1,51 @@
 from semanticscholar import SemanticScholar
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import asyncio
 
 sch = SemanticScholar()
 
-async def get_paper_metadata(arxiv_id: str) -> Dict[str, Any]:
+def _extract_arxiv_id(external_ids: Dict[str, Any]) -> Optional[str]:
+    """Extract ArXiv ID from external IDs if available."""
+    if external_ids and 'ArXiv' in external_ids:
+        return external_ids['ArXiv']
+    return None
+
+def _format_related_paper(paper) -> Optional[Dict[str, Any]]:
+    """Format a related paper object into a simple dict."""
+    if not paper:
+        return None
+    
+    try:
+        external_ids = paper.externalIds if hasattr(paper, 'externalIds') else {}
+        arxiv_id = _extract_arxiv_id(external_ids)
+        
+        return {
+            "paperId": paper.paperId if hasattr(paper, 'paperId') else None,
+            "title": paper.title if hasattr(paper, 'title') else None,
+            "year": paper.year if hasattr(paper, 'year') else None,
+            "authors": [
+                {
+                    "authorId": getattr(author, 'authorId', None),
+                    "name": getattr(author, 'name', None),
+                }
+                for author in (paper.authors or [])
+            ] if hasattr(paper, 'authors') and paper.authors else [],
+            "citationCount": paper.citationCount if hasattr(paper, 'citationCount') else 0,
+            "url": paper.url if hasattr(paper, 'url') else None,
+            "arxivId": arxiv_id,
+            "externalIds": external_ids,
+        }
+    except Exception as e:
+        print(f"Error formatting related paper: {e}")
+        return None
+
+async def get_paper_metadata(arxiv_id: str, include_related: bool = True) -> Dict[str, Any]:
     """
     Fetch paper metadata from Semantic Scholar using ArXiv ID.
     
     Args:
         arxiv_id: The ArXiv ID (e.g., "1706.03762")
+        include_related: Whether to fetch citations and recommendations (default: True)
     
     Returns:
         dict with metadata or error
@@ -76,10 +112,51 @@ async def get_paper_metadata(arxiv_id: str) -> Dict[str, Any]:
             "corpusId": paper.corpusId if hasattr(paper, 'corpusId') else None,
         }
         
+        # Fetch related papers if requested
+        if include_related:
+            try:
+                # Get citations (papers that cite this one) - limit to 10
+                citations = paper.citations if hasattr(paper, 'citations') else []
+                if citations:
+                    metadata["citations"] = [
+                        _format_related_paper(cite) for cite in citations[:10]
+                        if _format_related_paper(cite) is not None
+                    ]
+                else:
+                    metadata["citations"] = []
+                
+                # Get recommendations - limit to 10
+                paper_id = paper.paperId if hasattr(paper, 'paperId') else None
+                if paper_id:
+                    recommendations = await loop.run_in_executor(
+                        None,
+                        sch.get_recommended_papers,
+                        paper_id
+                    )
+                    if recommendations:
+                        metadata["recommendations"] = [
+                            _format_related_paper(rec) for rec in recommendations[:10]
+                            if _format_related_paper(rec) is not None
+                        ]
+                    else:
+                        metadata["recommendations"] = []
+                else:
+                    metadata["recommendations"] = []
+                    
+            except Exception as e:
+                print(f"Error fetching related papers for {arxiv_id}: {e}")
+                metadata["citations"] = []
+                metadata["recommendations"] = []
+        else:
+            metadata["citations"] = []
+            metadata["recommendations"] = []
+        
         return metadata
     
     except Exception as e:
         return {
             "success": False,
-            "error": str(e)
+            "error": str(e),
+            "citations": [],
+            "recommendations": []
         }

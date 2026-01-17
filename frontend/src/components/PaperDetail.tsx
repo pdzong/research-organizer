@@ -1,7 +1,7 @@
 import { Paper, Stack, Text, Button, Loader, Alert, Group, Divider, ScrollArea, Table, Badge, Accordion, Card } from '@mantine/core';
-import { IconAlertCircle, IconSparkles, IconFileText, IconArrowLeft, IconChartBar, IconBook, IconUsers, IconCalendar, IconQuote, IconWorld, IconFileDescription } from '@tabler/icons-react';
+import { IconAlertCircle, IconSparkles, IconFileText, IconArrowLeft, IconChartBar, IconBook, IconUsers, IconCalendar, IconQuote, IconWorld, IconFileDescription, IconPlus, IconLink } from '@tabler/icons-react';
 import ReactMarkdown from 'react-markdown';
-import { Paper as PaperType, Analysis, PaperMetadata, CacheStatus } from '../services/api';
+import { Paper as PaperType, Analysis, PaperMetadata, CacheStatus, RelatedPaper } from '../services/api';
 
 interface PaperDetailProps {
   paper: PaperType;
@@ -16,6 +16,7 @@ interface PaperDetailProps {
   onParse: (forceReload?: boolean) => void;
   onAnalyze: (forceReload?: boolean) => void;
   onReloadMetadata: () => void;
+  onAddRelatedPaper: (paperId: string, arxivId: string | null, title: string, authors: string[]) => void;
   onBack: () => void;
 }
 
@@ -32,6 +33,7 @@ export function PaperDetail({
   onParse,
   onAnalyze,
   onReloadMetadata,
+  onAddRelatedPaper,
   onBack,
 }: PaperDetailProps) {
   return (
@@ -333,6 +335,156 @@ export function PaperDetail({
                 </Stack>
               </Accordion.Panel>
             </Accordion.Item>
+
+            {/* Citations */}
+            {metadata.citations && Array.isArray(metadata.citations) && metadata.citations.length > 0 && (
+              <Accordion.Item value="citations">
+                <Accordion.Control icon={<IconQuote size={20} />}>
+                  Papers Citing This Work ({metadata.citations.length})
+                </Accordion.Control>
+                <Accordion.Panel>
+                  <Stack gap="md">
+                    {metadata.citations.map((citation, idx) => (
+                      <Card key={idx} p="sm" withBorder>
+                        <Stack gap="xs">
+                          <Group justify="space-between" align="flex-start">
+                            <Text size="sm" fw={600} style={{ flex: 1 }}>
+                              {citation.title || 'Untitled'}
+                            </Text>
+                            <Button
+                              size="xs"
+                              variant="light"
+                              leftSection={<IconPlus size={14} />}
+                              onClick={() => {
+                                if (citation.paperId && citation.title) {
+                                  const authorNames = citation.authors.map(a => a.name || 'Unknown');
+                                  onAddRelatedPaper(
+                                    citation.paperId,
+                                    citation.arxivId,
+                                    citation.title,
+                                    authorNames
+                                  );
+                                }
+                              }}
+                            >
+                              Add to List
+                            </Button>
+                          </Group>
+                          {citation.authors && citation.authors.length > 0 && (
+                            <Text size="xs" c="dimmed">
+                              {citation.authors.map(a => a.name).join(', ')}
+                            </Text>
+                          )}
+                          <Group gap="xs">
+                            {citation.year && <Badge size="xs" variant="outline">{citation.year}</Badge>}
+                            {citation.citationCount > 0 && (
+                              <Badge size="xs" variant="light" color="blue">
+                                {citation.citationCount} citations
+                              </Badge>
+                            )}
+                            {citation.arxivId && (
+                              <Badge size="xs" variant="light" color="green">
+                                ArXiv: {citation.arxivId}
+                              </Badge>
+                            )}
+                          </Group>
+                          {citation.url && (
+                            <Text
+                              size="xs"
+                              component="a"
+                              href={citation.url}
+                              target="_blank"
+                              c="blue"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Group gap={4}>
+                                <IconLink size={12} />
+                                <span>View on Semantic Scholar</span>
+                              </Group>
+                            </Text>
+                          )}
+                        </Stack>
+                      </Card>
+                    ))}
+                  </Stack>
+                </Accordion.Panel>
+              </Accordion.Item>
+            )}
+
+            {/* Recommendations */}
+            {metadata.recommendations && Array.isArray(metadata.recommendations) && metadata.recommendations.length > 0 && (
+              <Accordion.Item value="recommendations">
+                <Accordion.Control icon={<IconSparkles size={20} />}>
+                  Recommended Related Papers ({metadata.recommendations.length})
+                </Accordion.Control>
+                <Accordion.Panel>
+                  <Stack gap="md">
+                    {metadata.recommendations.map((rec, idx) => (
+                      <Card key={idx} p="sm" withBorder>
+                        <Stack gap="xs">
+                          <Group justify="space-between" align="flex-start">
+                            <Text size="sm" fw={600} style={{ flex: 1 }}>
+                              {rec.title || 'Untitled'}
+                            </Text>
+                            <Button
+                              size="xs"
+                              variant="light"
+                              leftSection={<IconPlus size={14} />}
+                              onClick={() => {
+                                if (rec.paperId && rec.title) {
+                                  const authorNames = rec.authors.map(a => a.name || 'Unknown');
+                                  onAddRelatedPaper(
+                                    rec.paperId,
+                                    rec.arxivId,
+                                    rec.title,
+                                    authorNames
+                                  );
+                                }
+                              }}
+                            >
+                              Add to List
+                            </Button>
+                          </Group>
+                          {rec.authors && rec.authors.length > 0 && (
+                            <Text size="xs" c="dimmed">
+                              {rec.authors.map(a => a.name).join(', ')}
+                            </Text>
+                          )}
+                          <Group gap="xs">
+                            {rec.year && <Badge size="xs" variant="outline">{rec.year}</Badge>}
+                            {rec.citationCount > 0 && (
+                              <Badge size="xs" variant="light" color="blue">
+                                {rec.citationCount} citations
+                              </Badge>
+                            )}
+                            {rec.arxivId && (
+                              <Badge size="xs" variant="light" color="green">
+                                ArXiv: {rec.arxivId}
+                              </Badge>
+                            )}
+                          </Group>
+                          {rec.url && (
+                            <Text
+                              size="xs"
+                              component="a"
+                              href={rec.url}
+                              target="_blank"
+                              c="blue"
+                              style={{ textDecoration: 'none' }}
+                            >
+                              <Group gap={4}>
+                                <IconLink size={12} />
+                                <span>View on Semantic Scholar</span>
+                              </Group>
+                            </Text>
+                          )}
+                        </Stack>
+                      </Card>
+                    ))}
+                  </Stack>
+                </Accordion.Panel>
+              </Accordion.Item>
+            )}
           </Accordion>
         </Paper>
       )}

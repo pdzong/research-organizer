@@ -224,3 +224,64 @@ async def fetch_papers() -> List[Dict[str, any]]:
     Fetch papers from local JSON file.
     """
     return load_papers()
+
+async def add_paper_from_semantic_scholar(paper_id: str, arxiv_id: Optional[str], title: str, authors: List[str]) -> dict:
+    """
+    Add a paper from Semantic Scholar data.
+    
+    Args:
+        paper_id: The Semantic Scholar paper ID
+        arxiv_id: Optional ArXiv ID
+        title: Paper title
+        authors: List of author names
+    
+    Returns:
+        dict with success status and paper data
+    """
+    papers = load_papers()
+    
+    # Use arxiv_id as the primary ID if available, otherwise use paper_id
+    primary_id = arxiv_id if arxiv_id else paper_id
+    
+    # Check if paper already exists (by arxiv_id or paper_id)
+    for p in papers:
+        if p.get("arxiv_id") == arxiv_id and arxiv_id:
+            return {
+                "success": False,
+                "error": f"Paper with ArXiv ID {arxiv_id} already exists in the list"
+            }
+        if p.get("id") == primary_id:
+            return {
+                "success": False,
+                "error": f"Paper {primary_id} already exists in the list"
+            }
+    
+    # Create paper object
+    arxiv_url = f"https://arxiv.org/abs/{arxiv_id}" if arxiv_id else None
+    
+    paper = {
+        "id": primary_id,
+        "title": title,
+        "authors": authors if isinstance(authors, list) else [authors],
+        "arxiv_url": arxiv_url,
+        "arxiv_id": arxiv_id,
+        "semantic_scholar_id": paper_id,
+        "added_date": datetime.now().isoformat(),
+        "cache_status": {}
+    }
+    
+    # Add paper to the beginning of the list
+    papers.insert(0, paper)
+    
+    # Save updated list
+    if save_papers(papers):
+        return {
+            "success": True,
+            "paper": paper,
+            "message": f"Added paper: {title}"
+        }
+    else:
+        return {
+            "success": False,
+            "error": "Failed to save papers list"
+        }

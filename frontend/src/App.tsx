@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Container, notifications } from '@mantine/core';
-import { Notifications } from '@mantine/notifications';
+import { Container } from '@mantine/core';
+import { Notifications, notifications } from '@mantine/notifications';
 import { Layout } from './components/Layout';
 import { PaperList } from './components/PaperList';
 import { PaperDetail } from './components/PaperDetail';
@@ -10,11 +10,12 @@ import {
   analyzePaper, 
   addPaper, 
   getPaperMetadata, 
-  getCachedAnalysis,
-  getCacheStatus,
+  getCachedAnalysis, 
+  getCacheStatus, 
+  addRelatedPaper,
   Paper, 
   Analysis, 
-  PaperMetadata,
+  PaperMetadata, 
   CacheStatus 
 } from './services/api';
 
@@ -186,19 +187,68 @@ function App() {
         const data = await fetchPapers();
         setPapers(data);
         
-        alert(`Success! Added paper: ${response.paper.title}`);
+        notifications.show({
+          title: 'Success',
+          message: `Added paper: ${response.paper.title}`,
+          color: 'green',
+        });
       } else {
-        alert(`Error: ${response.error || 'Failed to add paper'}`);
+        notifications.show({
+          title: 'Error',
+          message: response.error || 'Failed to add paper',
+          color: 'red',
+        });
       }
     } catch (err) {
       console.error('Error adding paper:', err);
-      alert('Failed to add paper. Please check the URL and try again.');
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to add paper. Please check the URL and try again.',
+        color: 'red',
+      });
       throw err;
+    }
+  };
+
+  const handleAddRelatedPaper = async (
+    paperId: string,
+    arxivId: string | null,
+    title: string,
+    authors: string[]
+  ) => {
+    try {
+      const response = await addRelatedPaper(paperId, arxivId, title, authors);
+      
+      if (response.success && response.paper) {
+        // Refresh the papers list
+        const data = await fetchPapers();
+        setPapers(data);
+        
+        notifications.show({
+          title: 'Success',
+          message: `Added paper: ${response.paper.title}`,
+          color: 'green',
+        });
+      } else {
+        notifications.show({
+          title: 'Error',
+          message: response.error || 'Failed to add paper',
+          color: 'red',
+        });
+      }
+    } catch (err) {
+      console.error('Error adding related paper:', err);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to add related paper.',
+        color: 'red',
+      });
     }
   };
 
   return (
     <Layout>
+      <Notifications />
       <Container size="xl">
         {!selectedPaper ? (
           <PaperList
@@ -222,6 +272,7 @@ function App() {
             onParse={handleParsePaper}
             onAnalyze={handleAnalyzePaper}
             onReloadMetadata={handleReloadMetadata}
+            onAddRelatedPaper={handleAddRelatedPaper}
             onBack={handleBack}
           />
         )}

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Dict, Optional
-from services.huggingface import fetch_papers, add_paper
+from services.huggingface import fetch_papers, add_paper, add_paper_from_semantic_scholar
 from services.pdf_parser import download_and_parse_paper
 from services.openai_service import summarize_paper
 from services.semantic_scholar import get_paper_metadata
@@ -14,6 +14,12 @@ class AnalyzeRequest(BaseModel):
 
 class AddPaperRequest(BaseModel):
     arxiv_url: str
+
+class AddRelatedPaperRequest(BaseModel):
+    paper_id: str
+    arxiv_id: Optional[str] = None
+    title: str
+    authors: List[str]
 
 class PaperResponse(BaseModel):
     id: str
@@ -71,6 +77,30 @@ async def add_new_paper(request: AddPaperRequest):
     """
     try:
         result = await add_paper(request.arxiv_url)
+        return result
+    except Exception as e:
+        return {
+            "success": False,
+            "paper": None,
+            "message": None,
+            "error": str(e)
+        }
+
+@router.post("/papers/add-related", response_model=AddPaperResponse)
+async def add_related_paper(request: AddRelatedPaperRequest):
+    """
+    Add a related paper from Semantic Scholar data.
+    
+    Args:
+        request: AddRelatedPaperRequest with paper_id, arxiv_id (optional), title, and authors
+    """
+    try:
+        result = await add_paper_from_semantic_scholar(
+            paper_id=request.paper_id,
+            arxiv_id=request.arxiv_id,
+            title=request.title,
+            authors=request.authors
+        )
         return result
     except Exception as e:
         return {

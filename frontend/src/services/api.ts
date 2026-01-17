@@ -88,6 +88,17 @@ export const addPaper = async (arxivUrl: string): Promise<AddPaperResponse> => {
   return response.data;
 };
 
+export interface RelatedPaper {
+  paperId: string | null;
+  title: string | null;
+  year: number | null;
+  authors: Array<{ authorId: string | null; name: string | null }>;
+  citationCount: number;
+  url: string | null;
+  arxivId: string | null;
+  externalIds: Record<string, any>;
+}
+
 export interface PaperMetadata {
   success: boolean;
   paperId: string | null;
@@ -111,6 +122,8 @@ export interface PaperMetadata {
   url: string | null;
   tldr: string | null;
   corpusId: string | null;
+  citations?: RelatedPaper[];
+  recommendations?: RelatedPaper[];
 }
 
 export interface MetadataResponse {
@@ -146,5 +159,20 @@ export const getCachedAnalysis = async (
 
 export const getCacheStatus = async (arxivId: string): Promise<CacheStatus> => {
   const response = await apiClient.get<CacheStatus>(`/papers/${arxivId}/cache-status`);
+  return response.data;
+};
+
+export const addRelatedPaper = async (
+  paperId: string,
+  arxivId: string | null,
+  title: string,
+  authors: string[]
+): Promise<AddPaperResponse> => {
+  const response = await apiClient.post<AddPaperResponse>('/papers/add-related', {
+    paper_id: paperId,
+    arxiv_id: arxivId,
+    title,
+    authors
+  });
   return response.data;
 };
