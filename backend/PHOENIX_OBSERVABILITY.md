@@ -17,7 +17,17 @@ When you run the backend, you'll see:
 ```bash
 🔭 Phoenix is running at: http://localhost:6006
    View your LLM traces and evaluations in the Phoenix UI
+
+📡 OpenTelemetry traces will be sent to Phoenix
+   Collector endpoint: http://127.0.0.1:6006
+
+✅ OpenAI instrumented for tracing
 ```
+
+This confirms that:
+1. ✅ Phoenix UI is running on port 6006
+2. ✅ OpenTelemetry collector is ready to receive traces
+3. ✅ OpenAI SDK is instrumented
 
 ## Viewing LLM Traces
 
@@ -71,9 +81,39 @@ netstat -ano | findstr :6006
 
 ### No traces appearing?
 
-1. Make sure you've analyzed a paper (triggered an LLM call)
-2. Check that the backend is running with Phoenix initialized
-3. Look for Phoenix startup message in the backend logs
+**Step 1: Verify Phoenix is running**
+Look for this in the backend logs:
+```
+🔭 Phoenix is running at: http://localhost:6006
+📡 OpenTelemetry traces will be sent to Phoenix
+✅ OpenAI instrumented for tracing
+```
+
+**Step 2: Trigger an LLM call**
+1. Select a paper in the UI
+2. Load the paper content
+3. Click "Analyze Paper"
+4. Look for this in backend logs: `🤖 Starting LLM analysis...`
+
+**Step 3: Check Phoenix UI**
+1. Open http://localhost:6006 in your browser
+2. Click "Traces" in the left sidebar
+3. You should see a trace appear after the analysis completes
+4. The trace will show the model, input messages, output, and token usage
+
+**Step 4: Verify collector endpoint**
+Check that the backend can reach the Phoenix collector:
+```bash
+curl http://localhost:6006/v1/traces
+```
+Should return: `Method Not Allowed` (this is expected - it confirms the endpoint exists)
+
+**Common Issues:**
+
+1. **Traces delayed**: Phoenix batches traces. Wait 5-10 seconds after the LLM call completes.
+2. **Wrong endpoint**: Make sure Phoenix is using the default port (6006)
+3. **Firewall blocking**: Check Windows Firewall isn't blocking localhost connections
+4. **OpenAI client created too early**: The instrumentation must happen before the first OpenAI client is created
 
 ## Advanced Configuration
 

@@ -26,7 +26,8 @@ async def summarize_paper(markdown_text: str) -> Dict[str, Any]:
     Returns:
         dict: A dictionary representation of the PaperAnalysis model.
     """
-    try:                
+    try:
+        print("🤖 Starting LLM analysis...")
         client = get_openai_client()
         
         # We use a multi-step prompt strategy within the system message
