@@ -37,9 +37,8 @@ class ParseResponse(BaseModel):
 
 class AnalyzeResponse(BaseModel):
     success: bool
-    summary: Optional[Dict] = None  # Structured analysis dict
-    model: Optional[str] = None
-    tokens_used: Optional[int] = None
+    data: Optional[Dict] = None  # Structured analysis dict
+    usage: Optional[Dict] = None  # Contains model, input_tokens, output_tokens
     error: Optional[str] = None
     from_cache: Optional[bool] = False
 
@@ -180,9 +179,8 @@ async def analyze_paper(request: AnalyzeRequest):
     except Exception as e:
         return {
             "success": False,
-            "summary": None,
-            "model": None,
-            "tokens_used": None,
+            "data": None,
+            "usage": None,
             "error": str(e)
         }
 
@@ -212,9 +210,8 @@ async def get_cached_analysis(
         if not markdown:
             return {
                 "success": False,
-                "summary": None,
-                "model": None,
-                "tokens_used": None,
+                "data": None,
+                "usage": None,
                 "error": "Paper must be parsed first before analysis",
                 "from_cache": False
             }
@@ -223,7 +220,7 @@ async def get_cached_analysis(
         result = await summarize_paper(markdown)
         
         # Cache the result if successful
-        if result.get("success") and result.get("summary"):
+        if result.get("success") and result.get("data"):
             cache_service.save_analysis(arxiv_id, result)
             print(f"Saved analysis to cache for {arxiv_id}")
         
@@ -233,9 +230,8 @@ async def get_cached_analysis(
     except Exception as e:
         return {
             "success": False,
-            "summary": None,
-            "model": None,
-            "tokens_used": None,
+            "data": None,
+            "usage": None,
             "error": str(e),
             "from_cache": False
         }

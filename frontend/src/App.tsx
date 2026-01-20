@@ -85,8 +85,8 @@ function App() {
         if (status.analysis) {
           setAnalyzing(true);
           const response = await getCachedAnalysis(paper.arxiv_id, false);
-          if (response.success && response.summary) {
-            setSummary(response.summary);
+          if (response.success && response.data) {
+            setSummary(response.data);
           }
           setAnalyzing(false);
         }
@@ -130,8 +130,8 @@ function App() {
       setError(null);
       const response = await getCachedAnalysis(selectedPaper.arxiv_id, forceReload);
 
-      if (response.success && response.summary) {
-        setSummary(response.summary);
+      if (response.success && response.data) {
+        setSummary(response.data);
         // Update cache status
         const status = await getCacheStatus(selectedPaper.arxiv_id);
         setCacheStatus(status);

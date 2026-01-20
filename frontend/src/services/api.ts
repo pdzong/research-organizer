@@ -25,32 +25,45 @@ export interface ParseResponse {
   from_cache?: boolean;
 }
 
-export interface Benchmark {
+export interface BenchmarkResult {
   name: string;
   score: string;
   metric: string;
+  setting: string | null;
+  is_this_paper_result: boolean;
+  source_quote: string;
+}
+
+export interface NoveltyAnalysis {
+  status_quo: string;
+  proposed_delta: string;
+  novelty_summary: string;
+  real_world_analogy: string;
 }
 
 export interface Summary {
   main_contribution: string;
   methodology: string;
-  key_results: string;
-  significance: string;
+  applications: string[];
   limitations: string;
 }
 
 export interface Analysis {
   paper_title: string;
+  novelty: NoveltyAnalysis;
   summary: Summary;
-  benchmarks: Benchmark[];
+  benchmarks: BenchmarkResult[];
 }
 
 export interface AnalyzeResponse {
   success: boolean;
-  summary: Analysis | null;
-  model: string | null;
-  tokens_used: number | null;
-  error: string | null;
+  data?: Analysis;
+  usage?: {
+    model: string;
+    input_tokens: number;
+    output_tokens: number;
+  };
+  error?: string;
   from_cache?: boolean;
 }
 

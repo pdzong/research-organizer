@@ -524,9 +524,55 @@ export function PaperDetail({
 
             {summary && (
               <Stack gap="md">
+                {/* Novelty Analysis Section */}
+                <Paper p="md" withBorder bg="violet.0">
+                  <Text size="sm" fw={700} mb="md" c="violet.9">
+                    💡 What's New?
+                  </Text>
+                  
+                  <Stack gap="md">
+                    <div>
+                      <Text size="sm" fw={600} c="violet.9" mb="xs">
+                        Status Quo (The "Before")
+                      </Text>
+                      <Text size="sm">
+                        {summary.novelty.status_quo}
+                      </Text>
+                    </div>
+
+                    <div>
+                      <Text size="sm" fw={600} c="violet.9" mb="xs">
+                        Proposed Delta (The "After")
+                      </Text>
+                      <Text size="sm">
+                        {summary.novelty.proposed_delta}
+                      </Text>
+                    </div>
+
+                    <div>
+                      <Text size="sm" fw={600} c="violet.9" mb="xs">
+                        Innovation Summary
+                      </Text>
+                      <Text size="sm">
+                        {summary.novelty.novelty_summary}
+                      </Text>
+                    </div>
+
+                    <Paper p="sm" withBorder bg="violet.1">
+                      <Text size="xs" fw={600} c="violet.9" mb="xs">
+                        💭 Real-World Analogy
+                      </Text>
+                      <Text size="sm" fs="italic">
+                        {summary.novelty.real_world_analogy}
+                      </Text>
+                    </Paper>
+                  </Stack>
+                </Paper>
+
+                {/* Summary Section */}
                 <Paper p="md" withBorder bg="blue.0">
-                  <Text size="sm" fw={600} mb="md" c="blue">
-                    AI Analysis
+                  <Text size="sm" fw={700} mb="md" c="blue.9">
+                    📄 Paper Summary
                   </Text>
                   
                   <Stack gap="md">
@@ -550,20 +596,20 @@ export function PaperDetail({
 
                     <div>
                       <Text size="sm" fw={600} c="blue.9" mb="xs">
-                        Key Results
+                        Real-World Applications
                       </Text>
-                      <Text size="sm">
-                        {summary.summary.key_results}
-                      </Text>
-                    </div>
-
-                    <div>
-                      <Text size="sm" fw={600} c="blue.9" mb="xs">
-                        Significance
-                      </Text>
-                      <Text size="sm">
-                        {summary.summary.significance}
-                      </Text>
+                      {summary.summary.applications && summary.summary.applications.length > 0 ? (
+                        <Stack gap="xs">
+                          {summary.summary.applications.map((app, idx) => (
+                            <Group key={idx} gap="xs">
+                              <Text size="sm">•</Text>
+                              <Text size="sm">{app}</Text>
+                            </Group>
+                          ))}
+                        </Stack>
+                      ) : (
+                        <Text size="sm" c="dimmed">No specific applications mentioned</Text>
+                      )}
                     </div>
 
                     <div>
@@ -577,36 +623,74 @@ export function PaperDetail({
                   </Stack>
                 </Paper>
 
+                {/* Benchmarks Section */}
                 {summary.benchmarks && summary.benchmarks.length > 0 && (
                   <Paper p="md" withBorder bg="green.0">
                     <Group mb="md">
                       <IconChartBar size={20} color="green" />
-                      <Text size="sm" fw={600} c="green.9">
-                        Benchmarks ({summary.benchmarks.length})
+                      <Text size="sm" fw={700} c="green.9">
+                        📊 Benchmark Results ({summary.benchmarks.length})
                       </Text>
                     </Group>
                     
-                    <Table striped highlightOnHover>
+                    <Table striped highlightOnHover withTableBorder>
                       <Table.Thead>
                         <Table.Tr>
                           <Table.Th>Benchmark</Table.Th>
                           <Table.Th>Score</Table.Th>
                           <Table.Th>Metric</Table.Th>
+                          <Table.Th>Setting</Table.Th>
+                          <Table.Th>Source</Table.Th>
                         </Table.Tr>
                       </Table.Thead>
                       <Table.Tbody>
                         {summary.benchmarks.map((benchmark, idx) => (
-                          <Table.Tr key={idx}>
+                          <Table.Tr 
+                            key={idx}
+                            bg={benchmark.is_this_paper_result ? undefined : 'gray.0'}
+                          >
                             <Table.Td>
-                              <Badge color="green" variant="light">
-                                {benchmark.name}
-                              </Badge>
+                              <Group gap="xs">
+                                <Badge 
+                                  color={benchmark.is_this_paper_result ? 'green' : 'gray'} 
+                                  variant="light"
+                                >
+                                  {benchmark.name}
+                                </Badge>
+                                {!benchmark.is_this_paper_result && (
+                                  <Badge size="xs" color="gray" variant="outline">
+                                    baseline
+                                  </Badge>
+                                )}
+                              </Group>
                             </Table.Td>
                             <Table.Td>
-                              <Text fw={600}>{benchmark.score}</Text>
+                              <Text fw={benchmark.is_this_paper_result ? 700 : 500}>
+                                {benchmark.score}
+                              </Text>
                             </Table.Td>
                             <Table.Td>
                               <Text size="sm" c="dimmed">{benchmark.metric}</Text>
+                            </Table.Td>
+                            <Table.Td>
+                              {benchmark.setting ? (
+                                <Badge size="xs" variant="outline">
+                                  {benchmark.setting}
+                                </Badge>
+                              ) : (
+                                <Text size="xs" c="dimmed">-</Text>
+                              )}
+                            </Table.Td>
+                            <Table.Td>
+                              <Text 
+                                size="xs" 
+                                c="dimmed" 
+                                lineClamp={1}
+                                title={benchmark.source_quote}
+                                style={{ cursor: 'help', maxWidth: '200px' }}
+                              >
+                                {benchmark.source_quote}
+                              </Text>
                             </Table.Td>
                           </Table.Tr>
                         ))}
