@@ -7,10 +7,29 @@ A full-stack web application for analyzing research papers from ArXiv. The app a
 - 📚 **Manage Papers**: Add and browse research papers from ArXiv
 - ➕ **Add Papers**: Add any paper by pasting its ArXiv URL
 - 📄 **PDF Parsing**: Download and convert ArXiv PDFs to readable markdown
-- 🤖 **AI Analysis**: Summarize papers using OpenAI GPT-4o-mini
-- 💾 **Persistent Storage**: Papers saved locally in JSON format
+- 🤖 **AI Analysis**: Summarize papers using OpenAI GPT-4o-mini with structured outputs
+- 🔬 **Semantic Scholar Integration**: Rich metadata including citations, recommendations, and influential citation counts
+- 🎯 **Relevance Scoring**: Visual color gradients highlight the most important related papers using Semantic Scholar's metrics
+- 💾 **Smart Caching**: Automatic caching of parsed PDFs, metadata, and analysis results
+- 🔭 **Observability**: LLM call tracing with Arize Phoenix
 - 🎨 **Modern UI**: Beautiful interface built with Mantine components
 - ⚡ **Fast Performance**: React + Vite frontend with FastAPI backend
+
+## 🔥 Relevance Scoring
+
+Related papers (citations and recommendations) are displayed with **visual color gradients** that highlight their importance:
+
+- **🔥 Highly Relevant (Gold)**: Papers with high citation counts and many influential citations
+- **📈 Very Relevant (Yellow)**: Papers with significant impact
+- **📊 Relevant (Light Blue)**: Papers with moderate impact
+- **📄 Related (Gray)**: Papers with lower impact
+
+The scoring uses **Semantic Scholar's proprietary metrics**:
+- **Citation Count**: Total citations received
+- **Influential Citation Count**: High-quality citations (Semantic Scholar's algorithm)
+- **Recommendation Position**: For recommended papers, earlier = more relevant
+
+Papers with scores ≥50 are highlighted with **thicker borders** and **icons** for quick identification. See [RELEVANCE_SCORING.md](RELEVANCE_SCORING.md) for detailed algorithm documentation.
 
 ## Architecture
 
@@ -127,8 +146,9 @@ See [PAPER_MANAGEMENT.md](PAPER_MANAGEMENT.md) for API usage examples.
 ### Backend
 - **FastAPI**: Modern Python web framework
 - **PyMuPDF**: PDF parsing and text extraction
-- **OpenAI API**: GPT-4o-mini for paper summarization
-- **BeautifulSoup4**: Web scraping for HuggingFace
+- **OpenAI API**: GPT-4o-mini for paper summarization with structured outputs
+- **Semantic Scholar API**: Rich paper metadata, citations, and recommendations
+- **Arize Phoenix**: LLM observability and tracing
 - **httpx**: Async HTTP client
 
 ### Frontend

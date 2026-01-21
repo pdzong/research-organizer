@@ -10,5 +10,3 @@ venv/
 .DS_Store
 data/cache/*
 !data/cache/.gitkeep
-data/cache/*
-!data/cache/.gitkeep

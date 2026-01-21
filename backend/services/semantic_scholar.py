@@ -31,6 +31,8 @@ def _format_related_paper(paper) -> Optional[Dict[str, Any]]:
                 for author in (paper.authors or [])
             ] if hasattr(paper, 'authors') and paper.authors else [],
             "citationCount": paper.citationCount if hasattr(paper, 'citationCount') else 0,
+            "influentialCitationCount": paper.influentialCitationCount if hasattr(paper, 'influentialCitationCount') else 0,
+            "referenceCount": paper.referenceCount if hasattr(paper, 'referenceCount') else 0,
             "url": paper.url if hasattr(paper, 'url') else None,
             "arxivId": arxiv_id,
             "externalIds": external_ids,

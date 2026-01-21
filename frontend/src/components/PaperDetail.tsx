@@ -1,5 +1,5 @@
-import { Paper, Stack, Text, Button, Loader, Alert, Group, Divider, ScrollArea, Table, Badge, Accordion, Card } from '@mantine/core';
-import { IconAlertCircle, IconSparkles, IconFileText, IconArrowLeft, IconChartBar, IconBook, IconUsers, IconCalendar, IconQuote, IconWorld, IconFileDescription, IconPlus, IconLink } from '@tabler/icons-react';
+import { Paper, Stack, Text, Button, Loader, Alert, Group, Divider, ScrollArea, Table, Badge, Accordion, Card, Tooltip, Box } from '@mantine/core';
+import { IconAlertCircle, IconSparkles, IconFileText, IconArrowLeft, IconChartBar, IconBook, IconUsers, IconCalendar, IconQuote, IconWorld, IconFileDescription, IconPlus, IconLink, IconTrendingUp, IconFlame } from '@tabler/icons-react';
 import ReactMarkdown from 'react-markdown';
 import { Paper as PaperType, Analysis, PaperMetadata, CacheStatus, RelatedPaper } from '../services/api';
 
@@ -18,6 +18,80 @@ interface PaperDetailProps {
   onReloadMetadata: () => void;
   onAddRelatedPaper: (paperId: string, arxivId: string | null, title: string, authors: string[]) => void;
   onBack: () => void;
+}
+
+/**
+ * Calculate relevance score based on Semantic Scholar metrics
+ * Returns a score between 0-100
+ */
+function calculateRelevanceScore(paper: RelatedPaper, index: number, isRecommendation: boolean = false): number {
+  const citationCount = paper.citationCount || 0;
+  const influentialCount = paper.influentialCitationCount || 0;
+  
+  // Calculate influence ratio (0-1)
+  const influenceRatio = citationCount > 0 ? influentialCount / citationCount : 0;
+  
+  // For recommendations, position matters (earlier = more relevant)
+  const positionBonus = isRecommendation ? Math.max(0, (10 - index) * 2) : 0;
+  
+  // Combined score: citation count (log scale) + influence weight + position
+  // FIXED: Increased multiplier from 10 to 15 to make scores higher for average papers
+  const citationScore = Math.min(50, Math.log10(citationCount + 1) * 15);
+  const influenceScore = influenceRatio * 30;
+  
+  return Math.min(100, citationScore + influenceScore + positionBonus);
+}
+
+/**
+ * Get color and visual indicators based on relevance score
+ */
+function getRelevanceVisuals(score: number): {
+  bgColor: string;
+  borderColor: string;
+  badgeColor: string;
+  showIcon: boolean;
+  icon: typeof IconFlame;
+  label: string;
+} {
+  // FIXED: Lowered thresholds to ensure colors appear more often
+  if (score >= 60) { // Was 70
+    return {
+      bgColor: 'rgba(255, 220, 100, 0.4)', // More visible gold
+      borderColor: '#fab005',
+      badgeColor: 'yellow',
+      showIcon: true,
+      icon: IconFlame,
+      label: 'Highly Relevant',
+    };
+  } else if (score >= 40) { // Was 50
+    return {
+      bgColor: 'rgba(255, 245, 150, 0.35)', // More visible yellow
+      borderColor: '#fcc419',
+      badgeColor: 'yellow',
+      showIcon: true,
+      icon: IconTrendingUp,
+      label: 'Very Relevant',
+    };
+  } else if (score >= 20) { // Was 30
+    return {
+      bgColor: 'rgba(200, 230, 255, 0.3)', // More visible blue
+      borderColor: '#4dabf7',
+      badgeColor: 'blue',
+      showIcon: false,
+      icon: IconTrendingUp,
+      label: 'Relevant',
+    };
+  } else {
+    return {
+      // FIXED: Added slight background to lowest tier so borders are visible
+      bgColor: 'rgba(248, 249, 250, 0.5)', 
+      borderColor: '#dee2e6',
+      badgeColor: 'gray',
+      showIcon: false,
+      icon: IconTrendingUp,
+      label: 'Related',
+    };
+  }
 }
 
 export function PaperDetail({
@@ -344,68 +418,108 @@ export function PaperDetail({
                 </Accordion.Control>
                 <Accordion.Panel>
                   <Stack gap="md">
-                    {metadata.citations.map((citation, idx) => (
-                      <Card key={idx} p="sm" withBorder>
-                        <Stack gap="xs">
-                          <Group justify="space-between" align="flex-start">
-                            <Text size="sm" fw={600} style={{ flex: 1 }}>
-                              {citation.title || 'Untitled'}
-                            </Text>
-                            <Button
-                              size="xs"
-                              variant="light"
-                              leftSection={<IconPlus size={14} />}
-                              onClick={() => {
-                                if (citation.paperId && citation.title) {
-                                  const authorNames = citation.authors.map(a => a.name || 'Unknown');
-                                  onAddRelatedPaper(
-                                    citation.paperId,
-                                    citation.arxivId,
-                                    citation.title,
-                                    authorNames
-                                  );
-                                }
-                              }}
-                            >
-                              Add to List
-                            </Button>
-                          </Group>
-                          {citation.authors && citation.authors.length > 0 && (
-                            <Text size="xs" c="dimmed">
-                              {citation.authors.map(a => a.name).join(', ')}
-                            </Text>
-                          )}
-                          <Group gap="xs">
-                            {citation.year && <Badge size="xs" variant="outline">{citation.year}</Badge>}
-                            {citation.citationCount > 0 && (
-                              <Badge size="xs" variant="light" color="blue">
-                                {citation.citationCount} citations
-                              </Badge>
-                            )}
-                            {citation.arxivId && (
-                              <Badge size="xs" variant="light" color="green">
-                                ArXiv: {citation.arxivId}
-                              </Badge>
-                            )}
-                          </Group>
-                          {citation.url && (
-                            <Text
-                              size="xs"
-                              component="a"
-                              href={citation.url}
-                              target="_blank"
-                              c="blue"
-                              style={{ textDecoration: 'none' }}
-                            >
-                              <Group gap={4}>
-                                <IconLink size={12} />
-                                <span>View on Semantic Scholar</span>
+                    {/* Info banner if using old cached data */}
+                    {Array.isArray(metadata.citations) && metadata.citations.some(c => c.influentialCitationCount === undefined) && (
+                      <Alert color="blue" title="New Feature Available">
+                        Click "Reload" above to see relevance-based color highlighting for these papers!
+                      </Alert>
+                    )}
+                    {metadata.citations.map((citation, idx) => {
+                      const relevanceScore = calculateRelevanceScore(citation, idx, false);
+                      const visuals = getRelevanceVisuals(relevanceScore);
+                      const IconComponent = visuals.icon;
+                      
+                      return (
+                        <Box
+                          key={idx}
+                          style={{
+                            backgroundColor: visuals.bgColor,
+                            borderRadius: '8px',
+                            border: `${relevanceScore >= 40 ? '2px' : '1px'} solid ${visuals.borderColor}`,
+                            padding: '12px',
+                          }}
+                        >
+                          <Stack gap="xs">
+                            <Group justify="space-between" align="flex-start">
+                              <Group gap="xs" style={{ flex: 1 }}>
+                                {visuals.showIcon && (
+                                  <Tooltip label={`${visuals.label} (Score: ${relevanceScore.toFixed(0)})`}>
+                                    <div>
+                                      <IconComponent size={18} color={visuals.borderColor} />
+                                    </div>
+                                  </Tooltip>
+                                )}
+                                <Text size="sm" fw={600} style={{ flex: 1 }}>
+                                  {citation.title || 'Untitled'}
+                                </Text>
                               </Group>
-                            </Text>
-                          )}
-                        </Stack>
-                      </Card>
-                    ))}
+                              <Button
+                                size="xs"
+                                variant="light"
+                                leftSection={<IconPlus size={14} />}
+                                onClick={() => {
+                                  if (citation.paperId && citation.title) {
+                                    const authorNames = citation.authors.map(a => a.name || 'Unknown');
+                                    onAddRelatedPaper(
+                                      citation.paperId,
+                                      citation.arxivId,
+                                      citation.title,
+                                      authorNames
+                                    );
+                                  }
+                                }}
+                              >
+                                Add to List
+                              </Button>
+                            </Group>
+                            {citation.authors && citation.authors.length > 0 && (
+                              <Text size="xs" c="dimmed">
+                                {citation.authors.map(a => a.name).join(', ')}
+                              </Text>
+                            )}
+                            <Group gap="xs">
+                              {/* Temporary debug badge - remove after testing */}
+                              <Badge size="xs" variant="filled" color="violet">
+                                Score: {relevanceScore.toFixed(0)}
+                              </Badge>
+                              {citation.year && <Badge size="xs" variant="outline">{citation.year}</Badge>}
+                              {citation.citationCount > 0 && (
+                                <Badge size="xs" variant="light" color="blue">
+                                  {citation.citationCount} citations
+                                </Badge>
+                              )}
+                              {(citation.influentialCitationCount ?? 0) > 0 && (
+                                <Tooltip label="Citations deemed influential by Semantic Scholar's algorithm">
+                                  <Badge size="xs" variant="filled" color="orange">
+                                    {citation.influentialCitationCount} influential
+                                  </Badge>
+                                </Tooltip>
+                              )}
+                              {citation.arxivId && (
+                                <Badge size="xs" variant="light" color="green">
+                                  ArXiv: {citation.arxivId}
+                                </Badge>
+                              )}
+                            </Group>
+                            {citation.url && (
+                              <Text
+                                size="xs"
+                                component="a"
+                                href={citation.url}
+                                target="_blank"
+                                c="blue"
+                                style={{ textDecoration: 'none' }}
+                              >
+                                <Group gap={4}>
+                                  <IconLink size={12} />
+                                  <span>View on Semantic Scholar</span>
+                                </Group>
+                              </Text>
+                            )}
+                          </Stack>
+                        </Box>
+                      );
+                    })}
                   </Stack>
                 </Accordion.Panel>
               </Accordion.Item>
@@ -419,68 +533,108 @@ export function PaperDetail({
                 </Accordion.Control>
                 <Accordion.Panel>
                   <Stack gap="md">
-                    {metadata.recommendations.map((rec, idx) => (
-                      <Card key={idx} p="sm" withBorder>
-                        <Stack gap="xs">
-                          <Group justify="space-between" align="flex-start">
-                            <Text size="sm" fw={600} style={{ flex: 1 }}>
-                              {rec.title || 'Untitled'}
-                            </Text>
-                            <Button
-                              size="xs"
-                              variant="light"
-                              leftSection={<IconPlus size={14} />}
-                              onClick={() => {
-                                if (rec.paperId && rec.title) {
-                                  const authorNames = rec.authors.map(a => a.name || 'Unknown');
-                                  onAddRelatedPaper(
-                                    rec.paperId,
-                                    rec.arxivId,
-                                    rec.title,
-                                    authorNames
-                                  );
-                                }
-                              }}
-                            >
-                              Add to List
-                            </Button>
-                          </Group>
-                          {rec.authors && rec.authors.length > 0 && (
-                            <Text size="xs" c="dimmed">
-                              {rec.authors.map(a => a.name).join(', ')}
-                            </Text>
-                          )}
-                          <Group gap="xs">
-                            {rec.year && <Badge size="xs" variant="outline">{rec.year}</Badge>}
-                            {rec.citationCount > 0 && (
-                              <Badge size="xs" variant="light" color="blue">
-                                {rec.citationCount} citations
-                              </Badge>
-                            )}
-                            {rec.arxivId && (
-                              <Badge size="xs" variant="light" color="green">
-                                ArXiv: {rec.arxivId}
-                              </Badge>
-                            )}
-                          </Group>
-                          {rec.url && (
-                            <Text
-                              size="xs"
-                              component="a"
-                              href={rec.url}
-                              target="_blank"
-                              c="blue"
-                              style={{ textDecoration: 'none' }}
-                            >
-                              <Group gap={4}>
-                                <IconLink size={12} />
-                                <span>View on Semantic Scholar</span>
+                    {/* Info banner if using old cached data */}
+                    {Array.isArray(metadata.recommendations) && metadata.recommendations.some(r => r.influentialCitationCount === undefined) && (
+                      <Alert color="blue" title="New Feature Available">
+                        Click "Reload" above to see relevance-based color highlighting for these papers!
+                      </Alert>
+                    )}
+                    {metadata.recommendations.map((rec, idx) => {
+                      const relevanceScore = calculateRelevanceScore(rec, idx, true);
+                      const visuals = getRelevanceVisuals(relevanceScore);
+                      const IconComponent = visuals.icon;
+                      
+                      return (
+                        <Box
+                          key={idx}
+                          style={{
+                            backgroundColor: visuals.bgColor,
+                            borderRadius: '8px',
+                            border: `${relevanceScore >= 40 ? '2px' : '1px'} solid ${visuals.borderColor}`,
+                            padding: '12px',
+                          }}
+                        >
+                          <Stack gap="xs">
+                            <Group justify="space-between" align="flex-start">
+                              <Group gap="xs" style={{ flex: 1 }}>
+                                {visuals.showIcon && (
+                                  <Tooltip label={`${visuals.label} (Score: ${relevanceScore.toFixed(0)})`}>
+                                    <div>
+                                      <IconComponent size={18} color={visuals.borderColor} />
+                                    </div>
+                                  </Tooltip>
+                                )}
+                                <Text size="sm" fw={600} style={{ flex: 1 }}>
+                                  {rec.title || 'Untitled'}
+                                </Text>
                               </Group>
-                            </Text>
-                          )}
-                        </Stack>
-                      </Card>
-                    ))}
+                              <Button
+                                size="xs"
+                                variant="light"
+                                leftSection={<IconPlus size={14} />}
+                                onClick={() => {
+                                  if (rec.paperId && rec.title) {
+                                    const authorNames = rec.authors.map(a => a.name || 'Unknown');
+                                    onAddRelatedPaper(
+                                      rec.paperId,
+                                      rec.arxivId,
+                                      rec.title,
+                                      authorNames
+                                    );
+                                  }
+                                }}
+                              >
+                                Add to List
+                              </Button>
+                            </Group>
+                            {rec.authors && rec.authors.length > 0 && (
+                              <Text size="xs" c="dimmed">
+                                {rec.authors.map(a => a.name).join(', ')}
+                              </Text>
+                            )}
+                            <Group gap="xs">
+                              {/* Temporary debug badge - remove after testing */}
+                              <Badge size="xs" variant="filled" color="violet">
+                                Score: {relevanceScore.toFixed(0)}
+                              </Badge>
+                              {rec.year && <Badge size="xs" variant="outline">{rec.year}</Badge>}
+                              {rec.citationCount > 0 && (
+                                <Badge size="xs" variant="light" color="blue">
+                                  {rec.citationCount} citations
+                                </Badge>
+                              )}
+                              {(rec.influentialCitationCount ?? 0) > 0 && (
+                                <Tooltip label="Citations deemed influential by Semantic Scholar's algorithm">
+                                  <Badge size="xs" variant="filled" color="orange">
+                                    {rec.influentialCitationCount} influential
+                                  </Badge>
+                                </Tooltip>
+                              )}
+                              {rec.arxivId && (
+                                <Badge size="xs" variant="light" color="green">
+                                  ArXiv: {rec.arxivId}
+                                </Badge>
+                              )}
+                            </Group>
+                            {rec.url && (
+                              <Text
+                                size="xs"
+                                component="a"
+                                href={rec.url}
+                                target="_blank"
+                                c="blue"
+                                style={{ textDecoration: 'none' }}
+                              >
+                                <Group gap={4}>
+                                  <IconLink size={12} />
+                                  <span>View on Semantic Scholar</span>
+                                </Group>
+                              </Text>
+                            )}
+                          </Stack>
+                        </Box>
+                      );
+                    })}
                   </Stack>
                 </Accordion.Panel>
               </Accordion.Item>

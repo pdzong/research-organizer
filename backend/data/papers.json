@@ -1,5 +1,51 @@
 [
   {
+    "id": "2210.03629",
+    "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+    "authors": [
+      "Shunyu Yao",
+      "Jeffrey Zhao",
+      "Dian Yu",
+      "Nan Du",
+      "Izhak Shafran"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2210.03629",
+    "arxiv_id": "2210.03629",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-21T08:51:59.852774",
+        "metadata": "2026-01-21T10:18:12.578306",
+        "analysis": "2026-01-21T08:53:29.450759"
+      },
+      "markdown": "cache\\2210.03629\\markdown.md",
+      "metadata": "cache\\2210.03629\\metadata.json",
+      "analysis": "cache\\2210.03629\\analysis.json"
+    }
+  },
+  {
+    "id": "2504.13837",
+    "title": "Does Reinforcement Learning Really Incentivize Reasoning Capacity in LLMs Beyond the Base Model?",
+    "authors": [
+      "Yang Yue",
+      "Zhiqi Chen",
+      "Rui Lu",
+      "Andrew Zhao",
+      "Zhaokai Wang"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2504.13837",
+    "arxiv_id": "2504.13837",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-20T10:28:43.479524",
+        "metadata": "2026-01-20T10:29:00.191024",
+        "analysis": "2026-01-20T10:31:39.915248"
+      },
+      "markdown": "cache\\2504.13837\\markdown.md",
+      "metadata": "cache\\2504.13837\\metadata.json",
+      "analysis": "cache\\2504.13837\\analysis.json"
+    }
+  },
+  {
     "id": "2601.11496",
     "title": "The Poisoned Apple Effect: Strategic Manipulation of Mediated Markets via Technology Expansion of AI Agents",
     "authors": [
@@ -11,7 +57,7 @@
     "arxiv_id": "2601.11496",
     "cached": {
       "lastUpdated": {
-        "metadata": "2026-01-20T09:26:26.114617",
+        "metadata": "2026-01-21T10:21:18.601202",
         "markdown": "2026-01-20T09:26:59.493623",
         "analysis": "2026-01-20T09:28:03.450166"
       },
@@ -33,10 +79,12 @@
     "cached": {
       "lastUpdated": {
         "markdown": "2026-01-14T12:30:33.308281",
-        "metadata": "2026-01-17T18:00:44.625675"
+        "metadata": "2026-01-17T18:00:44.625675",
+        "analysis": "2026-01-21T10:20:56.083762"
       },
       "markdown": "cache\\2601.08225\\markdown.md",
-      "metadata": "cache\\2601.08225\\metadata.json"
+      "metadata": "cache\\2601.08225\\metadata.json",
+      "analysis": "cache\\2601.08225\\analysis.json"
     }
   },
   {
@@ -121,10 +169,12 @@
     "cached": {
       "lastUpdated": {
         "markdown": "2026-01-14T12:17:28.641206",
-        "analysis": "2026-01-14T12:18:26.226278"
+        "analysis": "2026-01-14T12:18:26.226278",
+        "metadata": "2026-01-21T10:19:04.458651"
       },
       "markdown": "cache\\2601.05242\\markdown.md",
-      "analysis": "cache\\2601.05242\\analysis.json"
+      "analysis": "cache\\2601.05242\\analysis.json",
+      "metadata": "cache\\2601.05242\\metadata.json"
     }
   },
   {
@@ -150,7 +200,7 @@
     "arxiv_id": "1706.03762",
     "cached": {
       "lastUpdated": {
-        "metadata": "2026-01-20T09:06:45.342385",
+        "metadata": "2026-01-21T10:28:29.532173",
         "markdown": "2026-01-20T09:06:49.377679",
         "analysis": "2026-01-20T09:13:35.554505"
       },
@@ -170,7 +220,7 @@
     "cached": {
       "lastUpdated": {
         "markdown": "2026-01-14T12:24:03.491268",
-        "metadata": "2026-01-14T12:24:17.215345"
+        "metadata": "2026-01-21T10:28:55.736475"
       },
       "markdown": "cache\\2303.08774\\markdown.md",
       "metadata": "cache\\2303.08774\\metadata.json"

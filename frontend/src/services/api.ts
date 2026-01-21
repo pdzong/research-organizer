@@ -107,6 +107,8 @@ export interface RelatedPaper {
   year: number | null;
   authors: Array<{ authorId: string | null; name: string | null }>;
   citationCount: number;
+  influentialCitationCount?: number;
+  referenceCount?: number;
   url: string | null;
   arxivId: string | null;
   externalIds: Record<string, any>;
