@@ -1,7 +1,7 @@
-import { Paper, Stack, Text, Button, Loader, Alert, Group, Divider, ScrollArea, Table, Badge, Accordion, Card, Tooltip, Box } from '@mantine/core';
-import { IconAlertCircle, IconSparkles, IconFileText, IconArrowLeft, IconChartBar, IconBook, IconUsers, IconCalendar, IconQuote, IconWorld, IconFileDescription, IconPlus, IconLink, IconTrendingUp, IconFlame } from '@tabler/icons-react';
+import { IconAlertCircle, IconSparkles, IconFileText, IconArrowLeft, IconChartBar, IconBook, IconUsers, IconCalendar, IconWorld, IconFileDescription, IconPlus, IconLink, IconTrendingUp, IconFlame, IconReload } from '@tabler/icons-react';
 import ReactMarkdown from 'react-markdown';
 import { Paper as PaperType, Analysis, PaperMetadata, CacheStatus, RelatedPaper } from '../services/api';
+import { useState } from 'react';
 
 interface PaperDetailProps {
   paper: PaperType;
@@ -35,7 +35,6 @@ function calculateRelevanceScore(paper: RelatedPaper, index: number, isRecommend
   const positionBonus = isRecommendation ? Math.max(0, (10 - index) * 2) : 0;
   
   // Combined score: citation count (log scale) + influence weight + position
-  // FIXED: Increased multiplier from 10 to 15 to make scores higher for average papers
   const citationScore = Math.min(50, Math.log10(citationCount + 1) * 15);
   const influenceScore = influenceRatio * 30;
   
@@ -43,55 +42,30 @@ function calculateRelevanceScore(paper: RelatedPaper, index: number, isRecommend
 }
 
 /**
- * Get color and visual indicators based on relevance score
+ * Get color classes based on relevance score
  */
-function getRelevanceVisuals(score: number): {
-  bgColor: string;
-  borderColor: string;
-  badgeColor: string;
-  showIcon: boolean;
-  icon: typeof IconFlame;
-  label: string;
-} {
-  // FIXED: Lowered thresholds to ensure colors appear more often
-  if (score >= 60) { // Was 70
-    return {
-      bgColor: 'rgba(255, 220, 100, 0.4)', // More visible gold
-      borderColor: '#fab005',
-      badgeColor: 'yellow',
-      showIcon: true,
-      icon: IconFlame,
-      label: 'Highly Relevant',
-    };
-  } else if (score >= 40) { // Was 50
-    return {
-      bgColor: 'rgba(255, 245, 150, 0.35)', // More visible yellow
-      borderColor: '#fcc419',
-      badgeColor: 'yellow',
-      showIcon: true,
-      icon: IconTrendingUp,
-      label: 'Very Relevant',
-    };
-  } else if (score >= 20) { // Was 30
-    return {
-      bgColor: 'rgba(200, 230, 255, 0.3)', // More visible blue
-      borderColor: '#4dabf7',
-      badgeColor: 'blue',
-      showIcon: false,
-      icon: IconTrendingUp,
-      label: 'Relevant',
-    };
+function getRelevanceClasses(score: number): string {
+  if (score >= 60) {
+    return 'border-amber-500/60 bg-amber-500/10 shadow-amber-500/20';
+  } else if (score >= 40) {
+    return 'border-yellow-500/60 bg-yellow-500/10 shadow-yellow-500/20';
+  } else if (score >= 20) {
+    return 'border-blue-500/60 bg-blue-500/10 shadow-blue-500/20';
   } else {
-    return {
-      // FIXED: Added slight background to lowest tier so borders are visible
-      bgColor: 'rgba(248, 249, 250, 0.5)', 
-      borderColor: '#dee2e6',
-      badgeColor: 'gray',
-      showIcon: false,
-      icon: IconTrendingUp,
-      label: 'Related',
-    };
+    return 'border-linear-dark-border bg-linear-dark-surface';
   }
+}
+
+/**
+ * Get icon for relevance score
+ */
+function getRelevanceIcon(score: number) {
+  if (score >= 60) {
+    return { Icon: IconFlame, color: 'text-amber-400', label: 'Highly Relevant' };
+  } else if (score >= 40) {
+    return { Icon: IconTrendingUp, color: 'text-yellow-400', label: 'Very Relevant' };
+  }
+  return null;
 }
 
 export function PaperDetail({
@@ -110,794 +84,611 @@ export function PaperDetail({
   onAddRelatedPaper,
   onBack,
 }: PaperDetailProps) {
-  return (
-    <Stack gap="md" h="100%">
-      <Group>
-        <Button
-          leftSection={<IconArrowLeft size={16} />}
-          variant="subtle"
-          onClick={onBack}
-        >
-          Back to List
-        </Button>
-      </Group>
+  const [activeSection, setActiveSection] = useState<string>('overview');
+  const [expandedAccordion, setExpandedAccordion] = useState<string | null>('overview');
 
-      <Paper shadow="sm" p="lg" withBorder>
-        <Stack gap="md">
-          <div>
-            <Text size="xl" fw={700}>
-              {paper.title}
-            </Text>
-            <Text size="sm" c="dimmed" mt="xs">
-              {paper.authors.join(', ')}
-            </Text>
-            {paper.arxiv_id && (
-              <Text size="sm" c="blue" mt="xs">
-                ArXiv ID: {paper.arxiv_id}
-              </Text>
+  const toggleAccordion = (section: string) => {
+    setExpandedAccordion(expandedAccordion === section ? null : section);
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      {/* Back Button */}
+      <button
+        onClick={onBack}
+        className="btn-secondary w-fit flex items-center gap-2"
+      >
+        <IconArrowLeft size={16} />
+        Back to Papers
+      </button>
+
+      {/* Paper Header */}
+      <div className="bento-card p-6">
+        <h1 className="text-2xl font-bold text-white mb-3">{paper.title}</h1>
+        <div className="flex items-center gap-2 text-sm text-linear-dark-muted mb-4">
+          <IconUsers size={14} />
+          <span>{paper.authors.join(', ')}</span>
+        </div>
+        {paper.arxiv_id && (
+          <span className="inline-block px-3 py-1 rounded-linear text-sm bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            ArXiv: {paper.arxiv_id}
+          </span>
+        )}
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={() => onParse(false)}
+          disabled={loading}
+          className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
+              {cacheStatus.has_markdown ? 'Reloading...' : 'Loading...'}
+            </>
+          ) : (
+            <>
+              <IconFileText size={16} />
+              {cacheStatus.has_markdown ? 'Reload Markdown' : 'Load Markdown'}
+            </>
+          )}
+        </button>
+
+        <button
+          onClick={() => onAnalyze(false)}
+          disabled={analyzing || !markdown}
+          className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {analyzing ? (
+            <>
+              <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin"></div>
+              {cacheStatus.has_analysis ? 'Regenerating...' : 'Analyzing...'}
+            </>
+          ) : (
+            <>
+              <IconSparkles size={16} />
+              {cacheStatus.has_analysis ? 'Regenerate Analysis' : 'Analyze Paper'}
+            </>
+          )}
+        </button>
+
+        <button
+          onClick={onReloadMetadata}
+          disabled={loadingMetadata}
+          className="btn-secondary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loadingMetadata ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+              Reloading Metadata...
+            </>
+          ) : (
+            <>
+              <IconReload size={16} />
+              Reload Metadata
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="bento-card p-4 border-red-500/50 bg-red-500/10">
+          <div className="flex items-center gap-2 text-red-400">
+            <IconAlertCircle size={18} />
+            <span className="text-sm">{error}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content Grid */}
+      {(markdown || summary || metadata) && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Sidebar - Metadata */}
+          <div className="lg:col-span-1 space-y-4">
+            {metadata && (
+              <div className="bento-card p-5 space-y-4">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <IconBook size={20} />
+                  Paper Metadata
+                </h3>
+
+                {/* Overview Section */}
+                <div>
+                  <button
+                    onClick={() => toggleAccordion('overview')}
+                    className="w-full flex justify-between items-center py-2 text-white hover:text-white/80 transition-colors"
+                  >
+                    <span className="font-medium">Overview</span>
+                    <span className="text-linear-dark-muted">{expandedAccordion === 'overview' ? '−' : '+'}</span>
+                  </button>
+                  {expandedAccordion === 'overview' && (
+                    <div className="mt-2 space-y-3 text-sm">
+                      {metadata.abstract && (
+                        <div>
+                          <p className="text-linear-dark-muted mb-1">Abstract</p>
+                          <p className="text-linear-dark-text leading-relaxed">{metadata.abstract}</p>
+                        </div>
+                      )}
+                      {metadata.tldr && (
+                        <div>
+                          <p className="text-linear-dark-muted mb-1 flex items-center gap-1">
+                            <IconQuote size={12} />
+                            TL;DR
+                          </p>
+                          <p className="text-linear-dark-text leading-relaxed italic">"{metadata.tldr}"</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-linear-dark-border"></div>
+
+                {/* Publication Info */}
+                <div>
+                  <button
+                    onClick={() => toggleAccordion('publication')}
+                    className="w-full flex justify-between items-center py-2 text-white hover:text-white/80 transition-colors"
+                  >
+                    <span className="font-medium">Publication Info</span>
+                    <span className="text-linear-dark-muted">{expandedAccordion === 'publication' ? '−' : '+'}</span>
+                  </button>
+                  {expandedAccordion === 'publication' && (
+                    <div className="mt-2 space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <IconCalendar size={14} className="text-linear-dark-muted" />
+                        <span className="text-linear-dark-text">{metadata.year || 'N/A'}</span>
+                      </div>
+                      {metadata.venue && (
+                        <div className="flex items-center gap-2">
+                          <IconWorld size={14} className="text-linear-dark-muted" />
+                          <span className="text-linear-dark-text">{metadata.venue}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <IconChartBar size={14} className="text-linear-dark-muted" />
+                        <span className="text-linear-dark-text">{metadata.citationCount || 0} citations</span>
+                      </div>
+                      {metadata.influentialCitationCount !== undefined && (
+                        <div className="flex items-center gap-2">
+                          <IconTrendingUp size={14} className="text-linear-dark-muted" />
+                          <span className="text-linear-dark-text">{metadata.influentialCitationCount} influential</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t border-linear-dark-border"></div>
+
+                {/* Authors */}
+                {metadata.authors && metadata.authors.length > 0 && (
+                  <>
+                    <div>
+                      <button
+                        onClick={() => toggleAccordion('authors')}
+                        className="w-full flex justify-between items-center py-2 text-white hover:text-white/80 transition-colors"
+                      >
+                        <span className="font-medium">Authors ({metadata.authors.length})</span>
+                        <span className="text-linear-dark-muted">{expandedAccordion === 'authors' ? '−' : '+'}</span>
+                      </button>
+                      {expandedAccordion === 'authors' && (
+                        <ul className="mt-2 space-y-1 text-sm">
+                          {metadata.authors.map((author, idx) => (
+                            <li key={idx} className="text-linear-dark-text">{author}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="border-t border-linear-dark-border"></div>
+                  </>
+                )}
+
+                {/* Fields of Study */}
+                {metadata.fieldsOfStudy && metadata.fieldsOfStudy.length > 0 && (
+                  <>
+                    <div>
+                      <button
+                        onClick={() => toggleAccordion('fields')}
+                        className="w-full flex justify-between items-center py-2 text-white hover:text-white/80 transition-colors"
+                      >
+                        <span className="font-medium">Fields of Study</span>
+                        <span className="text-linear-dark-muted">{expandedAccordion === 'fields' ? '−' : '+'}</span>
+                      </button>
+                      {expandedAccordion === 'fields' && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {metadata.fieldsOfStudy.map((field, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-1 rounded text-xs bg-purple-500/10 text-purple-400 border border-purple-500/20"
+                            >
+                              {field}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="border-t border-linear-dark-border"></div>
+                  </>
+                )}
+
+                {/* External Links */}
+                <div>
+                  <button
+                    onClick={() => toggleAccordion('links')}
+                    className="w-full flex justify-between items-center py-2 text-white hover:text-white/80 transition-colors"
+                  >
+                    <span className="font-medium">External Links</span>
+                    <span className="text-linear-dark-muted">{expandedAccordion === 'links' ? '−' : '+'}</span>
+                  </button>
+                  {expandedAccordion === 'links' && (
+                    <div className="mt-2 space-y-2 text-sm">
+                      {metadata.url && (
+                        <a
+                          href={metadata.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+                        >
+                          <IconLink size={14} />
+                          Semantic Scholar
+                        </a>
+                      )}
+                      {metadata.openAccessPdf && (
+                        <a
+                          href={metadata.openAccessPdf}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-green-400 hover:text-green-300 transition-colors"
+                        >
+                          <IconFileDescription size={14} />
+                          Open Access PDF
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 
-          {!markdown && !loading && (
-            <Button
-              leftSection={<IconFileText size={16} />}
-              onClick={() => onParse(false)}
-              size="lg"
-            >
-              {cacheStatus.markdown ? 'Load Paper Content (Cached)' : 'Load Paper Content'}
-            </Button>
-          )}
-          
-          {markdown && !loading && (
-            <Button
-              leftSection={<IconFileText size={16} />}
-              onClick={() => onParse(true)}
-              size="sm"
-              variant="light"
-            >
-              Reload Paper Content
-            </Button>
-          )}
+          {/* Main Content Area */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* AI Analysis */}
+            {summary && (
+              <div className="bento-card p-6 border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-transparent">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                  <IconSparkles size={20} className="text-amber-400" />
+                  AI Analysis
+                </h3>
 
-          {loading && (
-            <Group>
-              <Loader size="sm" />
-              <Text size="sm" c="dimmed">
-                Downloading and parsing PDF...
-              </Text>
-            </Group>
-          )}
+                {/* Paper Title */}
+                <div className="mb-4">
+                  <p className="text-xs text-linear-dark-muted mb-1">Paper Title</p>
+                  <p className="text-white font-medium">{summary.paper_title}</p>
+                </div>
 
-          {error && (
-            <Alert
-              icon={<IconAlertCircle size={16} />}
-              title="Error"
-              color="red"
-            >
-              {error}
-            </Alert>
-          )}
-        </Stack>
-      </Paper>
+                {/* Analysis Thought Process */}
+                {summary.analysis_thought_process && (
+                  <div className="mb-4">
+                    <p className="text-xs text-linear-dark-muted mb-1">Analysis Process</p>
+                    <p className="text-sm text-linear-dark-text italic">"{summary.analysis_thought_process}"</p>
+                  </div>
+                )}
 
-      {/* Semantic Scholar Metadata */}
-      {loadingMetadata && (
-        <Paper shadow="sm" p="lg" withBorder>
-          <Group>
-            <Loader size="sm" />
-            <Text size="sm" c="dimmed">
-              Loading metadata from Semantic Scholar...
-            </Text>
-          </Group>
-        </Paper>
-      )}
-
-      {metadata && metadata.success && (
-        <Paper shadow="sm" p="lg" withBorder>
-          <Group justify="space-between" mb="md">
-            <Text size="lg" fw={600}>
-              Paper Metadata
-            </Text>
-            <Button
-              size="xs"
-              variant="light"
-              onClick={onReloadMetadata}
-              loading={loadingMetadata}
-              disabled={loadingMetadata}
-            >
-              {loadingMetadata ? 'Reloading...' : 'Reload'}
-            </Button>
-          </Group>
-          <Accordion variant="separated">
-            {/* Overview */}
-            <Accordion.Item value="overview">
-              <Accordion.Control icon={<IconBook size={20} />}>
-                Overview & Citations
-              </Accordion.Control>
-              <Accordion.Panel>
-                <Stack gap="sm">
-                  {metadata.tldr && (
-                    <div>
-                      <Text size="sm" fw={600} c="dimmed">TL;DR</Text>
-                      <Text size="sm">{metadata.tldr}</Text>
-                    </div>
-                  )}
-                  {metadata.abstract && (
-                    <div>
-                      <Text size="sm" fw={600} c="dimmed">Abstract</Text>
-                      <Text size="sm">{metadata.abstract}</Text>
-                    </div>
-                  )}
-                  <Group gap="md">
-                    <Badge color="blue" leftSection={<IconQuote size={14} />}>
-                      {metadata.citationCount} citations
-                    </Badge>
-                    <Badge color="green">
-                      {metadata.influentialCitationCount} influential citations
-                    </Badge>
-                    <Badge color="gray">
-                      {metadata.referenceCount} references
-                    </Badge>
-                  </Group>
-                </Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
-
-            {/* Publication Info */}
-            <Accordion.Item value="publication">
-              <Accordion.Control icon={<IconCalendar size={20} />}>
-                Publication Information
-              </Accordion.Control>
-              <Accordion.Panel>
-                <Stack gap="sm">
-                  {metadata.year && (
-                    <div>
-                      <Text size="sm" fw={600} c="dimmed">Year</Text>
-                      <Text size="sm">{metadata.year}</Text>
-                    </div>
-                  )}
-                  {metadata.publicationDate && (
-                    <div>
-                      <Text size="sm" fw={600} c="dimmed">Publication Date</Text>
-                      <Text size="sm">{metadata.publicationDate}</Text>
-                    </div>
-                  )}
-                  {metadata.venue && (
-                    <div>
-                      <Text size="sm" fw={600} c="dimmed">Venue</Text>
-                      <Text size="sm">{metadata.venue}</Text>
-                    </div>
-                  )}
-                  {metadata.publicationVenue && metadata.publicationVenue.name && (
-                    <div>
-                      <Text size="sm" fw={600} c="dimmed">Publication Venue</Text>
-                      <Text size="sm">{metadata.publicationVenue.name}</Text>
-                      {metadata.publicationVenue.type && (
-                        <Badge size="xs" mt="xs">{metadata.publicationVenue.type}</Badge>
+                {/* Novelty Analysis */}
+                {summary.novelty && (
+                  <div className="mb-4 p-4 rounded-linear bg-linear-dark-surface border border-linear-dark-border">
+                    <p className="text-sm font-semibold text-white mb-2">Novelty Analysis</p>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <p className="text-linear-dark-muted">Status Quo:</p>
+                        <p className="text-linear-dark-text">{summary.novelty.status_quo}</p>
+                      </div>
+                      <div>
+                        <p className="text-linear-dark-muted">Proposed Change:</p>
+                        <p className="text-linear-dark-text">{summary.novelty.proposed_delta}</p>
+                      </div>
+                      <div>
+                        <p className="text-linear-dark-muted">Summary:</p>
+                        <p className="text-linear-dark-text">{summary.novelty.novelty_summary}</p>
+                      </div>
+                      {summary.novelty.real_world_analogy && (
+                        <div>
+                          <p className="text-linear-dark-muted">Real-World Analogy:</p>
+                          <p className="text-linear-dark-text italic">"{summary.novelty.real_world_analogy}"</p>
+                        </div>
                       )}
                     </div>
-                  )}
-                  {metadata.journal && metadata.journal.name && (
+                  </div>
+                )}
+
+                {/* Summary */}
+                {summary.summary && (
+                  <div className="mb-4 space-y-3">
                     <div>
-                      <Text size="sm" fw={600} c="dimmed">Journal</Text>
-                      <Text size="sm">
-                        {metadata.journal.name}
-                        {metadata.journal.volume && ` Vol. ${metadata.journal.volume}`}
-                        {metadata.journal.pages && `, pp. ${metadata.journal.pages}`}
-                      </Text>
+                      <p className="text-xs font-semibold text-white mb-1">Main Contribution</p>
+                      <p className="text-sm text-linear-dark-text">{summary.summary.main_contribution}</p>
                     </div>
-                  )}
-                  {metadata.isOpenAccess && (
-                    <Badge color="teal" leftSection={<IconWorld size={14} />}>
-                      Open Access
-                    </Badge>
-                  )}
-                </Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
-
-            {/* Authors */}
-            {metadata.authors && metadata.authors.length > 0 && (
-              <Accordion.Item value="authors">
-                <Accordion.Control icon={<IconUsers size={20} />}>
-                  Authors ({metadata.authors.length})
-                </Accordion.Control>
-                <Accordion.Panel>
-                  <Stack gap="xs">
-                    {metadata.authors.map((author, idx) => (
-                      <Group key={idx}>
-                        {author.url ? (
-                          <Text
-                            size="sm"
-                            component="a"
-                            href={author.url}
-                            target="_blank"
-                            c="blue"
-                            style={{ textDecoration: 'none' }}
-                          >
-                            {author.name}
-                          </Text>
-                        ) : (
-                          <Text size="sm">{author.name}</Text>
-                        )}
-                      </Group>
-                    ))}
-                  </Stack>
-                </Accordion.Panel>
-              </Accordion.Item>
-            )}
-
-            {/* Fields of Study */}
-            {(metadata.fieldsOfStudy?.length > 0 || metadata.s2FieldsOfStudy?.length > 0) && (
-              <Accordion.Item value="fields">
-                <Accordion.Control icon={<IconFileDescription size={20} />}>
-                  Fields of Study
-                </Accordion.Control>
-                <Accordion.Panel>
-                  <Stack gap="sm">
-                    {metadata.fieldsOfStudy && metadata.fieldsOfStudy.length > 0 && (
-                      <Group gap="xs">
-                        {metadata.fieldsOfStudy.map((field, idx) => (
-                          <Badge key={idx} variant="light">
-                            {field}
-                          </Badge>
-                        ))}
-                      </Group>
-                    )}
-                    {metadata.s2FieldsOfStudy && metadata.s2FieldsOfStudy.length > 0 && (
+                    <div>
+                      <p className="text-xs font-semibold text-white mb-1">Methodology</p>
+                      <p className="text-sm text-linear-dark-text">{summary.summary.methodology}</p>
+                    </div>
+                    {summary.summary.applications && (
                       <div>
-                        <Text size="sm" fw={600} c="dimmed" mb="xs">
-                          Semantic Scholar Fields
-                        </Text>
-                        <Group gap="xs">
-                          {metadata.s2FieldsOfStudy.map((field, idx) => (
-                            <Badge key={idx} color="indigo" variant="light">
-                              {field.category}
-                            </Badge>
-                          ))}
-                        </Group>
+                        <p className="text-xs font-semibold text-white mb-1">Applications</p>
+                        <p className="text-sm text-linear-dark-text">{summary.summary.applications}</p>
                       </div>
                     )}
-                  </Stack>
-                </Accordion.Panel>
-              </Accordion.Item>
+                    {summary.summary.limitations && (
+                      <div>
+                        <p className="text-xs font-semibold text-white mb-1">Limitations</p>
+                        <p className="text-sm text-linear-dark-text">{summary.summary.limitations}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Benchmarks */}
+                {summary.benchmarks && summary.benchmarks.length > 0 && (
+                  <div>
+                    <p className="text-sm font-semibold text-white mb-2">Benchmarks</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-linear-dark-border">
+                            <th className="text-left py-2 text-linear-dark-muted font-medium">Name</th>
+                            <th className="text-left py-2 text-linear-dark-muted font-medium">Score</th>
+                            <th className="text-left py-2 text-linear-dark-muted font-medium">Metric</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {summary.benchmarks.map((bench, idx) => (
+                            <tr key={idx} className="border-b border-linear-dark-border/50">
+                              <td className="py-2 text-linear-dark-text">{bench.name}</td>
+                              <td className="py-2 text-white font-medium">{bench.score}</td>
+                              <td className="py-2 text-linear-dark-text">{bench.metric}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
-            {/* External Links */}
-            <Accordion.Item value="links">
-              <Accordion.Control icon={<IconWorld size={20} />}>
-                External Links
-              </Accordion.Control>
-              <Accordion.Panel>
-                <Stack gap="sm">
-                  {metadata.url && (
-                    <Text
-                      size="sm"
-                      component="a"
-                      href={metadata.url}
-                      target="_blank"
-                      c="blue"
-                    >
-                      View on Semantic Scholar →
-                    </Text>
-                  )}
-                  {metadata.openAccessPdf && metadata.openAccessPdf.url && (
-                    <Text
-                      size="sm"
-                      component="a"
-                      href={metadata.openAccessPdf.url}
-                      target="_blank"
-                      c="blue"
-                    >
-                      Open Access PDF →
-                    </Text>
-                  )}
-                  {metadata.externalIds && Object.keys(metadata.externalIds).length > 0 && (
-                    <div>
-                      <Text size="sm" fw={600} c="dimmed" mb="xs">
-                        External IDs
-                      </Text>
-                      <Group gap="xs">
-                        {Object.entries(metadata.externalIds).map(([key, value]) => (
-                          <Badge key={key} size="sm" variant="outline">
-                            {key}: {value}
-                          </Badge>
-                        ))}
-                      </Group>
-                    </div>
-                  )}
-                </Stack>
-              </Accordion.Panel>
-            </Accordion.Item>
+            {/* Markdown Content */}
+            {markdown && (
+              <div className="bento-card p-6">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                  <IconFileText size={20} />
+                  Paper Content
+                </h3>
+                <div className="prose prose-invert prose-sm max-w-none overflow-auto max-h-[600px]">
+                  <ReactMarkdown
+                    components={{
+                      h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-white mt-6 mb-4" {...props} />,
+                      h2: ({ node, ...props }) => <h2 className="text-xl font-semibold text-white mt-5 mb-3" {...props} />,
+                      h3: ({ node, ...props }) => <h3 className="text-lg font-semibold text-white mt-4 mb-2" {...props} />,
+                      p: ({ node, ...props }) => <p className="text-linear-dark-text leading-relaxed mb-3" {...props} />,
+                      ul: ({ node, ...props }) => <ul className="list-disc list-inside text-linear-dark-text mb-3 space-y-1" {...props} />,
+                      ol: ({ node, ...props }) => <ol className="list-decimal list-inside text-linear-dark-text mb-3 space-y-1" {...props} />,
+                      li: ({ node, ...props }) => <li className="text-linear-dark-text" {...props} />,
+                      code: ({ node, inline, ...props }: any) => 
+                        inline ? (
+                          <code className="bg-linear-dark-surface px-1 py-0.5 rounded text-amber-400 text-xs" {...props} />
+                        ) : (
+                          <code className="block bg-linear-dark-surface p-3 rounded-linear text-linear-dark-text text-xs overflow-x-auto" {...props} />
+                        ),
+                      a: ({ node, ...props }) => <a className="text-blue-400 hover:text-blue-300 underline" {...props} />,
+                    }}
+                  >
+                    {markdown}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            )}
 
-            {/* Citations */}
-            {metadata.citations && Array.isArray(metadata.citations) && metadata.citations.length > 0 && (
-              <Accordion.Item value="citations">
-                <Accordion.Control icon={<IconQuote size={20} />}>
+            {/* Related Papers - Citations */}
+            {metadata && Array.isArray(metadata.citations) && metadata.citations.length > 0 && (
+              <div className="bento-card p-6">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                  <IconLink size={20} />
                   Papers Citing This Work ({metadata.citations.length})
-                </Accordion.Control>
-                <Accordion.Panel>
-                  <Stack gap="md">
-                    {/* Info banner if using old cached data */}
-                    {Array.isArray(metadata.citations) && metadata.citations.some(c => c.influentialCitationCount === undefined) && (
-                      <Alert color="blue" title="New Feature Available">
-                        Click "Reload" above to see relevance-based color highlighting for these papers!
-                      </Alert>
-                    )}
-                    {metadata.citations.map((citation, idx) => {
-                      const relevanceScore = calculateRelevanceScore(citation, idx, false);
-                      const visuals = getRelevanceVisuals(relevanceScore);
-                      const IconComponent = visuals.icon;
-                      
-                      return (
-                        <Box
-                          key={idx}
-                          style={{
-                            backgroundColor: visuals.bgColor,
-                            borderRadius: '8px',
-                            border: `${relevanceScore >= 40 ? '2px' : '1px'} solid ${visuals.borderColor}`,
-                            padding: '12px',
-                          }}
-                        >
-                          <Stack gap="xs">
-                            <Group justify="space-between" align="flex-start">
-                              <Group gap="xs" style={{ flex: 1 }}>
-                                {visuals.showIcon && (
-                                  <Tooltip label={`${visuals.label} (Score: ${relevanceScore.toFixed(0)})`}>
-                                    <div>
-                                      <IconComponent size={18} color={visuals.borderColor} />
-                                    </div>
-                                  </Tooltip>
-                                )}
-                                <Text size="sm" fw={600} style={{ flex: 1 }}>
-                                  {citation.title || 'Untitled'}
-                                </Text>
-                              </Group>
-                              <Button
-                                size="xs"
-                                variant="light"
-                                leftSection={<IconPlus size={14} />}
-                                onClick={() => {
-                                  if (citation.paperId && citation.title) {
-                                    const authorNames = citation.authors.map(a => a.name || 'Unknown');
-                                    onAddRelatedPaper(
-                                      citation.paperId,
-                                      citation.arxivId,
-                                      citation.title,
-                                      authorNames
-                                    );
-                                  }
-                                }}
-                              >
-                                Add to List
-                              </Button>
-                            </Group>
+                </h3>
+                <div className="space-y-3">
+                  {metadata.citations.map((citation, idx) => {
+                    const relevanceScore = calculateRelevanceScore(citation, idx, false);
+                    const classes = getRelevanceClasses(relevanceScore);
+                    const iconData = getRelevanceIcon(relevanceScore);
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`p-4 rounded-linear border-2 ${classes} transition-all duration-200`}
+                      >
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-start gap-2 mb-2">
+                              {iconData && (
+                                <iconData.Icon size={18} className={iconData.color} title={iconData.label} />
+                              )}
+                              <h4 className="text-sm font-semibold text-white">{citation.title || 'Untitled'}</h4>
+                            </div>
+                            
                             {citation.authors && citation.authors.length > 0 && (
-                              <Text size="xs" c="dimmed">
-                                {citation.authors.map(a => a.name).join(', ')}
-                              </Text>
+                              <p className="text-xs text-linear-dark-muted mb-2">
+                                {citation.authors.map((a: any) => a.name || 'Unknown').join(', ')}
+                              </p>
                             )}
-                            <Group gap="xs">
-                              {/* Temporary debug badge - remove after testing */}
-                              <Badge size="xs" variant="filled" color="violet">
-                                Score: {relevanceScore.toFixed(0)}
-                              </Badge>
-                              {citation.year && <Badge size="xs" variant="outline">{citation.year}</Badge>}
-                              {citation.citationCount > 0 && (
-                                <Badge size="xs" variant="light" color="blue">
+
+                            <div className="flex flex-wrap gap-2 items-center">
+                              {citation.year && (
+                                <span className="text-xs text-linear-dark-muted">{citation.year}</span>
+                              )}
+                              {citation.citationCount !== undefined && (
+                                <span className="px-2 py-0.5 rounded text-xs bg-gray-500/10 text-gray-400 border border-gray-500/20">
                                   {citation.citationCount} citations
-                                </Badge>
+                                </span>
                               )}
                               {(citation.influentialCitationCount ?? 0) > 0 && (
-                                <Tooltip label="Citations deemed influential by Semantic Scholar's algorithm">
-                                  <Badge size="xs" variant="filled" color="orange">
-                                    {citation.influentialCitationCount} influential
-                                  </Badge>
-                                </Tooltip>
+                                <span className="px-2 py-0.5 rounded text-xs bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                  {citation.influentialCitationCount} influential
+                                </span>
                               )}
                               {citation.arxivId && (
-                                <Badge size="xs" variant="light" color="green">
+                                <span className="px-2 py-0.5 rounded text-xs bg-green-500/10 text-green-400 border border-green-500/20">
                                   ArXiv: {citation.arxivId}
-                                </Badge>
+                                </span>
                               )}
-                            </Group>
+                              {/* Debug score badge */}
+                              <span className="px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                                Score: {relevanceScore.toFixed(0)}
+                              </span>
+                            </div>
+
                             {citation.url && (
-                              <Text
-                                size="xs"
-                                component="a"
+                              <a
                                 href={citation.url}
                                 target="_blank"
-                                c="blue"
-                                style={{ textDecoration: 'none' }}
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
                               >
-                                <Group gap={4}>
-                                  <IconLink size={12} />
-                                  <span>View on Semantic Scholar</span>
-                                </Group>
-                              </Text>
+                                <IconLink size={12} />
+                                View on Semantic Scholar
+                              </a>
                             )}
-                          </Stack>
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                </Accordion.Panel>
-              </Accordion.Item>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              if (citation.paperId && citation.title) {
+                                const authorNames = citation.authors.map((a: any) => a.name || 'Unknown');
+                                onAddRelatedPaper(
+                                  citation.paperId,
+                                  citation.arxivId,
+                                  citation.title,
+                                  authorNames
+                                );
+                              }
+                            }}
+                            className="btn-secondary text-xs py-1 px-2 flex items-center gap-1 flex-shrink-0"
+                            disabled={!citation.paperId || !citation.title}
+                          >
+                            <IconPlus size={12} />
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
 
-            {/* Recommendations */}
-            {metadata.recommendations && Array.isArray(metadata.recommendations) && metadata.recommendations.length > 0 && (
-              <Accordion.Item value="recommendations">
-                <Accordion.Control icon={<IconSparkles size={20} />}>
+            {/* Related Papers - Recommendations */}
+            {metadata && Array.isArray(metadata.recommendations) && metadata.recommendations.length > 0 && (
+              <div className="bento-card p-6">
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2 mb-4">
+                  <IconTrendingUp size={20} />
                   Recommended Related Papers ({metadata.recommendations.length})
-                </Accordion.Control>
-                <Accordion.Panel>
-                  <Stack gap="md">
-                    {/* Info banner if using old cached data */}
-                    {Array.isArray(metadata.recommendations) && metadata.recommendations.some(r => r.influentialCitationCount === undefined) && (
-                      <Alert color="blue" title="New Feature Available">
-                        Click "Reload" above to see relevance-based color highlighting for these papers!
-                      </Alert>
-                    )}
-                    {metadata.recommendations.map((rec, idx) => {
-                      const relevanceScore = calculateRelevanceScore(rec, idx, true);
-                      const visuals = getRelevanceVisuals(relevanceScore);
-                      const IconComponent = visuals.icon;
-                      
-                      return (
-                        <Box
-                          key={idx}
-                          style={{
-                            backgroundColor: visuals.bgColor,
-                            borderRadius: '8px',
-                            border: `${relevanceScore >= 40 ? '2px' : '1px'} solid ${visuals.borderColor}`,
-                            padding: '12px',
-                          }}
-                        >
-                          <Stack gap="xs">
-                            <Group justify="space-between" align="flex-start">
-                              <Group gap="xs" style={{ flex: 1 }}>
-                                {visuals.showIcon && (
-                                  <Tooltip label={`${visuals.label} (Score: ${relevanceScore.toFixed(0)})`}>
-                                    <div>
-                                      <IconComponent size={18} color={visuals.borderColor} />
-                                    </div>
-                                  </Tooltip>
-                                )}
-                                <Text size="sm" fw={600} style={{ flex: 1 }}>
-                                  {rec.title || 'Untitled'}
-                                </Text>
-                              </Group>
-                              <Button
-                                size="xs"
-                                variant="light"
-                                leftSection={<IconPlus size={14} />}
-                                onClick={() => {
-                                  if (rec.paperId && rec.title) {
-                                    const authorNames = rec.authors.map(a => a.name || 'Unknown');
-                                    onAddRelatedPaper(
-                                      rec.paperId,
-                                      rec.arxivId,
-                                      rec.title,
-                                      authorNames
-                                    );
-                                  }
-                                }}
-                              >
-                                Add to List
-                              </Button>
-                            </Group>
+                </h3>
+                <div className="space-y-3">
+                  {metadata.recommendations.map((rec, idx) => {
+                    const relevanceScore = calculateRelevanceScore(rec, idx, true);
+                    const classes = getRelevanceClasses(relevanceScore);
+                    const iconData = getRelevanceIcon(relevanceScore);
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`p-4 rounded-linear border-2 ${classes} transition-all duration-200`}
+                      >
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-start gap-2 mb-2">
+                              {iconData && (
+                                <iconData.Icon size={18} className={iconData.color} title={iconData.label} />
+                              )}
+                              <h4 className="text-sm font-semibold text-white">{rec.title || 'Untitled'}</h4>
+                            </div>
+                            
                             {rec.authors && rec.authors.length > 0 && (
-                              <Text size="xs" c="dimmed">
-                                {rec.authors.map(a => a.name).join(', ')}
-                              </Text>
+                              <p className="text-xs text-linear-dark-muted mb-2">
+                                {rec.authors.map((a: any) => a.name || 'Unknown').join(', ')}
+                              </p>
                             )}
-                            <Group gap="xs">
-                              {/* Temporary debug badge - remove after testing */}
-                              <Badge size="xs" variant="filled" color="violet">
-                                Score: {relevanceScore.toFixed(0)}
-                              </Badge>
-                              {rec.year && <Badge size="xs" variant="outline">{rec.year}</Badge>}
-                              {rec.citationCount > 0 && (
-                                <Badge size="xs" variant="light" color="blue">
+
+                            <div className="flex flex-wrap gap-2 items-center">
+                              {rec.year && (
+                                <span className="text-xs text-linear-dark-muted">{rec.year}</span>
+                              )}
+                              {rec.citationCount !== undefined && (
+                                <span className="px-2 py-0.5 rounded text-xs bg-gray-500/10 text-gray-400 border border-gray-500/20">
                                   {rec.citationCount} citations
-                                </Badge>
+                                </span>
                               )}
                               {(rec.influentialCitationCount ?? 0) > 0 && (
-                                <Tooltip label="Citations deemed influential by Semantic Scholar's algorithm">
-                                  <Badge size="xs" variant="filled" color="orange">
-                                    {rec.influentialCitationCount} influential
-                                  </Badge>
-                                </Tooltip>
+                                <span className="px-2 py-0.5 rounded text-xs bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                                  {rec.influentialCitationCount} influential
+                                </span>
                               )}
                               {rec.arxivId && (
-                                <Badge size="xs" variant="light" color="green">
+                                <span className="px-2 py-0.5 rounded text-xs bg-green-500/10 text-green-400 border border-green-500/20">
                                   ArXiv: {rec.arxivId}
-                                </Badge>
+                                </span>
                               )}
-                            </Group>
+                              {/* Debug score badge */}
+                              <span className="px-2 py-0.5 rounded text-xs bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                                Score: {relevanceScore.toFixed(0)}
+                              </span>
+                            </div>
+
                             {rec.url && (
-                              <Text
-                                size="xs"
-                                component="a"
+                              <a
                                 href={rec.url}
                                 target="_blank"
-                                c="blue"
-                                style={{ textDecoration: 'none' }}
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 mt-2 text-xs text-blue-400 hover:text-blue-300 transition-colors"
                               >
-                                <Group gap={4}>
-                                  <IconLink size={12} />
-                                  <span>View on Semantic Scholar</span>
-                                </Group>
-                              </Text>
+                                <IconLink size={12} />
+                                View on Semantic Scholar
+                              </a>
                             )}
-                          </Stack>
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                </Accordion.Panel>
-              </Accordion.Item>
-            )}
-          </Accordion>
-        </Paper>
-      )}
+                          </div>
 
-      {markdown && (
-        <>
-          <Paper shadow="sm" p="lg" withBorder>
-            <Group justify="space-between" mb="md">
-              <Text size="lg" fw={600}>
-                Analysis
-              </Text>
-              <Group gap="xs">
-                {!summary && (
-                  <Button
-                    leftSection={<IconSparkles size={16} />}
-                    onClick={() => onAnalyze(false)}
-                    loading={analyzing}
-                    disabled={analyzing}
-                  >
-                    {analyzing ? 'Analyzing...' : (cacheStatus.analysis ? 'Load Analysis (Cached)' : 'Analyze Paper')}
-                  </Button>
-                )}
-                {summary && (
-                  <Button
-                    leftSection={<IconSparkles size={16} />}
-                    onClick={() => onAnalyze(true)}
-                    loading={analyzing}
-                    disabled={analyzing}
-                    variant="light"
-                    size="sm"
-                  >
-                    {analyzing ? 'Regenerating...' : 'Regenerate Analysis'}
-                  </Button>
-                )}
-              </Group>
-            </Group>
-
-            {summary && (
-              <Stack gap="md">
-                {/* Novelty Analysis Section */}
-                <Paper p="md" withBorder bg="violet.0">
-                  <Text size="sm" fw={700} mb="md" c="violet.9">
-                    💡 What's New?
-                  </Text>
-                  
-                  <Stack gap="md">
-                    <div>
-                      <Text size="sm" fw={600} c="violet.9" mb="xs">
-                        Status Quo (The "Before")
-                      </Text>
-                      <Text size="sm">
-                        {summary.novelty.status_quo}
-                      </Text>
-                    </div>
-
-                    <div>
-                      <Text size="sm" fw={600} c="violet.9" mb="xs">
-                        Proposed Delta (The "After")
-                      </Text>
-                      <Text size="sm">
-                        {summary.novelty.proposed_delta}
-                      </Text>
-                    </div>
-
-                    <div>
-                      <Text size="sm" fw={600} c="violet.9" mb="xs">
-                        Innovation Summary
-                      </Text>
-                      <Text size="sm">
-                        {summary.novelty.novelty_summary}
-                      </Text>
-                    </div>
-
-                    <Paper p="sm" withBorder bg="violet.1">
-                      <Text size="xs" fw={600} c="violet.9" mb="xs">
-                        💭 Real-World Analogy
-                      </Text>
-                      <Text size="sm" fs="italic">
-                        {summary.novelty.real_world_analogy}
-                      </Text>
-                    </Paper>
-                  </Stack>
-                </Paper>
-
-                {/* Summary Section */}
-                <Paper p="md" withBorder bg="blue.0">
-                  <Text size="sm" fw={700} mb="md" c="blue.9">
-                    📄 Paper Summary
-                  </Text>
-                  
-                  <Stack gap="md">
-                    <div>
-                      <Text size="sm" fw={600} c="blue.9" mb="xs">
-                        Main Contribution
-                      </Text>
-                      <Text size="sm">
-                        {summary.summary.main_contribution}
-                      </Text>
-                    </div>
-
-                    <div>
-                      <Text size="sm" fw={600} c="blue.9" mb="xs">
-                        Methodology
-                      </Text>
-                      <Text size="sm">
-                        {summary.summary.methodology}
-                      </Text>
-                    </div>
-
-                    <div>
-                      <Text size="sm" fw={600} c="blue.9" mb="xs">
-                        Real-World Applications
-                      </Text>
-                      {summary.summary.applications && summary.summary.applications.length > 0 ? (
-                        <Stack gap="xs">
-                          {summary.summary.applications.map((app, idx) => (
-                            <Group key={idx} gap="xs">
-                              <Text size="sm">•</Text>
-                              <Text size="sm">{app}</Text>
-                            </Group>
-                          ))}
-                        </Stack>
-                      ) : (
-                        <Text size="sm" c="dimmed">No specific applications mentioned</Text>
-                      )}
-                    </div>
-
-                    <div>
-                      <Text size="sm" fw={600} c="blue.9" mb="xs">
-                        Limitations
-                      </Text>
-                      <Text size="sm">
-                        {summary.summary.limitations}
-                      </Text>
-                    </div>
-                  </Stack>
-                </Paper>
-
-                {/* Benchmarks Section */}
-                {summary.benchmarks && summary.benchmarks.length > 0 && (
-                  <Paper p="md" withBorder bg="green.0">
-                    <Group mb="md">
-                      <IconChartBar size={20} color="green" />
-                      <Text size="sm" fw={700} c="green.9">
-                        📊 Benchmark Results ({summary.benchmarks.length})
-                      </Text>
-                    </Group>
-                    
-                    <Table striped highlightOnHover withTableBorder>
-                      <Table.Thead>
-                        <Table.Tr>
-                          <Table.Th>Benchmark</Table.Th>
-                          <Table.Th>Score</Table.Th>
-                          <Table.Th>Metric</Table.Th>
-                          <Table.Th>Setting</Table.Th>
-                          <Table.Th>Source</Table.Th>
-                        </Table.Tr>
-                      </Table.Thead>
-                      <Table.Tbody>
-                        {summary.benchmarks.map((benchmark, idx) => (
-                          <Table.Tr 
-                            key={idx}
-                            bg={benchmark.is_this_paper_result ? undefined : 'gray.0'}
+                          <button
+                            onClick={() => {
+                              if (rec.paperId && rec.title) {
+                                const authorNames = rec.authors.map((a: any) => a.name || 'Unknown');
+                                onAddRelatedPaper(
+                                  rec.paperId,
+                                  rec.arxivId,
+                                  rec.title,
+                                  authorNames
+                                );
+                              }
+                            }}
+                            className="btn-secondary text-xs py-1 px-2 flex items-center gap-1 flex-shrink-0"
+                            disabled={!rec.paperId || !rec.title}
                           >
-                            <Table.Td>
-                              <Group gap="xs">
-                                <Badge 
-                                  color={benchmark.is_this_paper_result ? 'green' : 'gray'} 
-                                  variant="light"
-                                >
-                                  {benchmark.name}
-                                </Badge>
-                                {!benchmark.is_this_paper_result && (
-                                  <Badge size="xs" color="gray" variant="outline">
-                                    baseline
-                                  </Badge>
-                                )}
-                              </Group>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text fw={benchmark.is_this_paper_result ? 700 : 500}>
-                                {benchmark.score}
-                              </Text>
-                            </Table.Td>
-                            <Table.Td>
-                              <Text size="sm" c="dimmed">{benchmark.metric}</Text>
-                            </Table.Td>
-                            <Table.Td>
-                              {benchmark.setting ? (
-                                <Badge size="xs" variant="outline">
-                                  {benchmark.setting}
-                                </Badge>
-                              ) : (
-                                <Text size="xs" c="dimmed">-</Text>
-                              )}
-                            </Table.Td>
-                            <Table.Td>
-                              <Text 
-                                size="xs" 
-                                c="dimmed" 
-                                lineClamp={1}
-                                title={benchmark.source_quote}
-                                style={{ cursor: 'help', maxWidth: '200px' }}
-                              >
-                                {benchmark.source_quote}
-                              </Text>
-                            </Table.Td>
-                          </Table.Tr>
-                        ))}
-                      </Table.Tbody>
-                    </Table>
-                  </Paper>
-                )}
-              </Stack>
+                            <IconPlus size={12} />
+                            Add
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
-          </Paper>
-
-          <Divider my="sm" />
-
-          <Paper shadow="sm" p="lg" withBorder style={{ flex: 1, overflow: 'hidden' }}>
-            <Text size="lg" fw={600} mb="md">
-              Paper Content
-            </Text>
-            <ScrollArea h={600}>
-              <ReactMarkdown
-                components={{
-                  h1: ({ children }) => (
-                    <Text size="xl" fw={700} mt="xl" mb="md">
-                      {children}
-                    </Text>
-                  ),
-                  h2: ({ children }) => (
-                    <Text size="lg" fw={600} mt="lg" mb="sm">
-                      {children}
-                    </Text>
-                  ),
-                  h3: ({ children }) => (
-                    <Text size="md" fw={600} mt="md" mb="sm">
-                      {children}
-                    </Text>
-                  ),
-                  p: ({ children }) => (
-                    <Text size="sm" mb="md">
-                      {children}
-                    </Text>
-                  ),
-                  code: ({ children }) => (
-                    <Paper p="xs" bg="gray.1" component="code" style={{ fontFamily: 'monospace' }}>
-                      {children}
-                    </Paper>
-                  ),
-                }}
-              >
-                {markdown}
-              </ReactMarkdown>
-            </ScrollArea>
-          </Paper>
-        </>
+          </div>
+        </div>
       )}
-    </Stack>
+    </div>
   );
 }

@@ -1,14 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { MantineProvider } from '@mantine/core'
-import '@mantine/core/styles.css'
-import '@mantine/notifications/styles.css'
+import './index.css'
 import App from './App.tsx'
+
+// Add dark class to html element for TailwindCSS dark mode
+document.documentElement.classList.add('dark')
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <MantineProvider defaultColorScheme="light">
-      <App />
-    </MantineProvider>
+    <App />
   </React.StrictMode>,
 )

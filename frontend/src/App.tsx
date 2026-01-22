@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Container } from '@mantine/core';
-import { Notifications, notifications } from '@mantine/notifications';
 import { Layout } from './components/Layout';
 import { PaperList } from './components/PaperList';
 import { PaperDetail } from './components/PaperDetail';
@@ -18,6 +16,33 @@ import {
   PaperMetadata, 
   CacheStatus 
 } from './services/api';
+
+// Simple toast notification function
+function showToast(message: string, type: 'success' | 'error' = 'success') {
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-linear shadow-linear transition-all duration-300 ${
+    type === 'success' 
+      ? 'bg-green-500/20 border border-green-500/40 text-green-200' 
+      : 'bg-red-500/20 border border-red-500/40 text-red-200'
+  }`;
+  toast.textContent = message;
+  
+  document.body.appendChild(toast);
+  
+  // Fade in
+  setTimeout(() => {
+    toast.style.opacity = '1';
+  }, 10);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      document.body.removeChild(toast);
+    }, 300);
+  }, 3000);
+}
 
 function App() {
   const [papers, setPapers] = useState<Paper[]>([]);
@@ -187,25 +212,13 @@ function App() {
         const data = await fetchPapers();
         setPapers(data);
         
-        notifications.show({
-          title: 'Success',
-          message: `Added paper: ${response.paper.title}`,
-          color: 'green',
-        });
+        showToast(`Added paper: ${response.paper.title}`, 'success');
       } else {
-        notifications.show({
-          title: 'Error',
-          message: response.error || 'Failed to add paper',
-          color: 'red',
-        });
+        showToast(response.error || 'Failed to add paper', 'error');
       }
     } catch (err) {
       console.error('Error adding paper:', err);
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to add paper. Please check the URL and try again.',
-        color: 'red',
-      });
+      showToast('Failed to add paper. Please check the URL and try again.', 'error');
       throw err;
     }
   };
@@ -224,59 +237,44 @@ function App() {
         const data = await fetchPapers();
         setPapers(data);
         
-        notifications.show({
-          title: 'Success',
-          message: `Added paper: ${response.paper.title}`,
-          color: 'green',
-        });
+        showToast(`Added paper: ${response.paper.title}`, 'success');
       } else {
-        notifications.show({
-          title: 'Error',
-          message: response.error || 'Failed to add paper',
-          color: 'red',
-        });
+        showToast(response.error || 'Failed to add paper', 'error');
       }
     } catch (err) {
       console.error('Error adding related paper:', err);
-      notifications.show({
-        title: 'Error',
-        message: 'Failed to add related paper.',
-        color: 'red',
-      });
+      showToast('Failed to add related paper.', 'error');
     }
   };
 
   return (
     <Layout>
-      <Notifications />
-      <Container size="xl">
-        {!selectedPaper ? (
-          <PaperList
-            papers={papers}
-            loading={loading}
-            onSelectPaper={handleSelectPaper}
-            onAddPaper={handleAddPaper}
-            selectedPaperId={selectedPaper?.id || null}
-          />
-        ) : (
-          <PaperDetail
-            paper={selectedPaper}
-            markdown={markdown}
-            summary={summary}
-            metadata={metadata}
-            cacheStatus={cacheStatus}
-            loading={parsing}
-            analyzing={analyzing}
-            loadingMetadata={loadingMetadata}
-            error={error}
-            onParse={handleParsePaper}
-            onAnalyze={handleAnalyzePaper}
-            onReloadMetadata={handleReloadMetadata}
-            onAddRelatedPaper={handleAddRelatedPaper}
-            onBack={handleBack}
-          />
-        )}
-      </Container>
+      {!selectedPaper ? (
+        <PaperList
+          papers={papers}
+          loading={loading}
+          onSelectPaper={handleSelectPaper}
+          onAddPaper={handleAddPaper}
+          selectedPaperId={selectedPaper?.id || null}
+        />
+      ) : (
+        <PaperDetail
+          paper={selectedPaper}
+          markdown={markdown}
+          summary={summary}
+          metadata={metadata}
+          cacheStatus={cacheStatus}
+          loading={parsing}
+          analyzing={analyzing}
+          loadingMetadata={loadingMetadata}
+          error={error}
+          onParse={handleParsePaper}
+          onAnalyze={handleAnalyzePaper}
+          onReloadMetadata={handleReloadMetadata}
+          onAddRelatedPaper={handleAddRelatedPaper}
+          onBack={handleBack}
+        />
+      )}
     </Layout>
   );
 }
