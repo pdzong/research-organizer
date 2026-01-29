@@ -34,3 +34,14 @@ class PaperAnalysis(BaseModel):
     summary: Summary = Field(..., description="General summary of the paper.")
     github_repo: str = Field(..., description="Attached repository address containing the code created alongside this paper.")
     benchmarks: List[BenchmarkResult] = Field(..., description="List of all quantitative benchmarks found in tables or text.")
+
+
+class RelevanceDecision(BaseModel):
+    is_relevant: bool = Field(
+        ..., 
+        description="True if the paper provides technical methods, data, or insights directly applicable to the target application."
+    )
+    reasoning: str = Field(
+        ..., 
+        description="A single sentence explaining why it is relevant or why it was rejected."
+    )

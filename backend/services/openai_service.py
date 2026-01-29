@@ -1,7 +1,7 @@
 import os
 from openai import OpenAI
 from typing import Optional, Dict, Any
-from .models import PaperAnalysis
+from .models import PaperAnalysis, RelevanceDecision
 
 # Global client variable
 _client: Optional[OpenAI] = None
@@ -16,7 +16,7 @@ def get_openai_client() -> OpenAI:
         _client = OpenAI(api_key=api_key)
     return _client
 
-async def summarize_paper(markdown_text: str) -> Dict[str, Any]:
+async def summarize_paper(markdown_text: str, model_id: str = "gpt-5.2") -> Dict[str, Any]:
     """
     Summarize a research paper using Structured Outputs.
     
@@ -43,7 +43,7 @@ async def summarize_paper(markdown_text: str) -> Dict[str, Any]:
 
         # Using OpenAI's native Structured Outputs (beta.chat.completions.parse)
         response = client.responses.parse(
-            model="gpt-5.2", 
+            model=model_id, 
             input=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Analyze this paper:\n\n{markdown_text}"}
@@ -72,4 +72,63 @@ async def summarize_paper(markdown_text: str) -> Dict[str, Any]:
             "data": None,
             "usage": None,
             "error": str(e)
+        }
+
+
+async def is_paper_relevant(
+    application_context: str,
+    paper_title: str,
+    paper_abstract: str,
+    model_id: str = "gpt-5-nano" 
+) -> Dict[str, Any]:
+    """
+    Quickly filters a paper based on its Title and Abstract against a target Application.
+    """
+    try:
+        client = get_openai_client()
+        
+        system_prompt = """
+        You are a strict Research Curator. 
+        Your task is to filter academic papers for a specific engineering application.
+        
+        Criteria for Relevance:
+        1. Does this paper propose a method, model, or dataset useful for the target application?
+        2. Is it technically aligned (e.g., if the app is Computer Vision, reject pure NLP papers unless multimodal)?
+        
+        Output a boolean decision and a one-sentence justification.
+        """
+        
+        user_prompt = f"""
+        Target Application: "{application_context}"
+        
+        Candidate Paper:
+        - Title: {paper_title}
+        - Abstract: {paper_abstract}
+        """
+
+        response = client.responses.parse(
+            model=model_id,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            response_format=RelevanceDecision,
+        )
+        
+        result: RelevanceDecision = response.output_parsed
+        
+        return {
+            "success": True,
+            "decision": result.is_relevant,
+            "reason": result.reasoning
+        }
+
+    except Exception as e:
+        print(f"Filter Error on '{paper_title}': {e}")
+        # Fail safe: In case of error, we default to False (skip) or True (keep) depending on your preference.
+        # usually defaulting to False is safer to prevent pipeline clutter.
+        return {
+            "success": False, 
+            "decision": False, 
+            "reason": f"Error: {str(e)}"
         }

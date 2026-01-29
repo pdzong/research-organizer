@@ -1,5 +1,49 @@
 [
   {
+    "id": "2601.17058",
+    "title": "Can LLMs Clean Up Your Mess? A Survey of Application-Ready Data Preparation with LLMs",
+    "authors": [
+      "Wei Zhou",
+      "Jun Zhou",
+      "Haoyu Wang",
+      "Zhenghao Li",
+      "Qikang He"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.17058",
+    "arxiv_id": "2601.17058",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-01-29T11:43:17.502640",
+        "markdown": "2026-01-29T11:43:44.107829",
+        "analysis": "2026-01-29T11:44:13.963614"
+      },
+      "metadata": "cache\\2601.17058\\metadata.json",
+      "markdown": "cache\\2601.17058\\markdown.md",
+      "analysis": "cache\\2601.17058\\analysis.json"
+    }
+  },
+  {
+    "id": "2601.20614",
+    "title": "Harder Is Better: Boosting Mathematical Reasoning via Difficulty-Aware GRPO and Multi-Aspect Question Reformulation",
+    "authors": [
+      "Yanqi Dai",
+      "Yuxiang Ji",
+      "Xiao Zhang",
+      "Yong Wang",
+      "Xiangxiang Chu"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.20614",
+    "arxiv_id": "2601.20614",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-29T11:31:18.023644",
+        "analysis": "2026-01-29T11:32:43.717064"
+      },
+      "markdown": "cache\\2601.20614\\markdown.md",
+      "analysis": "cache\\2601.20614\\analysis.json"
+    }
+  },
+  {
     "id": "2601.16175",
     "title": "Learning to Discover at Test Time",
     "authors": [
