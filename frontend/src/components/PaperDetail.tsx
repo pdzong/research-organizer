@@ -768,6 +768,15 @@ export function PaperDetail({
 
                     <div>
                       <Text size="sm" fw={600} c="blue.9" mb="xs">
+                        Github repository
+                      </Text>
+                      <Text size="sm">
+                        {summary.github_repo}
+                      </Text>
+                    </div>
+
+                    <div>
+                      <Text size="sm" fw={600} c="blue.9" mb="xs">
                         Limitations
                       </Text>
                       <Text size="sm">

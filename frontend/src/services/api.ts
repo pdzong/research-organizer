@@ -52,6 +52,7 @@ export interface Analysis {
   paper_title: string;
   novelty: NoveltyAnalysis;
   summary: Summary;
+  github_repo: string;
   benchmarks: BenchmarkResult[];
 }
 

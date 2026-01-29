@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Linear-inspired dark mode styles */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  
+  body {
+    @apply bg-linear-dark-bg text-linear-dark-text;
+  }
+}
+
+@layer components {
+  /* Bento card with subtle border gradient */
+  .bento-card {
+    @apply bg-linear-dark-surface rounded-linear;
+    @apply border border-linear-dark-border;
+    @apply transition-all duration-200;
+    @apply shadow-linear hover:shadow-linear-hover;
+  }
+  
+  .bento-card-hover {
+    @apply hover:bg-linear-dark-hover cursor-pointer;
+  }
+  
+  /* Gradient border effect */
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+    background-clip: padding-box;
+    border: 1px solid transparent;
+  }
+  
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    margin: -1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15),
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.15)
+    );
+  }
+  
+  /* Button styles */
+  .btn-primary {
+    @apply bg-white text-black px-4 py-2 rounded-linear;
+    @apply font-medium transition-all duration-200;
+    @apply hover:bg-gray-200 shadow-linear;
+  }
+  
+  .btn-secondary {
+    @apply bg-linear-dark-surface text-linear-dark-text px-4 py-2 rounded-linear;
+    @apply font-medium transition-all duration-200;
+    @apply border border-linear-dark-border hover:border-white/20;
+  }
+  
+  /* Relevance colors for papers */
+  .relevance-high {
+    @apply border-amber-500/50 bg-amber-500/5;
+  }
+  
+  .relevance-medium {
+    @apply border-blue-500/50 bg-blue-500/5;
+  }
+  
+  .relevance-low {
+    @apply border-linear-dark-border bg-linear-dark-surface;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

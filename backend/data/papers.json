@@ -1,5 +1,143 @@
 [
   {
+    "id": "2601.16175",
+    "title": "Learning to Discover at Test Time",
+    "authors": [
+      "Mert Yuksekgonul",
+      "Daniel Koceja",
+      "Xinhao Li",
+      "Federico Bianchi",
+      "Jed McCaleb"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.16175",
+    "arxiv_id": "2601.16175",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-27T09:26:46.084554",
+        "analysis": "2026-01-27T09:27:54.932146",
+        "metadata": "2026-01-27T09:27:56.912877"
+      },
+      "markdown": "cache\\2601.16175\\markdown.md",
+      "analysis": "cache\\2601.16175\\analysis.json",
+      "metadata": "cache\\2601.16175\\metadata.json"
+    }
+  },
+  {
+    "id": "2510.08191",
+    "title": "Training-Free Group Relative Policy Optimization",
+    "authors": [
+      "Yuzheng Cai",
+      "Siqi Cai",
+      "Yuchen Shi",
+      "Zihan Xu",
+      "Lichao Chen"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2510.08191",
+    "arxiv_id": "2510.08191",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-26T11:45:50.705740",
+        "analysis": "2026-01-26T11:47:01.584359",
+        "metadata": "2026-01-26T11:47:34.399937"
+      },
+      "markdown": "cache\\2510.08191\\markdown.md",
+      "analysis": "cache\\2510.08191\\analysis.json",
+      "metadata": "cache\\2510.08191\\metadata.json"
+    }
+  },
+  {
+    "id": "2601.10825",
+    "title": "Reasoning Models Generate Societies of Thought",
+    "authors": [
+      "Junsol Kim",
+      "Shiyang Lai",
+      "Nino Scherrer",
+      "Blaise Agüera y Arcas",
+      "James Evans"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.10825",
+    "arxiv_id": "2601.10825",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-23T10:34:15.526175",
+        "metadata": "2026-01-23T10:34:15.534841",
+        "analysis": "2026-01-23T10:35:52.614161"
+      },
+      "markdown": "cache\\2601.10825\\markdown.md",
+      "metadata": "cache\\2601.10825\\metadata.json",
+      "analysis": "cache\\2601.10825\\analysis.json"
+    }
+  },
+  {
+    "id": "2506.08872",
+    "title": "Your Brain on ChatGPT: Accumulation of Cognitive Debt when Using an AI Assistant for Essay Writing Task",
+    "authors": [
+      "Nataliya Kosmyna",
+      "Eugene Hauptmann",
+      "Ye Tong Yuan",
+      "Jessica Situ",
+      "Xian-Hao Liao"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2506.08872",
+    "arxiv_id": "2506.08872",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-01-22T13:43:26.884256",
+        "markdown": "2026-01-22T13:43:28.072873",
+        "analysis": "2026-01-22T13:44:43.291420"
+      },
+      "metadata": "cache\\2506.08872\\metadata.json",
+      "markdown": "cache\\2506.08872\\markdown.md",
+      "analysis": "cache\\2506.08872\\analysis.json"
+    }
+  },
+  {
+    "id": "2511.21928",
+    "title": "Prompted Policy Search: Reinforcement Learning through Linguistic and Numerical Reasoning in LLMs",
+    "authors": [
+      "Yifan Zhou",
+      "Sachin Grover",
+      "Mohamed El Mistiri",
+      "Kamalesh Kalirathnam",
+      "Pratyush Kerhalkar"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2511.21928",
+    "arxiv_id": "2511.21928",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-22T12:55:09.344087",
+        "metadata": "2026-01-22T12:56:10.280854",
+        "analysis": "2026-01-22T13:13:29.752470"
+      },
+      "markdown": "cache\\2511.21928\\markdown.md",
+      "metadata": "cache\\2511.21928\\metadata.json",
+      "analysis": "cache\\2511.21928\\analysis.json"
+    }
+  },
+  {
+    "id": "2512.15274",
+    "title": "Well Begun, Half Done: Reinforcement Learning with Prefix Optimization for LLM Reasoning",
+    "authors": [
+      "Yiliu Sun",
+      "Zicheng Zhao",
+      "Yang Wei",
+      "Yanfang Zhang",
+      "Chen Gong"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2512.15274",
+    "arxiv_id": "2512.15274",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-01-22T12:36:56.339036",
+        "analysis": "2026-01-22T12:37:47.338820",
+        "metadata": "2026-01-22T12:37:49.103519"
+      },
+      "markdown": "cache\\2512.15274\\markdown.md",
+      "analysis": "cache\\2512.15274\\analysis.json",
+      "metadata": "cache\\2512.15274\\metadata.json"
+    }
+  },
+  {
     "id": "2210.03629",
     "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
     "authors": [
@@ -37,7 +175,7 @@
     "cached": {
       "lastUpdated": {
         "markdown": "2026-01-20T10:28:43.479524",
-        "metadata": "2026-01-20T10:29:00.191024",
+        "metadata": "2026-01-22T12:34:55.778134",
         "analysis": "2026-01-20T10:31:39.915248"
       },
       "markdown": "cache\\2504.13837\\markdown.md",

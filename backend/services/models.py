@@ -32,4 +32,5 @@ class PaperAnalysis(BaseModel):
     
     novelty: NoveltyAnalysis = Field(..., description="Deep dive into the paper's novelty.")
     summary: Summary = Field(..., description="General summary of the paper.")
+    github_repo: str = Field(..., description="Attached repository address containing the code created alongside this paper.")
     benchmarks: List[BenchmarkResult] = Field(..., description="List of all quantitative benchmarks found in tables or text.")

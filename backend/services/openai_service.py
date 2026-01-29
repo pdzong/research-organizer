@@ -42,17 +42,17 @@ async def summarize_paper(markdown_text: str) -> Dict[str, Any]:
         """
 
         # Using OpenAI's native Structured Outputs (beta.chat.completions.parse)
-        response = client.beta.chat.completions.parse(
+        response = client.responses.parse(
             model="gpt-5.2", 
-            messages=[
+            input=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Analyze this paper:\n\n{markdown_text}"}
             ],
-            response_format=PaperAnalysis,
+            text_format=PaperAnalysis,
         )
         
         # The SDK automatically validates and parses the JSON into your Pydantic model
-        analysis: PaperAnalysis = response.choices[0].message.parsed
+        analysis: PaperAnalysis = response.output_parsed
         
         # Convert Pydantic model to a clean dictionary
         # excluding the "thought_process" field if you don't want to show it in the UI
@@ -61,8 +61,8 @@ async def summarize_paper(markdown_text: str) -> Dict[str, Any]:
             "data": analysis.model_dump(exclude={"analysis_thought_process"}), 
             "usage": {
                 "model": response.model,
-                "input_tokens": response.usage.prompt_tokens,
-                "output_tokens": response.usage.completion_tokens
+                "input_tokens": response.usage.input_tokens,
+                "output_tokens": response.usage.output_tokens
             }
         }
     
