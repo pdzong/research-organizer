@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
+
 class BenchmarkResult(BaseModel):
     name: str = Field(..., description="The standardized name of the benchmark or dataset (e.g., ImageNet-1k, GSM8K).")
     score: str = Field(..., description="The numerical score achieved (e.g., '88.5%', '76.3').")
@@ -35,7 +36,6 @@ class PaperAnalysis(BaseModel):
     github_repo: str = Field(..., description="Attached repository address containing the code created alongside this paper.")
     benchmarks: List[BenchmarkResult] = Field(..., description="List of all quantitative benchmarks found in tables or text.")
 
-
 class RelevanceDecision(BaseModel):
     is_relevant: bool = Field(
         ..., 
@@ -45,3 +45,26 @@ class RelevanceDecision(BaseModel):
         ..., 
         description="A single sentence explaining why it is relevant or why it was rejected."
     )
+
+class ImplementationStep(BaseModel):
+    phase: str = Field(..., description="Phase name (e.g., 'Prototype', 'Scaling').")
+    action_items: List[str] = Field(..., description="Specific technical tasks.")
+    risk: str = Field(..., description="Primary risk in this phase.")
+
+class ROIAnalysis(BaseModel):
+    target_metric: str = Field(..., description="What number are we trying to improve? (e.g., 'Inference Latency', 'Diagnostic Accuracy').")
+    estimated_impact: str = Field(..., description="Projected improvement based on the papers analyzed.")
+    cost_driver: str = Field(..., description="The most expensive part of this solution (e.g., 'GPU Compute', 'Data Labeling').")
+
+class ApplicationPlan(BaseModel):
+    application_name: str = Field(..., description="A catchy but descriptive name for this solution.")
+    executive_summary: str = Field(..., description="The elevator pitch.")
+    
+    # Synthesis of the collection
+    key_enabling_papers: List[str] = Field(..., description="Which specific papers from the collection make this possible?")
+    technical_architecture: str = Field(..., description="High-level system design.")
+    
+    # The business logic
+    implementation_plan: List[ImplementationStep]
+    roi_analysis: ROIAnalysis
+    definition_of_done: str = Field(..., description="The specific criteria to declare the project a success.")

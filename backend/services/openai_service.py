@@ -108,11 +108,11 @@ async def is_paper_relevant(
 
         response = client.responses.parse(
             model=model_id,
-            messages=[
+            input=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            response_format=RelevanceDecision,
+            text_format=RelevanceDecision,
         )
         
         result: RelevanceDecision = response.output_parsed
