@@ -210,3 +210,19 @@ def save_application(application: Dict[str, Any], current_paper: Dict[str, Any],
     except Exception as e:
         print(f"Error saving application: {e}")
         return False
+
+def load_applications() -> list:
+    """
+    Load all applications from applications.json.
+    
+    Returns:
+        List of application entries, or empty list if file doesn't exist
+    """
+    try:
+        if APPLICATIONS_FILE.exists():
+            with open(APPLICATIONS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return []
+    except Exception as e:
+        print(f"Error loading applications: {e}")
+        return []

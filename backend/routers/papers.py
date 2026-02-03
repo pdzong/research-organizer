@@ -339,3 +339,22 @@ async def add_application(request: AddApplicationRequest):
             "message": None,
             "error": str(e)
         }
+
+@router.get("/applications")
+async def get_applications():
+    """
+    Get all saved applications from applications.json.
+    """
+    try:
+        applications = cache_service.load_applications()
+        return {
+            "success": True,
+            "applications": applications,
+            "error": None
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "applications": [],
+            "error": str(e)
+        }

@@ -4,6 +4,8 @@ import { Notifications, notifications } from '@mantine/notifications';
 import { Layout } from './components/Layout';
 import { PaperList } from './components/PaperList';
 import { PaperDetail } from './components/PaperDetail';
+import { ApplicationList } from './components/ApplicationList';
+import { ApplicationDetail } from './components/ApplicationDetail';
 import { 
   fetchPapers, 
   parsePaper, 
@@ -14,15 +16,21 @@ import {
   getCacheStatus, 
   addRelatedPaper,
   addApplication,
+  fetchApplications,
   Paper, 
   Analysis, 
   PaperMetadata, 
   CacheStatus,
   ApplicationIdea,
-  SimplePaperInfo
+  SimplePaperInfo,
+  ApplicationEntry
 } from './services/api';
 
 function App() {
+  // View state
+  const [currentView, setCurrentView] = useState<'papers' | 'applications'>('papers');
+  
+  // Papers state
   const [papers, setPapers] = useState<Paper[]>([]);
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [markdown, setMarkdown] = useState<string | null>(null);
@@ -34,6 +42,11 @@ function App() {
   const [analyzing, setAnalyzing] = useState(false);
   const [loadingMetadata, setLoadingMetadata] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Applications state
+  const [applications, setApplications] = useState<ApplicationEntry[]>([]);
+  const [selectedApplication, setSelectedApplication] = useState<ApplicationEntry | null>(null);
+  const [loadingApplications, setLoadingApplications] = useState(true);
 
   // Fetch papers on mount
   useEffect(() => {
@@ -51,6 +64,23 @@ function App() {
     };
 
     loadPapers();
+  }, []);
+
+  // Fetch applications on mount
+  useEffect(() => {
+    const loadApplications = async () => {
+      try {
+        setLoadingApplications(true);
+        const data = await fetchApplications();
+        setApplications(data);
+      } catch (err) {
+        console.error('Error fetching applications:', err);
+      } finally {
+        setLoadingApplications(false);
+      }
+    };
+
+    loadApplications();
   }, []);
 
   const handleSelectPaper = async (paper: Paper) => {
@@ -265,6 +295,10 @@ function App() {
       const response = await addApplication(application, currentPaper, relatedPapers);
       
       if (response.success) {
+        // Refresh applications list
+        const data = await fetchApplications();
+        setApplications(data);
+
         notifications.show({
           title: 'Success',
           message: response.message || 'Application saved successfully',
@@ -287,36 +321,73 @@ function App() {
     }
   };
 
+  const handleViewChange = (view: 'papers' | 'applications') => {
+    setCurrentView(view);
+    // Reset selections when switching views
+    setSelectedPaper(null);
+    setSelectedApplication(null);
+    setMarkdown(null);
+    setSummary(null);
+    setMetadata(null);
+    setError(null);
+  };
+
+  const handleSelectApplication = (application: ApplicationEntry) => {
+    setSelectedApplication(application);
+  };
+
+  const handleBackFromApplication = () => {
+    setSelectedApplication(null);
+  };
+
   return (
-    <Layout>
+    <Layout currentView={currentView} onViewChange={handleViewChange}>
       <Notifications />
       <Container size="xl">
-        {!selectedPaper ? (
-          <PaperList
-            papers={papers}
-            loading={loading}
-            onSelectPaper={handleSelectPaper}
-            onAddPaper={handleAddPaper}
-            selectedPaperId={selectedPaper?.id || null}
-          />
+        {currentView === 'papers' ? (
+          // Papers View
+          !selectedPaper ? (
+            <PaperList
+              papers={papers}
+              loading={loading}
+              onSelectPaper={handleSelectPaper}
+              onAddPaper={handleAddPaper}
+              selectedPaperId={selectedPaper?.id || null}
+            />
+          ) : (
+            <PaperDetail
+              paper={selectedPaper}
+              markdown={markdown}
+              summary={summary}
+              metadata={metadata}
+              cacheStatus={cacheStatus}
+              loading={parsing}
+              analyzing={analyzing}
+              loadingMetadata={loadingMetadata}
+              error={error}
+              onParse={handleParsePaper}
+              onAnalyze={handleAnalyzePaper}
+              onReloadMetadata={handleReloadMetadata}
+              onAddRelatedPaper={handleAddRelatedPaper}
+              onAddApplication={handleAddApplication}
+              onBack={handleBack}
+            />
+          )
         ) : (
-          <PaperDetail
-            paper={selectedPaper}
-            markdown={markdown}
-            summary={summary}
-            metadata={metadata}
-            cacheStatus={cacheStatus}
-            loading={parsing}
-            analyzing={analyzing}
-            loadingMetadata={loadingMetadata}
-            error={error}
-            onParse={handleParsePaper}
-            onAnalyze={handleAnalyzePaper}
-            onReloadMetadata={handleReloadMetadata}
-            onAddRelatedPaper={handleAddRelatedPaper}
-            onAddApplication={handleAddApplication}
-            onBack={handleBack}
-          />
+          // Applications View
+          !selectedApplication ? (
+            <ApplicationList
+              applications={applications}
+              loading={loadingApplications}
+              onSelectApplication={handleSelectApplication}
+              selectedApplicationId={selectedApplication?.id || null}
+            />
+          ) : (
+            <ApplicationDetail
+              application={selectedApplication}
+              onBack={handleBackFromApplication}
+            />
+          )
         )}
       </Container>
     </Layout>

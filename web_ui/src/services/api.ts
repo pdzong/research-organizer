@@ -228,3 +228,22 @@ export const addApplication = async (
   });
   return response.data;
 };
+
+export interface ApplicationEntry {
+  id: string;
+  application: ApplicationIdea;
+  current_paper: SimplePaperInfo;
+  related_papers: SimplePaperInfo[];
+  added_at: string;
+}
+
+export interface FetchApplicationsResponse {
+  success: boolean;
+  applications: ApplicationEntry[];
+  error?: string;
+}
+
+export const fetchApplications = async (): Promise<ApplicationEntry[]> => {
+  const response = await apiClient.get<FetchApplicationsResponse>('/applications');
+  return response.data.applications;
+};
