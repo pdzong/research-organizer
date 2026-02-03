@@ -1,5 +1,28 @@
 [
   {
+    "id": "2601.21558",
+    "title": "ASTRA: Automated Synthesis of agentic Trajectories and Reinforcement Arenas",
+    "authors": [
+      "Xiaoyu Tian",
+      "Haotian Wang",
+      "Shuaiting Chen",
+      "Hao Zhou",
+      "Kaichi Yu"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.21558",
+    "arxiv_id": "2601.21558",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-02-02T13:21:24.550147",
+        "metadata": "2026-02-02T13:21:54.928730",
+        "analysis": "2026-02-02T13:22:58.667862"
+      },
+      "markdown": "cache\\2601.21558\\markdown.md",
+      "metadata": "cache\\2601.21558\\metadata.json",
+      "analysis": "cache\\2601.21558\\analysis.json"
+    }
+  },
+  {
     "id": "2601.17058",
     "title": "Can LLMs Clean Up Your Mess? A Survey of Application-Ready Data Preparation with LLMs",
     "authors": [

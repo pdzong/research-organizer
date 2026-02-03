@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import csv
 from pathlib import Path
 from datetime import datetime
@@ -7,6 +7,7 @@ from cache_service import load_analysis, load_metadata, load_markdown, save_mark
 from some_extensions.research_tools import arxiv_search_tool
 from semantic_scholar import get_paper_metadata
 from openai_service import is_paper_relevant, summarize_paper
+from models import ApplicationIdea, PaperAnalysis
 from pdf_parser import download_and_parse_paper
 import asyncio
 
@@ -45,26 +46,30 @@ async def extract_markdown(paper_id):
 
 async def analyze_deeply(root_paper_arxiv_id: str) -> Optional[Dict[str, Any]]:
     base_article_analysis = load_analysis(root_paper_arxiv_id)    
-    applications = base_article_analysis['data']['summary']['applications']
-
+    analysis_object: PaperAnalysis = PaperAnalysis.model_validate(base_article_analysis["data"])
+    application_ideas = analysis_object.summary.applications
     model_id = "gpt-5-mini"
     csv_rows = []
     
-    for application_context in applications:
-        print(f"Started analysis for: {application_context}")
-        search_results = arxiv_search_tool(application_context, 10)
+    for application_idea in application_ideas:
+        print(f"Started analysis for: {application_idea}")
+        search_results = arxiv_search_tool(application_idea.domain, 10)
         metadata = load_metadata(root_paper_arxiv_id)
         arxiv_ids = extract_arxiv_ids(search_results, metadata)
         arxiv_ids.append(root_paper_arxiv_id)
-        
         async def process_paper(paper_id: str):        
-            related_paper_metadata = load_metadata(paper_id)
+            related_paper_metadata = load_metadata(paper_id)            
+            if not related_paper_metadata:
+                related_paper_metadata = await get_paper_metadata(paper_id)
+                if not related_paper_metadata["success"]:
+                    related_paper_metadata = None                
+
             if related_paper_metadata:
-                relevancy = await is_paper_relevant(application_context, related_paper_metadata["title"], related_paper_metadata["abstract"], model_id)
+                relevancy = await is_paper_relevant(application_idea, related_paper_metadata["title"], related_paper_metadata["abstract"], model_id)
                 
                 # Record to CSV data
                 csv_rows.append({
-                    'application_context': application_context,
+                    'application_context': application_idea.specific_utility,
                     'related_paper_title': related_paper_metadata["title"],
                     'related_paper_summary': related_paper_metadata["abstract"],
                     'relevancy_decision': relevancy["decision"],
@@ -107,4 +112,4 @@ async def analyze_deeply(root_paper_arxiv_id: str) -> Optional[Dict[str, Any]]:
 
 if __name__ == "__main__":
     
-    asyncio.run(analyze_deeply("2601.17058"))
+    asyncio.run(analyze_deeply("2601.21558"))

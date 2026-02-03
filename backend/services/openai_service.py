@@ -1,7 +1,7 @@
 import os
 from openai import OpenAI
 from typing import Optional, Dict, Any
-from .models import PaperAnalysis, RelevanceDecision
+from models import PaperAnalysis, RelevanceDecision, ApplicationIdea
 
 # Global client variable
 _client: Optional[OpenAI] = None
@@ -76,7 +76,7 @@ async def summarize_paper(markdown_text: str, model_id: str = "gpt-5.2") -> Dict
 
 
 async def is_paper_relevant(
-    application_context: str,
+    application_idea: ApplicationIdea,
     paper_title: str,
     paper_abstract: str,
     model_id: str = "gpt-5-nano" 
@@ -99,7 +99,8 @@ async def is_paper_relevant(
         """
         
         user_prompt = f"""
-        Target Application: "{application_context}"
+        Target Application (JSON): 
+        {application_idea.model_dump_json(indent=2)}
         
         Candidate Paper:
         - Title: {paper_title}

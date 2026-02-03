@@ -1,6 +1,10 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import List, Optional, Any
+from pydantic import BaseModel, Field, model_validator
 
+
+class ApplicationIdea(BaseModel):
+    domain: str = Field(..., description="Short keyword for search queries (e.g., 'Robotic Manipulation').")
+    specific_utility: str = Field(..., description="Specific explanation of how this paper's method applies. Format: '[Action] by [Mechanism]'. Example: 'Enables precise robotic hand angle adjustments by calculating spatial distance between visual features.'")
 
 class BenchmarkResult(BaseModel):
     name: str = Field(..., description="The standardized name of the benchmark or dataset (e.g., ImageNet-1k, GSM8K).")
@@ -21,15 +25,29 @@ class NoveltyAnalysis(BaseModel):
 class Summary(BaseModel):
     main_contribution: str = Field(..., description="The key innovation or finding.")
     methodology: str = Field(..., description="The approach or methods used.")
-    applications: List[str] = Field(..., description="Real-world use cases mentioned (e.g., 'Medical Diagnosis', 'Robotics').")
+    applications: List[ApplicationIdea] = Field(..., description="List of potential real-world applications derived from this method.")
     limitations: str = Field(..., description="Notable limitations or future work mentioned.")
+    
+    @model_validator(mode='before')
+    @classmethod
+    def handle_legacy_string_format(cls, data: Any) -> Any:
+        """Handle old saved summaries that were just a single string value."""
+        if isinstance(data, str):
+            # Convert old string format to new structured format
+            return {
+                'main_contribution': data,
+                'methodology': 'Legacy format - details not available',
+                'applications': [],
+                'limitations': 'Legacy format - details not available'
+            }
+        return data
 
 class PaperAnalysis(BaseModel):
     paper_title: str = Field(..., description="The exact title of the research paper.")
     
     # The "Reasoning" Scratchpad: The LLM fills this first to 'think' 
     # This improves the quality of the subsequent fields significantly.
-    analysis_thought_process: str = Field(..., description="Step-by-step reasoning: First, list related work mentions. Second, identify the gap. Third, summarize the author's specific solution.")
+    analysis_thought_process: Optional[str] = Field(default=None, description="Step-by-step reasoning: First, list related work mentions. Second, identify the gap. Third, summarize the author's specific solution.")
     
     novelty: NoveltyAnalysis = Field(..., description="Deep dive into the paper's novelty.")
     summary: Summary = Field(..., description="General summary of the paper.")

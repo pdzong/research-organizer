@@ -41,10 +41,15 @@ export interface NoveltyAnalysis {
   real_world_analogy: string;
 }
 
+export interface ApplicationIdea {
+  domain: string;
+  specific_utility: string;
+}
+
 export interface Summary {
   main_contribution: string;
   methodology: string;
-  applications: string[];
+  applications: (ApplicationIdea | string)[]; // Support both old (string) and new (ApplicationIdea) formats
   limitations: string;
 }
 
