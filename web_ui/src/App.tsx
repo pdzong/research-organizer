@@ -13,10 +13,13 @@ import {
   getCachedAnalysis, 
   getCacheStatus, 
   addRelatedPaper,
+  addApplication,
   Paper, 
   Analysis, 
   PaperMetadata, 
-  CacheStatus 
+  CacheStatus,
+  ApplicationIdea,
+  SimplePaperInfo
 } from './services/api';
 
 function App() {
@@ -246,6 +249,44 @@ function App() {
     }
   };
 
+  const handleAddApplication = async (
+    application: ApplicationIdea,
+    relatedPapers: SimplePaperInfo[]
+  ) => {
+    if (!selectedPaper) return;
+
+    try {
+      const currentPaper: SimplePaperInfo = {
+        title: selectedPaper.title,
+        authors: selectedPaper.authors,
+        arxiv_id: selectedPaper.arxiv_id || undefined
+      };
+
+      const response = await addApplication(application, currentPaper, relatedPapers);
+      
+      if (response.success) {
+        notifications.show({
+          title: 'Success',
+          message: response.message || 'Application saved successfully',
+          color: 'green',
+        });
+      } else {
+        notifications.show({
+          title: 'Error',
+          message: response.error || 'Failed to save application',
+          color: 'red',
+        });
+      }
+    } catch (err) {
+      console.error('Error adding application:', err);
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to save application.',
+        color: 'red',
+      });
+    }
+  };
+
   return (
     <Layout>
       <Notifications />
@@ -273,6 +314,7 @@ function App() {
             onAnalyze={handleAnalyzePaper}
             onReloadMetadata={handleReloadMetadata}
             onAddRelatedPaper={handleAddRelatedPaper}
+            onAddApplication={handleAddApplication}
             onBack={handleBack}
           />
         )}

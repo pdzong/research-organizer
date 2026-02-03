@@ -54,6 +54,21 @@ class MetadataResponse(BaseModel):
     error: Optional[str] = None
     from_cache: Optional[bool] = False
 
+class SimplePaperInfo(BaseModel):
+    title: str
+    authors: List[str]
+    arxiv_id: Optional[str] = None
+
+class AddApplicationRequest(BaseModel):
+    application: Dict  # Contains domain and specific_utility
+    current_paper: SimplePaperInfo
+    related_papers: List[SimplePaperInfo]
+
+class AddApplicationResponse(BaseModel):
+    success: bool
+    message: Optional[str] = None
+    error: Optional[str] = None
+
 @router.get("/papers", response_model=List[PaperResponse])
 async def get_papers():
     """
@@ -298,3 +313,29 @@ async def get_cache_status(arxiv_id: str):
         arxiv_id: The ArXiv ID
     """
     return cache_service.get_cache_status(arxiv_id)
+
+@router.post("/applications/add", response_model=AddApplicationResponse)
+async def add_application(request: AddApplicationRequest):
+    """
+    Add an application idea to the applications.json file.
+    
+    Args:
+        request: AddApplicationRequest with application data, current paper, and related papers
+    """
+    try:
+        cache_service.save_application(
+            application=request.application,
+            current_paper=request.current_paper.dict(),
+            related_papers=[p.dict() for p in request.related_papers]
+        )
+        return {
+            "success": True,
+            "message": f"Application '{request.application.get('domain', 'Unknown')}' saved successfully",
+            "error": None
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": None,
+            "error": str(e)
+        }

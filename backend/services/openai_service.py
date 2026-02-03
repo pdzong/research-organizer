@@ -1,7 +1,7 @@
 import os
 from openai import OpenAI
 from typing import Optional, Dict, Any
-from models import PaperAnalysis, RelevanceDecision, ApplicationIdea
+from .models import PaperAnalysis, RelevanceDecision, ApplicationIdea
 
 # Global client variable
 _client: Optional[OpenAI] = None

@@ -7,6 +7,7 @@ from datetime import datetime
 # Cache directory structure
 CACHE_DIR = Path(__file__).parent.parent / "data" / "cache"
 PAPERS_FILE = Path(__file__).parent.parent / "data" / "papers.json"
+APPLICATIONS_FILE = CACHE_DIR / "applications.json"
 
 def ensure_cache_dir(arxiv_id: str) -> Path:
     """Ensure cache directory exists for a paper."""
@@ -164,4 +165,48 @@ def clear_cache(arxiv_id: str, cache_type: Optional[str] = None) -> bool:
         return True
     except Exception as e:
         print(f"Error clearing cache: {e}")
+        return False
+
+def save_application(application: Dict[str, Any], current_paper: Dict[str, Any], related_papers: list) -> bool:
+    """
+    Save an application idea to applications.json.
+    
+    Args:
+        application: Dict with 'domain' and 'specific_utility' fields
+        current_paper: Dict with 'title', 'authors', and optional 'arxiv_id'
+        related_papers: List of dicts, each with 'title', 'authors', and optional 'arxiv_id'
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        # Ensure cache directory exists
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # Load existing applications or create new list
+        applications = []
+        if APPLICATIONS_FILE.exists():
+            with open(APPLICATIONS_FILE, 'r', encoding='utf-8') as f:
+                applications = json.load(f)
+        
+        # Create new application entry
+        new_entry = {
+            "id": datetime.utcnow().isoformat(),
+            "application": application,
+            "current_paper": current_paper,
+            "related_papers": related_papers,
+            "added_at": datetime.utcnow().isoformat()
+        }
+        
+        applications.append(new_entry)
+        
+        # Save back to file
+        with open(APPLICATIONS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(applications, f, indent=2, ensure_ascii=False)
+        
+        print(f"Saved application '{application.get('domain', 'Unknown')}' to applications.json")
+        return True
+    
+    except Exception as e:
+        print(f"Error saving application: {e}")
         return False

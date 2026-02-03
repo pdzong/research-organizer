@@ -1,7 +1,7 @@
-import { Paper, Stack, Text, Button, Loader, Alert, Group, Divider, ScrollArea, Table, Badge, Accordion, Card, Tooltip, Box } from '@mantine/core';
+import { Paper, Stack, Text, Button, Loader, Alert, Group, Divider, ScrollArea, Table, Badge, Accordion, Tooltip, Box } from '@mantine/core';
 import { IconAlertCircle, IconSparkles, IconFileText, IconArrowLeft, IconChartBar, IconBook, IconUsers, IconCalendar, IconQuote, IconWorld, IconFileDescription, IconPlus, IconLink, IconTrendingUp, IconFlame, IconBulb } from '@tabler/icons-react';
 import ReactMarkdown from 'react-markdown';
-import { Paper as PaperType, Analysis, PaperMetadata, CacheStatus, RelatedPaper, ApplicationIdea } from '../services/api';
+import { Paper as PaperType, Analysis, PaperMetadata, CacheStatus, RelatedPaper, ApplicationIdea, SimplePaperInfo } from '../services/api';
 
 interface PaperDetailProps {
   paper: PaperType;
@@ -17,6 +17,7 @@ interface PaperDetailProps {
   onAnalyze: (forceReload?: boolean) => void;
   onReloadMetadata: () => void;
   onAddRelatedPaper: (paperId: string, arxivId: string | null, title: string, authors: string[]) => void;
+  onAddApplication: (application: ApplicationIdea, relatedPapers: SimplePaperInfo[]) => void;
   onBack: () => void;
 }
 
@@ -108,6 +109,7 @@ export function PaperDetail({
   onAnalyze,
   onReloadMetadata,
   onAddRelatedPaper,
+  onAddApplication,
   onBack,
 }: PaperDetailProps) {
   return (
@@ -764,12 +766,31 @@ export function PaperDetail({
                                 </Group>
                               );
                             }
+                            
+                            // Convert metadata recommendations to SimplePaperInfo format
+                            const relatedPapers: SimplePaperInfo[] = metadata?.recommendations?.map(rec => ({
+                              title: rec.title || 'Untitled',
+                              authors: rec.authors?.map(a => a.name || 'Unknown') || [],
+                              arxiv_id: rec.arxivId || undefined
+                            })) || [];
+                            
                             return (
                               <Paper key={idx} p="sm" withBorder bg="blue.0" style={{ borderLeft: '3px solid #228be6' }}>
                                 <Stack gap="xs">
-                                  <Badge size="sm" variant="filled" color="cyan" leftSection={<IconBulb size={12} />}>
-                                    {app.domain}
-                                  </Badge>
+                                  <Group justify="space-between" align="flex-start">
+                                    <Badge size="sm" variant="filled" color="cyan" leftSection={<IconBulb size={12} />}>
+                                      {app.domain}
+                                    </Badge>
+                                    <Button
+                                      size="xs"
+                                      variant="light"
+                                      color="cyan"
+                                      leftSection={<IconPlus size={14} />}
+                                      onClick={() => onAddApplication(app, relatedPapers)}
+                                    >
+                                      Add to List
+                                    </Button>
+                                  </Group>
                                   <Text size="sm">
                                     {app.specific_utility}
                                   </Text>

@@ -197,3 +197,34 @@ export const addRelatedPaper = async (
   });
   return response.data;
 };
+
+export interface SimplePaperInfo {
+  title: string;
+  authors: string[];
+  arxiv_id?: string;
+}
+
+export interface AddApplicationRequest {
+  application: ApplicationIdea;
+  current_paper: SimplePaperInfo;
+  related_papers: SimplePaperInfo[];
+}
+
+export interface AddApplicationResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+export const addApplication = async (
+  application: ApplicationIdea,
+  currentPaper: SimplePaperInfo,
+  relatedPapers: SimplePaperInfo[]
+): Promise<AddApplicationResponse> => {
+  const response = await apiClient.post<AddApplicationResponse>('/applications/add', {
+    application,
+    current_paper: currentPaper,
+    related_papers: relatedPapers
+  });
+  return response.data;
+};
