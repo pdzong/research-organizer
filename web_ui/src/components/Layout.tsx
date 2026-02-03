@@ -29,11 +29,17 @@ export function Layout({ children, currentView, onViewChange }: LayoutProps) {
           <SegmentedControl
             value={currentView}
             onChange={(value) => onViewChange(value as 'papers' | 'applications')}
+            size="md"
+            styles={{
+              root: {
+                minWidth: 280,
+              },
+            }}
             data={[
               {
                 value: 'papers',
                 label: (
-                  <Group gap="xs">
+                  <Group gap="xs" wrap="nowrap">
                     <IconFileText size={16} />
                     <span>Papers</span>
                   </Group>
@@ -42,7 +48,7 @@ export function Layout({ children, currentView, onViewChange }: LayoutProps) {
               {
                 value: 'applications',
                 label: (
-                  <Group gap="xs">
+                  <Group gap="xs" wrap="nowrap">
                     <IconBulb size={16} />
                     <span>Applications</span>
                   </Group>
