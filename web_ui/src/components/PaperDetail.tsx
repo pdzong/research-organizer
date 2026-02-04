@@ -1,6 +1,7 @@
 import { Paper, Stack, Text, Button, Loader, Alert, Group, Divider, ScrollArea, Table, Badge, Accordion, Tooltip, Box } from '@mantine/core';
 import { IconAlertCircle, IconSparkles, IconFileText, IconArrowLeft, IconChartBar, IconBook, IconUsers, IconCalendar, IconQuote, IconWorld, IconFileDescription, IconPlus, IconLink, IconTrendingUp, IconFlame, IconBulb } from '@tabler/icons-react';
 import ReactMarkdown from 'react-markdown';
+import { useState } from 'react';
 import { Paper as PaperType, Analysis, PaperMetadata, CacheStatus, RelatedPaper, ApplicationIdea, SimplePaperInfo } from '../services/api';
 
 interface PaperDetailProps {
@@ -112,6 +113,17 @@ export function PaperDetail({
   onAddApplication,
   onBack,
 }: PaperDetailProps) {
+  const [savingApplicationDomain, setSavingApplicationDomain] = useState<string | null>(null);
+
+  const handleAddApplication = async (app: ApplicationIdea, relatedPapers: SimplePaperInfo[]) => {
+    setSavingApplicationDomain(app.domain);
+    try {
+      await onAddApplication(app, relatedPapers);
+    } finally {
+      setSavingApplicationDomain(null);
+    }
+  };
+
   return (
     <Stack gap="md" h="100%">
       <Group>
@@ -774,6 +786,9 @@ export function PaperDetail({
                               arxiv_id: rec.arxivId || undefined
                             })) || [];
                             
+                            const isSaving = savingApplicationDomain === app.domain;
+                            const isAnySaving = savingApplicationDomain !== null;
+                            
                             return (
                               <Paper key={idx} p="sm" withBorder bg="blue.0" style={{ borderLeft: '3px solid #228be6' }}>
                                 <Stack gap="xs">
@@ -785,10 +800,12 @@ export function PaperDetail({
                                       size="xs"
                                       variant="light"
                                       color="cyan"
-                                      leftSection={<IconPlus size={14} />}
-                                      onClick={() => onAddApplication(app, relatedPapers)}
+                                      leftSection={isSaving ? <Loader size={14} /> : <IconPlus size={14} />}
+                                      onClick={() => handleAddApplication(app, relatedPapers)}
+                                      disabled={isAnySaving}
+                                      loading={isSaving}
                                     >
-                                      Add to List
+                                      {isSaving ? 'Filtering...' : 'Add to List'}
                                     </Button>
                                   </Group>
                                   <Text size="sm">

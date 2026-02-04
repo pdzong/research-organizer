@@ -3,9 +3,11 @@ from pydantic import BaseModel
 from typing import List, Dict, Optional
 from services.huggingface import fetch_papers, add_paper, add_paper_from_semantic_scholar
 from services.pdf_parser import download_and_parse_paper
-from services.openai_service import summarize_paper
+from services.openai_service import summarize_paper, is_paper_relevant
 from services.semantic_scholar import get_paper_metadata
 from services import cache_service
+from services.some_extensions.research_tools import arxiv_search_tool
+from services.models import ApplicationIdea
 
 router = APIRouter()
 
@@ -314,26 +316,149 @@ async def get_cache_status(arxiv_id: str):
     """
     return cache_service.get_cache_status(arxiv_id)
 
+def extract_arxiv_id_from_url(url: str) -> Optional[str]:
+    """Extract arXiv ID from URL."""
+    try:
+        url_part = url.split('/')[-1]  # Get '2601.04252v1' or '2601.04252'
+        arxiv_id = url_part.split('v')[0]  # Get '2601.04252'
+        return arxiv_id if arxiv_id else None
+    except:
+        return None
+
+async def filter_papers_by_relevance(
+    application: Dict,
+    related_papers: List[Dict],
+    model_id: str = "gpt-5-mini"
+) -> List[Dict]:
+    """
+    Filter papers by relevance using arXiv search and OpenAI relevance check.
+    
+    Args:
+        application: Application idea with domain and specific_utility
+        related_papers: Initial list of related papers
+        model_id: OpenAI model ID to use
+        
+    Returns:
+        List of filtered papers that passed the relevance check
+    """
+    # Create ApplicationIdea object for is_paper_relevant
+    app_idea = ApplicationIdea(
+        domain=application.get("domain", ""),
+        specific_utility=application.get("specific_utility", "")
+    )
+    
+    # Search arXiv for additional papers
+    print(f"🔍 Searching arXiv for: {app_idea.domain}")
+    search_results = arxiv_search_tool(app_idea.domain, max_results=10)
+    
+    # Collect all unique arXiv IDs
+    arxiv_ids = set()
+    
+    # Extract from arXiv search results
+    for sr in search_results:
+        if 'error' in sr or 'url' not in sr:
+            continue
+        arxiv_id = extract_arxiv_id_from_url(sr['url'])
+        if arxiv_id:
+            arxiv_ids.add(arxiv_id)
+    
+    # Extract from related papers
+    for paper in related_papers:
+        arxiv_id = paper.get("arxiv_id")
+        if arxiv_id:
+            arxiv_ids.add(arxiv_id)
+    
+    print(f"📊 Found {len(arxiv_ids)} unique papers to check")
+    
+    # Filter papers by relevance
+    filtered_papers = []
+    
+    for arxiv_id in arxiv_ids:
+        try:
+            # Get or fetch metadata
+            metadata = cache_service.load_metadata(arxiv_id)
+            if not metadata:
+                print(f"📥 Fetching metadata for {arxiv_id}")
+                metadata_response = await get_paper_metadata(arxiv_id)
+                if metadata_response.get("success"):
+                    cache_service.save_metadata(arxiv_id, metadata_response)
+                    metadata = metadata_response
+                else:
+                    print(f"❌ Failed to fetch metadata for {arxiv_id}")
+                    continue
+            
+            # Check relevance
+            title = metadata.get("title", "")
+            abstract = metadata.get("abstract", "")
+            
+            if not title or not abstract:
+                print(f"⚠️ Missing title or abstract for {arxiv_id}")
+                continue
+            
+            print(f"🤖 Checking relevance: {title[:60]}...")
+            relevance = await is_paper_relevant(app_idea, title, abstract, model_id)
+            
+            if relevance.get("decision"):
+                # Get authors from metadata
+                authors = []
+                if "authors" in metadata and metadata["authors"]:
+                    authors = [author.get("name", "Unknown") for author in metadata["authors"]]
+                
+                filtered_papers.append({
+                    "title": title,
+                    "authors": authors,
+                    "arxiv_id": arxiv_id
+                })
+                print(f"✅ Relevant: {title[:60]}...")
+            else:
+                print(f"❌ Not relevant: {title[:60]}... - {relevance.get('reason', '')}")
+        
+        except Exception as e:
+            print(f"❌ Error processing {arxiv_id}: {e}")
+            continue
+    
+    print(f"✨ Filtered to {len(filtered_papers)} relevant papers")
+    return filtered_papers
+
 @router.post("/applications/add", response_model=AddApplicationResponse)
 async def add_application(request: AddApplicationRequest):
     """
     Add an application idea to the applications.json file.
+    Filters related papers by relevance using arXiv search and OpenAI.
     
     Args:
         request: AddApplicationRequest with application data, current paper, and related papers
     """
     try:
+        print(f"\n{'='*60}")
+        print(f"🎯 Adding application: {request.application.get('domain', 'Unknown')}")
+        print(f"{'='*60}")
+        
+        # Filter papers by relevance
+        filtered_papers = await filter_papers_by_relevance(
+            application=request.application,
+            related_papers=[p.dict() for p in request.related_papers],
+            model_id="gpt-5-mini"
+        )
+        
+        # Save application with filtered papers
         cache_service.save_application(
             application=request.application,
             current_paper=request.current_paper.dict(),
-            related_papers=[p.dict() for p in request.related_papers]
+            related_papers=filtered_papers
         )
+        
+        print(f"{'='*60}")
+        print(f"✅ Application saved with {len(filtered_papers)} relevant papers")
+        print(f"{'='*60}\n")
+        
         return {
             "success": True,
-            "message": f"Application '{request.application.get('domain', 'Unknown')}' saved successfully",
+            "message": f"Application '{request.application.get('domain', 'Unknown')}' saved with {len(filtered_papers)} relevant papers",
             "error": None
         }
     except Exception as e:
+        print(f"❌ Error adding application: {e}")
         return {
             "success": False,
             "message": None,

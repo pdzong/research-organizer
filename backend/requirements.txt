@@ -10,4 +10,6 @@ lxml
 pyalex
 semanticscholar
 arize-phoenix
+wikipedia
+tavily
 openinference-instrumentation-openai
