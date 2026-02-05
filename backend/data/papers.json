@@ -1,5 +1,47 @@
 [
   {
+    "id": "2509.26507",
+    "title": "The Dragon Hatchling: The Missing Link between the Transformer and Models of the Brain",
+    "authors": [
+      "Adrian Kosowski",
+      "Przemysław Uznański",
+      "Jan Chorowski",
+      "Zuzanna Stamirowska",
+      "Michał Bartoszkiewicz"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2509.26507",
+    "arxiv_id": "2509.26507",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-05T12:27:17.349969",
+        "markdown": "2026-02-05T12:52:24.458887"
+      },
+      "metadata": "cache\\2509.26507\\metadata.json",
+      "markdown": "cache\\2509.26507\\markdown.md"
+    }
+  },
+  {
+    "id": "2602.04705",
+    "title": "ERNIE 5.0 Technical Report",
+    "authors": [
+      "Haifeng Wang",
+      "Hua Wu",
+      "Tian Wu",
+      "Yu Sun",
+      "Jing Liu"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.04705",
+    "arxiv_id": "2602.04705",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-02-05T12:19:18.902372",
+        "metadata": "2026-02-05T13:08:40.865940"
+      },
+      "markdown": "cache\\2602.04705\\markdown.md",
+      "metadata": "cache\\2602.04705\\metadata.json"
+    }
+  },
+  {
     "id": "2601.21558",
     "title": "ASTRA: Automated Synthesis of agentic Trajectories and Reinforcement Arenas",
     "authors": [
@@ -59,7 +101,7 @@
     "arxiv_id": "2601.20614",
     "cached": {
       "lastUpdated": {
-        "markdown": "2026-01-29T11:31:18.023644",
+        "markdown": "2026-02-05T13:14:55.893785",
         "analysis": "2026-01-29T11:32:43.717064",
         "metadata": "2026-02-03T14:19:12.871939"
       },

@@ -97,34 +97,50 @@ function App() {
         setCacheStatus(status);
         
         // Always load metadata (from cache if available, otherwise fetch fresh)
-        setLoadingMetadata(true);
-        const metadataResponse = await getPaperMetadata(paper.arxiv_id, false);
-        if (metadataResponse.success && metadataResponse.metadata) {
-          setMetadata(metadataResponse.metadata);
+        try {
+          setLoadingMetadata(true);
+          const metadataResponse = await getPaperMetadata(paper.arxiv_id, false);
+          if (metadataResponse.success && metadataResponse.metadata) {
+            setMetadata(metadataResponse.metadata);
+          } else {
+            console.error('Metadata fetch failed:', metadataResponse.error);
+            setError(metadataResponse.error || 'Failed to load metadata');
+          }
+        } catch (metadataErr) {
+          console.error('Error fetching metadata:', metadataErr);
+          setError('Failed to load metadata from Semantic Scholar');
+        } finally {
+          setLoadingMetadata(false);
         }
-        setLoadingMetadata(false);
         
         // Auto-load cached markdown (only if cached - user must click to load if not)
         if (status.markdown) {
-          setParsing(true);
-          const response = await parsePaper(paper.id, paper.arxiv_url || undefined, false);
-          if (response.success && response.markdown) {
-            setMarkdown(response.markdown);
+          try {
+            setParsing(true);
+            const response = await parsePaper(paper.id, paper.arxiv_url || undefined, false);
+            if (response.success && response.markdown) {
+              setMarkdown(response.markdown);
+            }
+          } finally {
+            setParsing(false);
           }
-          setParsing(false);
         }
         
         // Auto-load cached analysis (only if cached - user must click to analyze if not)
         if (status.analysis) {
-          setAnalyzing(true);
-          const response = await getCachedAnalysis(paper.arxiv_id, false);
-          if (response.success && response.data) {
-            setSummary(response.data);
+          try {
+            setAnalyzing(true);
+            const response = await getCachedAnalysis(paper.arxiv_id, false);
+            if (response.success && response.data) {
+              setSummary(response.data);
+            }
+          } finally {
+            setAnalyzing(false);
           }
-          setAnalyzing(false);
         }
       } catch (err) {
         console.error('Error loading data:', err);
+        setError('Failed to load paper data');
       }
     }
   };

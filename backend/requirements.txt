@@ -13,3 +13,6 @@ arize-phoenix
 wikipedia
 tavily
 openinference-instrumentation-openai
+pdf2image
+requests
+Pillow

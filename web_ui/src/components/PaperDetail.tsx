@@ -1,6 +1,10 @@
 import { Paper, Stack, Text, Button, Loader, Alert, Group, Divider, ScrollArea, Table, Badge, Accordion, Tooltip, Box } from '@mantine/core';
 import { IconAlertCircle, IconSparkles, IconFileText, IconArrowLeft, IconChartBar, IconBook, IconUsers, IconCalendar, IconQuote, IconWorld, IconFileDescription, IconPlus, IconLink, IconTrendingUp, IconFlame, IconBulb } from '@tabler/icons-react';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import { useState } from 'react';
 import { Paper as PaperType, Analysis, PaperMetadata, CacheStatus, RelatedPaper, ApplicationIdea, SimplePaperInfo } from '../services/api';
 
@@ -926,8 +930,10 @@ export function PaperDetail({
             <Text size="lg" fw={600} mb="md">
               Paper Content
             </Text>
-            <ScrollArea h={600}>
+            <ScrollArea h={600} className="paper-content">
               <ReactMarkdown
+                remarkPlugins={[remarkMath, remarkGfm]}
+                rehypePlugins={[rehypeKatex]}
                 components={{
                   h1: ({ children }) => (
                     <Text size="xl" fw={700} mt="xl" mb="md">
@@ -945,12 +951,56 @@ export function PaperDetail({
                     </Text>
                   ),
                   p: ({ children }) => (
-                    <Text size="sm" mb="md">
+                    <Text size="sm" mb="md" style={{ lineHeight: '1.8' }}>
                       {children}
                     </Text>
                   ),
-                  code: ({ children }) => (
-                    <Paper p="xs" bg="gray.1" component="code" style={{ fontFamily: 'monospace' }}>
+                  code: ({ inline, children, ...props }: any) => {
+                    // Don't style inline code (used for math)
+                    if (inline) {
+                      return <code {...props}>{children}</code>;
+                    }
+                    // Style code blocks
+                    return (
+                      <Paper p="md" bg="gray.1" component="pre" style={{ 
+                        fontFamily: 'monospace',
+                        overflow: 'auto',
+                        fontSize: '0.85em'
+                      }}>
+                        <code {...props}>{children}</code>
+                      </Paper>
+                    );
+                  },
+                  // Better table styling
+                  table: ({ children }) => (
+                    <Table striped withTableBorder withColumnBorders mt="md" mb="md">
+                      {children}
+                    </Table>
+                  ),
+                  // Better list styling
+                  ul: ({ children }) => (
+                    <Box component="ul" style={{ paddingLeft: '1.5em', marginBottom: '1em' }}>
+                      {children}
+                    </Box>
+                  ),
+                  ol: ({ children }) => (
+                    <Box component="ol" style={{ paddingLeft: '1.5em', marginBottom: '1em' }}>
+                      {children}
+                    </Box>
+                  ),
+                  li: ({ children }) => (
+                    <Text component="li" size="sm" mb="xs" style={{ lineHeight: '1.6' }}>
+                      {children}
+                    </Text>
+                  ),
+                  // Block quotes
+                  blockquote: ({ children }) => (
+                    <Paper p="md" bg="blue.0" style={{ 
+                      borderLeft: '4px solid #228be6',
+                      fontStyle: 'italic',
+                      marginTop: '1em',
+                      marginBottom: '1em'
+                    }}>
                       {children}
                     </Paper>
                   ),
