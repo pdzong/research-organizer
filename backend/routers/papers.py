@@ -3,11 +3,11 @@ from pydantic import BaseModel
 from typing import List, Dict, Optional
 from services.huggingface import fetch_papers, add_paper, add_paper_from_semantic_scholar
 from services.pdf_parser import download_and_parse_paper
-from services.openai_service import summarize_paper, is_paper_relevant
+from services.openai_service import summarize_paper, is_paper_relevant, extract_paper_sections
 from services.semantic_scholar import get_paper_metadata
 from services import cache_service
 from services.some_extensions.research_tools import arxiv_search_tool
-from services.models import ApplicationIdea
+from services.models import ApplicationIdea, PaperSections
 
 router = APIRouter()
 
@@ -134,6 +134,7 @@ async def parse_paper(
 ):
     """
     Download and parse a paper's PDF to markdown.
+    After parsing, extracts structured sections for better analysis.
     
     Args:
         paper_id: The paper ID (ArXiv ID)
@@ -162,8 +163,23 @@ async def parse_paper(
         
         # Cache the result if successful
         if result.get("success") and result.get("markdown"):
-            cache_service.save_markdown(paper_id, result["markdown"])
+            markdown_text = result["markdown"]
+            cache_service.save_markdown(paper_id, markdown_text)
             print(f"Saved markdown to cache for {paper_id}")
+            
+            # Extract structured sections from the markdown
+            try:
+                print(f"🧹 Extracting paper sections for {paper_id}...")
+                sections: PaperSections = await extract_paper_sections(markdown_text)
+                
+                # Save sections to cache
+                sections_dict = sections.model_dump()
+                cache_service.save_sections(paper_id, sections_dict)
+                print(f"✅ Saved paper sections to cache for {paper_id}")
+                
+            except Exception as section_error:
+                print(f"⚠️ Failed to extract sections for {paper_id}: {section_error}")
+                # Continue even if section extraction fails
         
         result["from_cache"] = False
         return result
@@ -208,6 +224,7 @@ async def get_cached_analysis(
 ):
     """
     Get cached analysis or generate new one.
+    Uses cleaned paper sections for better analysis quality.
     
     Args:
         arxiv_id: The ArXiv ID
@@ -222,29 +239,43 @@ async def get_cached_analysis(
                 cached_analysis["from_cache"] = True
                 return cached_analysis
         
-        # Need to load markdown to analyze
-        markdown = cache_service.load_markdown(arxiv_id)
-        if not markdown:
-            return {
-                "success": False,
-                "data": None,
-                "usage": None,
-                "error": "Paper must be parsed first before analysis",
-                "from_cache": False
-            }
+        # Try to load structured sections first (preferred)
+        sections_dict = cache_service.load_sections(arxiv_id)
         
-        # Generate new analysis
-        result = await summarize_paper(markdown)
+        if sections_dict:
+            # Use cleaned sections for analysis
+            print(f"📚 Using structured sections for analysis of {arxiv_id}")
+            sections = PaperSections(**sections_dict)
+            clean_markdown = sections.to_clean_markdown()
+            print(f"✅ Generated clean markdown ({len(clean_markdown)} chars)")
+        else:
+            # Fall back to raw markdown if sections not available
+            print(f"⚠️ Sections not found, falling back to raw markdown for {arxiv_id}")
+            clean_markdown = cache_service.load_markdown(arxiv_id)
+            
+            if not clean_markdown:
+                return {
+                    "success": False,
+                    "data": None,
+                    "usage": None,
+                    "error": "Paper must be parsed first before analysis. Please load the paper content first.",
+                    "from_cache": False
+                }
+        
+        # Generate new analysis using cleaned content
+        print(f"🤖 Analyzing paper {arxiv_id}...")
+        result = await summarize_paper(clean_markdown)
         
         # Cache the result if successful
         if result.get("success") and result.get("data"):
             cache_service.save_analysis(arxiv_id, result)
-            print(f"Saved analysis to cache for {arxiv_id}")
+            print(f"✅ Saved analysis to cache for {arxiv_id}")
         
         result["from_cache"] = False
         return result
     
     except Exception as e:
+        print(f"❌ Analysis error for {arxiv_id}: {e}")
         return {
             "success": False,
             "data": None,
@@ -315,6 +346,39 @@ async def get_cache_status(arxiv_id: str):
         arxiv_id: The ArXiv ID
     """
     return cache_service.get_cache_status(arxiv_id)
+
+@router.get("/papers/{arxiv_id}/sections")
+async def get_paper_sections(arxiv_id: str):
+    """
+    Get structured paper sections from cache.
+    
+    Args:
+        arxiv_id: The ArXiv ID
+    
+    Returns:
+        Structured paper sections or error if not found
+    """
+    try:
+        sections_dict = cache_service.load_sections(arxiv_id)
+        
+        if sections_dict:
+            return {
+                "success": True,
+                "sections": sections_dict,
+                "error": None
+            }
+        else:
+            return {
+                "success": False,
+                "sections": None,
+                "error": "Paper sections not found. Please load the paper content first."
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "sections": None,
+            "error": str(e)
+        }
 
 def extract_arxiv_id_from_url(url: str) -> Optional[str]:
     """Extract arXiv ID from URL."""

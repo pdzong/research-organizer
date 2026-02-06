@@ -157,6 +157,7 @@ export interface MetadataResponse {
 export interface CacheStatus {
   metadata: boolean;
   markdown: boolean;
+  sections: boolean;
   analysis: boolean;
 }
 

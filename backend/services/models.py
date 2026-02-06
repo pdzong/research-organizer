@@ -42,6 +42,50 @@ class Summary(BaseModel):
             }
         return data
 
+
+class PaperSections(BaseModel):
+    """
+    Intermediate structure to hold raw text segments extracted from the full paper.
+    """
+    title: str = Field(..., description="The exact title of the paper.")
+    github_url: Optional[str] = Field(None, description="The HTTP URL to the code repository (GitHub/GitLab) if mentioned.")
+    
+    # We group sections logically to keep the context window focused
+    abstract_text: str = Field(..., description="Full text of the Abstract.")
+    introduction_text: str = Field(..., description="Full text of the Introduction and Related Work sections.")
+    contributions_text: str = Field(..., description="Verbatim text of the 'Our Contributions' list, usually found at the end of the Introduction (e.g., 'Our main contributions are...').")
+    methodology_text: str = Field(..., description="Full text of sections describing the Method, Architecture, or Approach.")
+    experiments_text: str = Field(..., description="Full text of Experiments, Results, and Tables (including captions).")
+    conclusion_text: str = Field(..., description="Full text of the Conclusion, Discussion, and Limitations.")
+
+    def to_clean_markdown(self) -> str:
+        """Reconstructs a clean, token-efficient markdown string for the next step."""
+        # We explicitly omit References and Appendices here
+        return f"""
+# {self.title}
+
+## Abstract
+{self.abstract_text}
+
+## Introduction & Context
+{self.introduction_text}
+
+## 🌟 Authors' Stated Contributions
+{self.contributions_text}
+
+## Methodology
+{self.methodology_text}
+
+## Experiments & Results
+{self.experiments_text}
+
+## Conclusion & Limitations
+{self.conclusion_text}
+
+## Meta Info
+GitHub: {self.github_url or 'Not found'}
+"""
+
 class PaperAnalysis(BaseModel):
     paper_title: str = Field(..., description="The exact title of the research paper.")
     

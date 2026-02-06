@@ -105,8 +105,8 @@ def pdf_bytes_to_markdown_ocr(
                     {
                         "role": "user",
                         "content": [
-                            {"type": "text", "text": prompt_text},
-                            {"type": "image_url", "image_url": {"url": file_url}}
+                            {"type": "image_url", "image_url": {"url": file_url}},
+                            {"type": "text", "text": prompt_text}                         
                         ]
                     }
                 ],

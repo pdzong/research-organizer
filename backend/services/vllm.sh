@@ -1,0 +1,1 @@
+vllm serve zai-org/GLM-OCR --allowed-local-media-path / --port 8080 --gpu-memory-utilization 0.7 --max-model-len 43808 --limit-mm-per-prompt '{"image":2}'

@@ -1,7 +1,7 @@
 import os
 from openai import OpenAI
 from typing import Optional, Dict, Any
-from .models import PaperAnalysis, RelevanceDecision, ApplicationIdea
+from .models import PaperAnalysis, RelevanceDecision, ApplicationIdea, PaperSections
 
 # Global client variable
 _client: Optional[OpenAI] = None
@@ -73,6 +73,52 @@ async def summarize_paper(markdown_text: str, model_id: str = "gpt-5.2") -> Dict
             "usage": None,
             "error": str(e)
         }
+
+async def extract_paper_sections(raw_markdown: str, model_id: str = "gpt-5-nano") -> PaperSections:
+    """
+    Uses a fast, cheap model to segment the paper and discard noise (References, Appendix).
+    """
+    print(f"🧹 Pre-processing with {model_id}...")
+    client = get_openai_client()
+
+    # The prompt is simple and instructional, focusing on "Segmentation" not "Reasoning"
+    system_prompt = """
+    You are a Research Assistant. Your job is to organize raw OCR markdown into logical sections.
+    
+    Rules:
+    1. **Extract Verbatim**: Do not summarize. Copy the text exactly as it appears in the sections.
+    2. **Isolate Contributions**: Look specifically for the "Our contributions are..." or "In summary..." list at the end of the Introduction. Extract this text into `contributions_text`.
+    3. **Group Smartly**: 
+       - Put "Related Work" into `introduction_text`.
+       - Put "Ablation Studies" into `experiments_text`.
+    4. **Find the Code**: Aggressively search for a GitHub or project page URL.
+    5. **Ignore Noise**: Do not extract References, Citations lists, or Appendix unless it contains critical results.
+    """
+
+    try:
+        response = client.responses.parse(
+            model=model_id,
+            input=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Organize this raw paper text:\n\n{raw_markdown}"}
+            ],
+            text_format=PaperSections,
+        )
+        return response.output_parsed
+
+    except Exception as e:
+        print(f"⚠️ Pre-processing failed: {e}")
+        # Fallback: If pre-processing fails, return a dummy object containing the raw text
+        # so the pipeline doesn't break.
+        return PaperSections(
+            title="Unknown Title",
+            abstract_text=raw_markdown[:2000], 
+            introduction_text="",
+            methodology_text="",
+            experiments_text=raw_markdown, # dump everything here
+            conclusion_text="",
+            github_url=None
+        )
 
 
 async def is_paper_relevant(

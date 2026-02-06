@@ -129,6 +129,35 @@ def update_paper_cache_ref(arxiv_id: str, cache_type: str, file_path: str):
     except Exception as e:
         print(f"Error updating paper cache reference: {e}")
 
+def save_sections(arxiv_id: str, sections: Dict[str, Any]) -> bool:
+    """Save paper sections to cache."""
+    try:
+        cache_dir = ensure_cache_dir(arxiv_id)
+        sections_file = cache_dir / "sections.json"
+        
+        with open(sections_file, 'w', encoding='utf-8') as f:
+            json.dump(sections, f, indent=2, ensure_ascii=False)
+        
+        update_paper_cache_ref(arxiv_id, "sections", str(sections_file.relative_to(CACHE_DIR.parent)))
+        return True
+    except Exception as e:
+        print(f"Error saving sections cache: {e}")
+        return False
+
+def load_sections(arxiv_id: str) -> Optional[Dict[str, Any]]:
+    """Load paper sections from cache."""
+    try:
+        cache_dir = CACHE_DIR / arxiv_id
+        sections_file = cache_dir / "sections.json"
+        
+        if sections_file.exists():
+            with open(sections_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return None
+    except Exception as e:
+        print(f"Error loading sections cache: {e}")
+        return None
+
 def get_cache_status(arxiv_id: str) -> Dict[str, bool]:
     """Check which cache files exist for a paper."""
     cache_dir = CACHE_DIR / arxiv_id
@@ -136,6 +165,7 @@ def get_cache_status(arxiv_id: str) -> Dict[str, bool]:
     return {
         "metadata": (cache_dir / "metadata.json").exists(),
         "markdown": (cache_dir / "markdown.md").exists(),
+        "sections": (cache_dir / "sections.json").exists(),
         "analysis": (cache_dir / "analysis.json").exists()
     }
 
@@ -152,6 +182,7 @@ def clear_cache(arxiv_id: str, cache_type: Optional[str] = None) -> bool:
             file_map = {
                 "metadata": "metadata.json",
                 "markdown": "markdown.md",
+                "sections": "sections.json",
                 "analysis": "analysis.json"
             }
             cache_file = cache_dir / file_map.get(cache_type, "")

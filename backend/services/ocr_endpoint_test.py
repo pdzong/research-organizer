@@ -19,9 +19,8 @@ def pdf_to_markdown(pdf_path: str, server_url: str = "http://localhost:8080/v1/c
 
     print(f"📖 Loading PDF: {pdf_path}...")
     
-    # 2. Convert PDF to Images (DPI=150 to prevent vLLM token overflow)
     try:
-        pages = convert_from_path(pdf_path, dpi=150)
+        pages = convert_from_path(pdf_path, dpi=180)
     except Exception as e:
         raise RuntimeError(f"Failed to convert PDF. Is Poppler installed and in PATH? Error: {e}")
 
@@ -61,9 +60,9 @@ def pdf_to_markdown(pdf_path: str, server_url: str = "http://localhost:8080/v1/c
             "messages": [
                 {
                     "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt_text},
-                        {"type": "image_url", "image_url": {"url": file_url}}
+                    "content": [                        
+                        {"type": "image_url", "image_url": {"url": file_url}},
+                        {"type": "text", "text": prompt_text}
                     ]
                 }
             ],
@@ -72,30 +71,31 @@ def pdf_to_markdown(pdf_path: str, server_url: str = "http://localhost:8080/v1/c
         }
 
         print(f"   ⏳ Processing Page {page_num}/{total_pages}...", end="\r")
-        
-        try:
-            start_time = time.time()
-            response = requests.post(server_url, json=payload)
-            response.raise_for_status() # Raise error for bad HTTP codes
-            
-            # Extract content
-            content = response.json()['choices'][0]['message']['content']
-            
-            # Add page delimiter for clarity
-            page_text = f"\n\n\n\n{content}"
-            full_markdown.append(page_text)
-            
-            duration = time.time() - start_time
-            print(f"   ✅ Page {page_num}/{total_pages} done in {duration:.2f}s")
+        if i in (2, 3, 4, 8, 17):
+            try:
+                start_time = time.time()
+                response = requests.post(server_url, json=payload)
+                response.raise_for_status() # Raise error for bad HTTP codes
+                
+                # Extract content
+                content = response.json()['choices'][0]['message']['content']
+                
+                # Add page delimiter for clarity
+                page_text = f"\n\n\n\n{content}"
+                full_markdown.append(page_text)
+                
+                duration = time.time() - start_time
+                print(f"   ✅ Page {page_num}/{total_pages} done in {duration:.2f}s")
 
-        except Exception as e:
-            print(f"   ❌ Error on Page {page_num}: {e}")
-            full_markdown.append(f"\n\n[ERROR PROCESSING PAGE {page_num}]\n\n")
-        
-        finally:
-            # Cleanup temp file
-            if os.path.exists(abs_temp_path):
-                os.remove(abs_temp_path)
+            except Exception as e:
+                print(f"   ❌ Error on Page {page_num}: {e}")
+                full_markdown.append(f"\n\n[ERROR PROCESSING PAGE {page_num}]\n\n")
+            
+            finally:
+                print(f'the temp files stored {abs_temp_path}')
+                # Cleanup temp file
+                # if os.path.exists(abs_temp_path):
+                #     os.remove(abs_temp_path)
 
     print("\n🎉 Conversion Complete!")
     return "".join(full_markdown)
@@ -103,7 +103,7 @@ def pdf_to_markdown(pdf_path: str, server_url: str = "http://localhost:8080/v1/c
 # --- Usage Example ---
 if __name__ == "__main__":
     # Your specific file path
-    my_pdf = "C:\projects\\research_agent\\2602.04705v1.pdf"
+    my_pdf = "C:\projects\\research_agent\\2601.19508v1.pdf"
     
     try:
         markdown_result = pdf_to_markdown(my_pdf)

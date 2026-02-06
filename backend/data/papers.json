@@ -1,5 +1,86 @@
 [
   {
+    "id": "2512.08186",
+    "title": "Ground Slow, Move Fast: A Dual-System Foundation Model for Generalizable Vision-and-Language Navigation",
+    "authors": [
+      "Meng Wei",
+      "Chenyang Wan",
+      "Jiaqi Peng",
+      "Xiqian Yu",
+      "Yuqiang Yang",
+      "Delin Feng",
+      "Wenzhe Cai",
+      "Chenming Zhu",
+      "Tai Wang",
+      "Jiangmiao Pang",
+      "Xihui Liu"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2512.08186",
+    "arxiv_id": "2512.08186",
+    "semantic_scholar_id": "da6b412367452cce3e45498fbbb2008d95fd0257",
+    "added_date": "2026-02-06T13:55:04.368130",
+    "cache_status": {},
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-06T12:56:01.850087",
+        "markdown": "2026-02-06T12:58:31.698922",
+        "sections": "2026-02-06T12:59:59.933111",
+        "analysis": "2026-02-06T13:08:29.700041"
+      },
+      "metadata": "cache\\2512.08186\\metadata.json",
+      "markdown": "cache\\2512.08186\\markdown.md",
+      "sections": "cache\\2512.08186\\sections.json",
+      "analysis": "cache\\2512.08186\\analysis.json"
+    }
+  },
+  {
+    "id": "2602.00919",
+    "title": "Green-VLA: Staged Vision-Language-Action Model for Generalist Robots",
+    "authors": [
+      "I. Apanasevich",
+      "M. Artemyev",
+      "R. Babakyan",
+      "P. Fedotova",
+      "D. Grankin"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.00919",
+    "arxiv_id": "2602.00919",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-06T12:43:51.689483",
+        "markdown": "2026-02-06T12:47:12.513061",
+        "sections": "2026-02-06T12:50:02.569479",
+        "analysis": "2026-02-06T12:53:36.842782"
+      },
+      "metadata": "cache\\2602.00919\\metadata.json",
+      "markdown": "cache\\2602.00919\\markdown.md",
+      "sections": "cache\\2602.00919\\sections.json",
+      "analysis": "cache\\2602.00919\\analysis.json"
+    }
+  },
+  {
+    "id": "2601.19508",
+    "title": "Rethinking Intelligence: Brain-like Neuron Network",
+    "authors": [
+      "Weifeng Liu"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2601.19508",
+    "arxiv_id": "2601.19508",
+    "semantic_scholar_id": "fa985d1fd99f57f9d53b9896a71290874ee678b2",
+    "added_date": "2026-02-06T10:15:30.932164",
+    "cache_status": {},
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-06T09:15:36.871926",
+        "markdown": "2026-02-06T11:39:37.891458",
+        "analysis": "2026-02-06T09:26:19.779873"
+      },
+      "metadata": "cache\\2601.19508\\metadata.json",
+      "markdown": "cache\\2601.19508\\markdown.md",
+      "analysis": "cache\\2601.19508\\analysis.json"
+    }
+  },
+  {
     "id": "2509.26507",
     "title": "The Dragon Hatchling: The Missing Link between the Transformer and Models of the Brain",
     "authors": [
