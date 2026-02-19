@@ -1,5 +1,150 @@
 [
   {
+    "id": "2602.15763",
+    "title": "GLM-5: from Vibe Coding to Agentic Engineering",
+    "authors": [
+      "GLM-5 Team",
+      "Aohan Zeng",
+      "Xin Lv",
+      "Zhenyu Hou",
+      "Zhengxiao Du"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.15763",
+    "arxiv_id": "2602.15763",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-02-19T09:46:54.027845",
+        "sections": "2026-02-19T09:50:44.416490",
+        "metadata": "2026-02-19T08:45:23.365523",
+        "analysis": "2026-02-19T09:00:56.334215"
+      },
+      "markdown": "cache\\2602.15763\\markdown.md",
+      "sections": "cache\\2602.15763\\sections.json",
+      "metadata": "cache\\2602.15763\\metadata.json",
+      "analysis": "cache\\2602.15763\\analysis.json"
+    }
+  },
+  {
+    "id": "2304.03442",
+    "title": "Generative Agents: Interactive Simulacra of Human Behavior",
+    "authors": [
+      "Joon Sung Park",
+      "Joseph C. O'Brien",
+      "Carrie J. Cai",
+      "Meredith Ringel Morris",
+      "Percy Liang"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2304.03442",
+    "arxiv_id": "2304.03442",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-16T11:29:29.441096",
+        "markdown": "2026-02-16T11:33:37.562782"
+      },
+      "metadata": "cache\\2304.03442\\metadata.json",
+      "markdown": "cache\\2304.03442\\markdown.md"
+    }
+  },
+  {
+    "id": "2505.11831",
+    "title": "ARC-AGI-2: A New Challenge for Frontier AI Reasoning Systems",
+    "authors": [
+      "Francois Chollet",
+      "Mike Knoop",
+      "Gregory Kamradt",
+      "Bryan Landers",
+      "Henry Pinkard"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2505.11831",
+    "arxiv_id": "2505.11831",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-16T11:17:32.782609",
+        "markdown": "2026-02-16T11:19:02.767385",
+        "sections": "2026-02-16T11:22:05.940914",
+        "analysis": "2026-02-16T11:23:30.363013"
+      },
+      "metadata": "cache\\2505.11831\\metadata.json",
+      "markdown": "cache\\2505.11831\\markdown.md",
+      "sections": "cache\\2505.11831\\sections.json",
+      "analysis": "cache\\2505.11831\\analysis.json"
+    }
+  },
+  {
+    "id": "2602.05400",
+    "title": "OPUS: Towards Efficient and Principled Data Selection in Large Language Model Pre-training in Every Iteration",
+    "authors": [
+      "Shaobo Wang",
+      "Xuan Ouyang",
+      "Tianyi Xu",
+      "Yuzheng Hu",
+      "Jialin Liu"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.05400",
+    "arxiv_id": "2602.05400",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-13T11:42:16.053520",
+        "markdown": "2026-02-13T11:50:13.420814",
+        "sections": "2026-02-13T11:51:42.252287",
+        "analysis": "2026-02-13T12:02:28.672707"
+      },
+      "metadata": "cache\\2602.05400\\metadata.json",
+      "markdown": "cache\\2602.05400\\markdown.md",
+      "sections": "cache\\2602.05400\\sections.json",
+      "analysis": "cache\\2602.05400\\analysis.json"
+    }
+  },
+  {
+    "id": "2602.04215",
+    "title": "OAT: Ordered Action Tokenization",
+    "authors": [
+      "Chaoqi Liu",
+      "Xiaoshen Han",
+      "Jiawei Gao",
+      "Yue Zhao",
+      "Haonan Chen"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.04215",
+    "arxiv_id": "2602.04215",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-09T16:50:01.886510",
+        "markdown": "2026-02-09T17:01:25.656387",
+        "sections": "2026-02-09T17:03:06.793770",
+        "analysis": "2026-02-09T17:25:40.752441"
+      },
+      "metadata": "cache\\2602.04215\\metadata.json",
+      "markdown": "cache\\2602.04215\\markdown.md",
+      "sections": "cache\\2602.04215\\sections.json",
+      "analysis": "cache\\2602.04215\\analysis.json"
+    }
+  },
+  {
+    "id": "2602.02751",
+    "title": "Scaling Small Agents Through Strategy Auctions",
+    "authors": [
+      "Lisa Alazraki",
+      "William F. Shen",
+      "Yoram Bachrach",
+      "Akhil Mathur"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.02751",
+    "arxiv_id": "2602.02751",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-06T19:22:26.705903",
+        "markdown": "2026-02-06T19:30:54.928971",
+        "sections": "2026-02-06T19:32:58.399721",
+        "analysis": "2026-02-06T19:59:17.171967"
+      },
+      "metadata": "cache\\2602.02751\\metadata.json",
+      "markdown": "cache\\2602.02751\\markdown.md",
+      "sections": "cache\\2602.02751\\sections.json",
+      "analysis": "cache\\2602.02751\\analysis.json"
+    }
+  },
+  {
     "id": "2512.08186",
     "title": "Ground Slow, Move Fast: A Dual-System Foundation Model for Generalizable Vision-and-Language Navigation",
     "authors": [
