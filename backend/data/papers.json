@@ -1,5 +1,126 @@
 [
   {
+    "id": "2603.19220",
+    "title": "Nemotron-Cascade 2: Post-Training LLMs with Cascade RL and Multi-Domain On-Policy Distillation",
+    "authors": [
+      "Zhuolin Yang",
+      "Zihan Liu",
+      "Yang Chen",
+      "Wenliang Dai",
+      "Boxin Wang"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2603.19220",
+    "arxiv_id": "2603.19220",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-03-29T07:11:14.604109",
+        "sections": "2026-03-29T07:14:36.725606",
+        "metadata": "2026-03-29T07:14:36.744319",
+        "analysis": "2026-03-29T07:29:26.782704"
+      },
+      "markdown": "cache/2603.19220/markdown.md",
+      "sections": "cache/2603.19220/sections.json",
+      "metadata": "cache/2603.19220/metadata.json",
+      "analysis": "cache/2603.19220/analysis.json"
+    }
+  },
+  {
+    "id": "2602.20459",
+    "title": "PreScience: A Benchmark for Forecasting Scientific Contributions",
+    "authors": [
+      "Anirudh Ajith",
+      "Amanpreet Singh",
+      "Jay DeYoung",
+      "Nadav Kunievsky",
+      "Austin C. Kozlowski"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.20459",
+    "arxiv_id": "2602.20459",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-02-27T10:05:58.965003",
+        "sections": "2026-02-27T10:08:23.558473",
+        "metadata": "2026-02-27T10:08:24.928971",
+        "analysis": "2026-02-27T10:21:44.100870"
+      },
+      "markdown": "cache/2602.20459/markdown.md",
+      "sections": "cache/2602.20459/sections.json",
+      "metadata": "cache/2602.20459/metadata.json",
+      "analysis": "cache/2602.20459/analysis.json"
+    }
+  },
+  {
+    "id": "2602.21193",
+    "title": "On Data Engineering for Scaling LLM Terminal Capabilities",
+    "authors": [
+      "Renjie Pi",
+      "Grace Lam",
+      "Mohammad Shoeybi",
+      "Pooya Jannaty",
+      "Bryan Catanzaro"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.21193",
+    "arxiv_id": "2602.21193",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-26T09:11:50.440132",
+        "markdown": "2026-02-26T09:14:04.159657",
+        "sections": "2026-02-26T09:16:47.561797"
+      },
+      "metadata": "cache/2602.21193/metadata.json",
+      "markdown": "cache/2602.21193/markdown.md",
+      "sections": "cache/2602.21193/sections.json"
+    }
+  },
+  {
+    "id": "2602.20159",
+    "title": "A Very Big Video Reasoning Suite",
+    "authors": [
+      "Maijunxian Wang",
+      "Ruisi Wang",
+      "Juyi Lin",
+      "Ran Ji",
+      "Thaddäus Wiedemer"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.20159",
+    "arxiv_id": "2602.20159",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-02-24T09:42:17.910585",
+        "sections": "2026-02-24T09:43:24.938225",
+        "metadata": "2026-02-26T09:01:41.443064",
+        "analysis": "2026-02-26T09:02:24.042807"
+      },
+      "markdown": "cache/2602.20159/markdown.md",
+      "sections": "cache/2602.20159/sections.json",
+      "metadata": "cache/2602.20159/metadata.json",
+      "analysis": "cache/2602.20159/analysis.json"
+    }
+  },
+  {
+    "id": "2602.12675",
+    "title": "SLA2: Sparse-Linear Attention with Learnable Routing and QAT",
+    "authors": [
+      "Jintao Zhang",
+      "Haoxu Wang",
+      "Kai Jiang",
+      "Kaiwen Zheng",
+      "Youhe Jiang"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2602.12675",
+    "arxiv_id": "2602.12675",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-02-19T12:44:54.446604",
+        "markdown": "2026-02-19T14:09:27.725474",
+        "sections": "2026-02-19T14:11:34.449327"
+      },
+      "metadata": "cache/2602.12675/metadata.json",
+      "markdown": "cache/2602.12675/markdown.md",
+      "sections": "cache/2602.12675/sections.json"
+    }
+  },
+  {
     "id": "2602.15763",
     "title": "GLM-5: from Vibe Coding to Agentic Engineering",
     "authors": [
@@ -643,13 +764,15 @@
     "arxiv_id": "2601.05242",
     "cached": {
       "lastUpdated": {
-        "markdown": "2026-01-14T12:17:28.641206",
+        "markdown": "2026-02-19T14:46:20.692421",
         "analysis": "2026-01-14T12:18:26.226278",
-        "metadata": "2026-01-21T10:19:04.458651"
+        "metadata": "2026-01-21T10:19:04.458651",
+        "sections": "2026-02-19T14:47:46.450305"
       },
-      "markdown": "cache\\2601.05242\\markdown.md",
+      "markdown": "cache/2601.05242/markdown.md",
       "analysis": "cache\\2601.05242\\analysis.json",
-      "metadata": "cache\\2601.05242\\metadata.json"
+      "metadata": "cache\\2601.05242\\metadata.json",
+      "sections": "cache/2601.05242/sections.json"
     }
   },
   {

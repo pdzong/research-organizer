@@ -8,7 +8,13 @@ import tempfile
 from pdf2image import convert_from_bytes
 import requests
 
-def check_ocr_endpoint(server_url: str = "http://localhost:8080/v1/chat/completions", timeout: float = 2.0) -> bool:
+# Allow the OCR server URL to be overridden via environment variable so the
+# same code works both locally (localhost:8080) and inside Docker (ocr:8080).
+_DEFAULT_OCR_URL = os.environ.get(
+    "OCR_SERVER_URL", "http://localhost:8080/v1/chat/completions"
+)
+
+def check_ocr_endpoint(server_url: str = _DEFAULT_OCR_URL, timeout: float = 2.0) -> bool:
     """
     Check if the local OCR endpoint is available.
     
@@ -37,8 +43,8 @@ def check_ocr_endpoint(server_url: str = "http://localhost:8080/v1/chat/completi
 
 
 def pdf_bytes_to_markdown_ocr(
-    pdf_bytes: bytes, 
-    server_url: str = "http://localhost:8080/v1/chat/completions"
+    pdf_bytes: bytes,
+    server_url: str = _DEFAULT_OCR_URL,
 ) -> str:
     """
     Convert PDF bytes to Markdown using local OCR endpoint.
@@ -243,7 +249,7 @@ def improve_markdown_formatting(text: str) -> str:
     
     return text
 
-async def download_and_parse_paper(arxiv_url: str, ocr_server_url: str = "http://localhost:8080/v1/chat/completions") -> dict:
+async def download_and_parse_paper(arxiv_url: str, ocr_server_url: str = _DEFAULT_OCR_URL) -> dict:
     """
     Download and parse a paper from ArXiv.
     Attempts to use local OCR endpoint if available, falls back to PyMuPDF if not.

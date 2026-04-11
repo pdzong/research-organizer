@@ -1,4 +1,4 @@
-import { Paper, Stack, Text, Button, Group, Badge, Divider, Card, Box } from '@mantine/core';
+import { Paper, Stack, Text, Button, Group, Badge, Divider, Card } from '@mantine/core';
 import { IconArrowLeft, IconBulb, IconFileText, IconCalendar, IconUsers, IconExternalLink } from '@tabler/icons-react';
 import { ApplicationEntry } from '../services/api';
 

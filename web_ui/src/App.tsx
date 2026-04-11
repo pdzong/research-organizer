@@ -9,7 +9,6 @@ import { ApplicationDetail } from './components/ApplicationDetail';
 import { 
   fetchPapers, 
   parsePaper, 
-  analyzePaper, 
   addPaper, 
   getPaperMetadata, 
   getCachedAnalysis, 
@@ -36,7 +35,7 @@ function App() {
   const [markdown, setMarkdown] = useState<string | null>(null);
   const [summary, setSummary] = useState<Analysis | null>(null);
   const [metadata, setMetadata] = useState<PaperMetadata | null>(null);
-  const [cacheStatus, setCacheStatus] = useState<CacheStatus>({ metadata: false, markdown: false, analysis: false });
+  const [cacheStatus, setCacheStatus] = useState<CacheStatus>({ metadata: false, markdown: false, sections: false, analysis: false });
   const [loading, setLoading] = useState(true);
   const [parsing, setParsing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -368,7 +367,7 @@ function App() {
               loading={loading}
               onSelectPaper={handleSelectPaper}
               onAddPaper={handleAddPaper}
-              selectedPaperId={selectedPaper?.id || null}
+              selectedPaperId={null}
             />
           ) : (
             <PaperDetail
@@ -396,7 +395,7 @@ function App() {
               applications={applications}
               loading={loadingApplications}
               onSelectApplication={handleSelectApplication}
-              selectedApplicationId={selectedApplication?.id || null}
+              selectedApplicationId={null}
             />
           ) : (
             <ApplicationDetail
