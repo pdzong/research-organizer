@@ -16,7 +16,8 @@ This is a **Research Paper Analyzer** — a full-stack web application (Python F
 ### Important caveats
 
 - **Frontend directory is `web_ui/`**, not `frontend/` as referenced in some docs and `start-frontend.sh`. The start scripts have incorrect paths.
-- **Backend `.env` file**: The backend requires a `backend/.env` file with `OPENAI_API_KEY=<key>`. Without a valid key, the server starts and paper listing/adding works, but AI analysis features will fail.
+- **Backend `.env` file**: The backend requires a `backend/.env` file with `OPENAI_API_KEY=<key>`. If the `OPENAI_API_KEY` environment variable is set (e.g., via Cursor secrets), write it to `backend/.env` before starting the server: `echo "OPENAI_API_KEY=${OPENAI_API_KEY}" > backend/.env`. Without a valid key, the server starts and paper listing/adding works, but AI analysis features will fail.
+- **PDF parsing can be slow**: The `/api/papers/{id}/parse` endpoint downloads and processes ArXiv PDFs. First-time parsing can take 60+ seconds for large papers. Cached results are stored in `backend/data/cache/{arxiv_id}/markdown.md`.
 - **Arize Phoenix**: The backend tries to start Phoenix (LLM tracing) on port 6006 during startup. If it fails (e.g., missing deps or port conflict), the server continues gracefully.
 - **TypeScript errors**: The codebase has pre-existing TS errors in `src/App.tsx` and `src/components/ApplicationDetail.tsx`. `tsc --noEmit` and `npm run build` will fail, but `npm run dev` (Vite dev server) runs fine.
 - **No ESLint or Python linter configured** — TypeScript checking (`npx tsc --noEmit`) is the primary lint tool for the frontend. No Python linting tools are configured.
