@@ -1,5 +1,30 @@
 [
   {
+    "id": "2604.11784",
+    "title": "ClawGUI: A Unified Framework for Training, Evaluating, and Deploying GUI Agents",
+    "authors": [
+      "Fei Tang",
+      "Zhiqiong Lu",
+      "Boxuan Zhang",
+      "Weiming Lu",
+      "Jun Xiao"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2604.11784",
+    "arxiv_id": "2604.11784",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-04-17T18:23:29.592776",
+        "sections": "2026-04-17T18:25:49.444592",
+        "metadata": "2026-04-17T18:25:50.777061",
+        "analysis": "2026-04-17T18:26:22.431103"
+      },
+      "markdown": "cache/2604.11784/markdown.md",
+      "sections": "cache/2604.11784/sections.json",
+      "metadata": "cache/2604.11784/metadata.json",
+      "analysis": "cache/2604.11784/analysis.json"
+    }
+  },
+  {
     "id": "2603.19220",
     "title": "Nemotron-Cascade 2: Post-Training LLMs with Cascade RL and Multi-Domain On-Policy Distillation",
     "authors": [
