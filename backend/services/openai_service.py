@@ -125,7 +125,7 @@ async def is_paper_relevant(
     application_idea: ApplicationIdea,
     paper_title: str,
     paper_abstract: str,
-    model_id: str = "gpt-5-nano" 
+    model_id: str = "gpt-5.4-nano" 
 ) -> Dict[str, Any]:
     """
     Quickly filters a paper based on its Title and Abstract against a target Application.

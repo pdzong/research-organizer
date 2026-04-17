@@ -12,7 +12,7 @@ The pipeline mirrors the rest of the codebase:
 * Re-uses *cached* paper analyses / metadata when available so the planner
   stays cheap. If a paper's cache is missing we fall back to its title /
   abstract from Semantic Scholar (best-effort).
-* Same model names already in use in the project (``gpt-5.2`` for synthesis,
+* Same model names already in use in the project (``gpt-5.4`` for synthesis,
   ``gpt-5-mini`` for the cheaper aggregation step). We deliberately do not
   introduce new model names.
 """
@@ -176,7 +176,7 @@ async def _draft_plan(
     application: ApplicationIdea,
     paper_contexts: List[Dict[str, Any]],
     brief: str,
-    model_id: str = "gpt-5.2",
+    model_id: str = "gpt-5.4",
 ) -> SolutionPlan:
     """Step 2: synthesize the structured `SolutionPlan`."""
     client = get_openai_client()
@@ -208,7 +208,7 @@ async def _draft_plan(
 async def generate_solution_plan(
     application_entry: Dict[str, Any],
     brief_model_id: str = "gpt-5-mini",
-    plan_model_id: str = "gpt-5.2",
+    plan_model_id: str = "gpt-5.4",
 ) -> Dict[str, Any]:
     """
     Generate a SolutionPlan from an application entry stored in
