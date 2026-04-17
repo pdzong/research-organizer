@@ -34,6 +34,7 @@ from .huggingface import add_paper, load_papers
 from .openai_service import summarize_paper, extract_paper_sections
 from .pdf_parser import download_and_parse_paper
 from .semantic_scholar import get_paper_metadata
+from .solution_planner import generate_solution_plan, is_application_plan_worthy
 
 
 HF_PAPERS_URL = "https://huggingface.co/papers"
@@ -75,17 +76,21 @@ class AutoResearchStatus:
     limit: int = 5
     continuous: bool = False
     interval_seconds: int = 300
+    generate_plans: bool = False
+    plan_min_confidence: float = 0.6
 
     started_at: Optional[str] = None
     finished_at: Optional[str] = None
 
     current_arxiv_id: Optional[str] = None
-    current_step: Optional[str] = None  # discover | parse | analyze | save | sleep
+    current_step: Optional[str] = None  # discover | parse | analyze | save | plan | sleep
 
     processed_count: int = 0
     skipped_count: int = 0
     error_count: int = 0
     application_count: int = 0
+    plan_count: int = 0
+    plan_skipped_count: int = 0
 
     log: List[Dict[str, str]] = field(default_factory=list)
     last_error: Optional[str] = None
@@ -97,6 +102,8 @@ class AutoResearchStatus:
             "limit": self.limit,
             "continuous": self.continuous,
             "interval_seconds": self.interval_seconds,
+            "generate_plans": self.generate_plans,
+            "plan_min_confidence": self.plan_min_confidence,
             "started_at": self.started_at,
             "finished_at": self.finished_at,
             "current_arxiv_id": self.current_arxiv_id,
@@ -105,6 +112,8 @@ class AutoResearchStatus:
             "skipped_count": self.skipped_count,
             "error_count": self.error_count,
             "application_count": self.application_count,
+            "plan_count": self.plan_count,
+            "plan_skipped_count": self.plan_skipped_count,
             "log": self.log[-50:],
             "last_error": self.last_error,
         }
@@ -141,6 +150,8 @@ class AutoResearchRunner:
         limit: int = 5,
         continuous: bool = False,
         interval_seconds: int = 300,
+        generate_plans: bool = False,
+        plan_min_confidence: float = 0.6,
     ) -> Dict:
         if self.is_running():
             return {"success": False, "error": "auto-research is already running"}
@@ -157,6 +168,8 @@ class AutoResearchRunner:
             limit=limit,
             continuous=continuous,
             interval_seconds=interval_seconds,
+            generate_plans=generate_plans,
+            plan_min_confidence=plan_min_confidence,
             started_at=datetime.utcnow().isoformat(),
         )
         self._stop_event = asyncio.Event()
@@ -351,20 +364,107 @@ class AutoResearchRunner:
             if not domain:
                 continue
 
-            cache_service.save_application(
-                application={"domain": domain, "specific_utility": utility},
-                current_paper={
-                    "title": title,
-                    "authors": authors,
-                    "arxiv_id": arxiv_id,
-                },
+            current_paper_entry = {
+                "title": title,
+                "authors": authors,
+                "arxiv_id": arxiv_id,
+            }
+            application_payload = {"domain": domain, "specific_utility": utility}
+
+            entry_id = cache_service.save_application(
+                application=application_payload,
+                current_paper=current_paper_entry,
                 related_papers=[],  # auto-research keeps this fast; planner can enrich later
             )
+            if not entry_id:
+                continue
             self.status.application_count += 1
             self.status.push_log(
                 "info",
                 f"{arxiv_id}: saved application '{domain}'",
             )
+
+            if self.status.generate_plans and not self._stop_event.is_set():
+                await self._maybe_generate_plan(
+                    entry_id=entry_id,
+                    application=application_payload,
+                    current_paper=current_paper_entry,
+                )
+
+    async def _maybe_generate_plan(
+        self,
+        entry_id: str,
+        application: Dict,
+        current_paper: Dict,
+    ) -> None:
+        """Gate + generate a SolutionPlan for an auto-derived application."""
+        self.status.current_step = "plan"
+
+        # Skip if we already generated one for this entry.
+        if cache_service.load_solution_plan(entry_id):
+            self.status.push_log(
+                "info",
+                f"plan already cached for application '{application.get('domain')}' — skipping",
+            )
+            return
+
+        application_entry = {
+            "id": entry_id,
+            "application": application,
+            "current_paper": current_paper,
+            "related_papers": [],
+        }
+
+        # Cheap LLM gate so we don't spend on obviously-junk ideas.
+        gate = await is_application_plan_worthy(application_entry)
+        worthy = gate.get("is_plan_worthy", False)
+        confidence = float(gate.get("confidence") or 0.0)
+        reason = gate.get("reasoning") or ""
+
+        if not worthy or confidence < self.status.plan_min_confidence:
+            self.status.plan_skipped_count += 1
+            self.status.push_log(
+                "info",
+                f"plan gate: skipped '{application.get('domain')}' "
+                f"(worthy={worthy}, conf={confidence:.2f}) — {reason}",
+            )
+            return
+
+        self.status.push_log(
+            "info",
+            f"plan gate: accepted '{application.get('domain')}' "
+            f"(conf={confidence:.2f}) — generating plan",
+        )
+
+        try:
+            result = await generate_solution_plan(application_entry)
+        except Exception as e:
+            self.status.push_log("error", f"plan generation crashed: {e}")
+            return
+
+        if not result.get("success"):
+            self.status.push_log(
+                "warn",
+                f"plan generation failed for '{application.get('domain')}': {result.get('error')}",
+            )
+            return
+
+        cache_service.save_solution_plan(
+            entry_id,
+            {
+                "application": application,
+                "current_paper": current_paper,
+                "plan": result.get("plan"),
+                "markdown": result.get("markdown"),
+                "brief": result.get("brief"),
+            },
+        )
+        self.status.plan_count += 1
+        self.status.push_log(
+            "info",
+            f"plan saved for application '{application.get('domain')}' "
+            f"(plan='{(result.get('plan') or {}).get('name', '?')}')",
+        )
 
 
 # Module-level singleton — FastAPI imports this directly.

@@ -368,6 +368,8 @@ export interface AutoResearchStatus {
   limit: number;
   continuous: boolean;
   interval_seconds: number;
+  generate_plans?: boolean;
+  plan_min_confidence?: number;
   started_at?: string | null;
   finished_at?: string | null;
   current_arxiv_id?: string | null;
@@ -376,6 +378,8 @@ export interface AutoResearchStatus {
   skipped_count: number;
   error_count: number;
   application_count: number;
+  plan_count?: number;
+  plan_skipped_count?: number;
   log: AutoResearchLogEntry[];
   last_error?: string | null;
 }
@@ -403,6 +407,8 @@ export const startAutoResearch = async (params: {
   limit: number;
   continuous: boolean;
   interval_seconds: number;
+  generate_plans?: boolean;
+  plan_min_confidence?: number;
 }): Promise<AutoResearchStatusResponse> => {
   const response = await apiClient.post<AutoResearchStatusResponse>(
     '/auto-research/start',
@@ -421,6 +427,56 @@ export const stopAutoResearch = async (): Promise<AutoResearchStatusResponse> =>
 export const getAutoResearchStatus = async (): Promise<AutoResearchStatusResponse> => {
   const response = await apiClient.get<AutoResearchStatusResponse>(
     '/auto-research/status'
+  );
+  return response.data;
+};
+
+// ─── LLM provider / model config ──────────────────────────────────────────
+
+export interface LlmRoleBinding {
+  provider: string;
+  model: string;
+}
+
+export interface LlmProviderInfo {
+  label: string;
+  suggested_models: string[];
+  env_keys: string[];
+  key_present: boolean;
+  active_env?: string | null;
+}
+
+export interface LlmRoleDescription {
+  id: string;
+  description: string;
+}
+
+export interface LlmConfigResponse {
+  success: boolean;
+  roles: Record<string, LlmRoleBinding>;
+  defaults: Record<string, LlmRoleBinding>;
+  role_descriptions: LlmRoleDescription[];
+  providers: Record<string, LlmProviderInfo>;
+}
+
+export const getLlmConfig = async (): Promise<LlmConfigResponse> => {
+  const response = await apiClient.get<LlmConfigResponse>('/config/llm');
+  return response.data;
+};
+
+export const updateLlmConfig = async (
+  roles: Record<string, Partial<LlmRoleBinding>>
+): Promise<{ success: boolean; roles: Record<string, LlmRoleBinding> }> => {
+  const response = await apiClient.put<{ success: boolean; roles: Record<string, LlmRoleBinding> }>(
+    '/config/llm',
+    { roles }
+  );
+  return response.data;
+};
+
+export const resetLlmConfig = async (): Promise<{ success: boolean; roles: Record<string, LlmRoleBinding> }> => {
+  const response = await apiClient.post<{ success: boolean; roles: Record<string, LlmRoleBinding> }>(
+    '/config/llm/reset'
   );
   return response.data;
 };
