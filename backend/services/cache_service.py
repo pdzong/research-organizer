@@ -257,3 +257,83 @@ def load_applications() -> list:
     except Exception as e:
         print(f"Error loading applications: {e}")
         return []
+
+
+def load_application(application_id: str) -> Optional[Dict[str, Any]]:
+    """Find a single application entry by its ``id`` field."""
+    for app in load_applications():
+        if app.get("id") == application_id:
+            return app
+    return None
+
+
+# ─── Solution plans ──────────────────────────────────────────────────────────
+
+SOLUTIONS_DIR = CACHE_DIR / "solutions"
+
+
+def _solutions_dir() -> Path:
+    SOLUTIONS_DIR.mkdir(parents=True, exist_ok=True)
+    return SOLUTIONS_DIR
+
+
+def _safe_id(application_id: str) -> str:
+    # ISO timestamps contain ':' which is illegal on Windows file systems.
+    return application_id.replace(":", "-").replace("/", "_")
+
+
+def save_solution_plan(application_id: str, payload: Dict[str, Any]) -> bool:
+    """
+    Persist a generated solution plan. Stored both as JSON (for the API) and
+    as a standalone .md file (for downstream code-gen pipelines / humans).
+    """
+    try:
+        directory = _solutions_dir()
+        safe = _safe_id(application_id)
+
+        record = {
+            "application_id": application_id,
+            "generated_at": datetime.utcnow().isoformat(),
+            **payload,
+        }
+
+        (directory / f"{safe}.json").write_text(
+            json.dumps(record, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        if payload.get("markdown"):
+            (directory / f"{safe}.md").write_text(
+                payload["markdown"], encoding="utf-8"
+            )
+        return True
+    except Exception as e:
+        print(f"Error saving solution plan: {e}")
+        return False
+
+
+def load_solution_plan(application_id: str) -> Optional[Dict[str, Any]]:
+    try:
+        path = _solutions_dir() / f"{_safe_id(application_id)}.json"
+        if not path.exists():
+            return None
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error loading solution plan: {e}")
+        return None
+
+
+def list_solution_plans() -> list:
+    """Return all generated plans, newest first."""
+    try:
+        directory = _solutions_dir()
+        plans = []
+        for p in directory.glob("*.json"):
+            try:
+                plans.append(json.loads(p.read_text(encoding="utf-8")))
+            except Exception:
+                continue
+        plans.sort(key=lambda r: r.get("generated_at", ""), reverse=True)
+        return plans
+    except Exception as e:
+        print(f"Error listing solution plans: {e}")
+        return []

@@ -1,16 +1,18 @@
 import { Paper, Stack, Text, Button, Group, Badge, Divider, Card } from '@mantine/core';
-import { IconArrowLeft, IconBulb, IconFileText, IconCalendar, IconUsers, IconExternalLink } from '@tabler/icons-react';
+import { IconArrowLeft, IconBulb, IconFileText, IconCalendar, IconUsers, IconExternalLink, IconRocket } from '@tabler/icons-react';
 import { ApplicationEntry } from '../services/api';
 
 interface ApplicationDetailProps {
   application: ApplicationEntry;
   onBack: () => void;
+  onGeneratePlan?: (application: ApplicationEntry) => void;
+  generatingPlan?: boolean;
 }
 
-export function ApplicationDetail({ application, onBack }: ApplicationDetailProps) {
+export function ApplicationDetail({ application, onBack, onGeneratePlan, generatingPlan }: ApplicationDetailProps) {
   return (
     <Stack gap="md" h="100%">
-      <Group>
+      <Group justify="space-between">
         <Button
           leftSection={<IconArrowLeft size={16} />}
           variant="subtle"
@@ -18,6 +20,16 @@ export function ApplicationDetail({ application, onBack }: ApplicationDetailProp
         >
           Back to Applications
         </Button>
+        {onGeneratePlan && (
+          <Button
+            leftSection={<IconRocket size={16} />}
+            color="grape"
+            loading={generatingPlan}
+            onClick={() => onGeneratePlan(application)}
+          >
+            Generate System Plan
+          </Button>
+        )}
       </Group>
 
       {/* Application Header */}

@@ -2,7 +2,7 @@
 echo "Starting Research Agent Frontend..."
 echo
 
-cd frontend
+cd web_ui
 
 if [ ! -d "node_modules" ]; then
     echo "Installing dependencies..."
