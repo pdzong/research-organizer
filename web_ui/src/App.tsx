@@ -1,41 +1,52 @@
 import { useState, useEffect } from 'react';
 import { Container } from '@mantine/core';
 import { Notifications, notifications } from '@mantine/notifications';
-import { Layout } from './components/Layout';
+import { Layout, AppView } from './components/Layout';
 import { PaperList } from './components/PaperList';
 import { PaperDetail } from './components/PaperDetail';
 import { ApplicationList } from './components/ApplicationList';
 import { ApplicationDetail } from './components/ApplicationDetail';
-import { 
-  fetchPapers, 
-  parsePaper, 
-  addPaper, 
-  getPaperMetadata, 
-  getCachedAnalysis, 
-  getCacheStatus, 
+import { SolutionList } from './components/SolutionList';
+import { SolutionDetail } from './components/SolutionDetail';
+import { AutoResearchView } from './components/AutoResearchView';
+import {
+  fetchPapers,
+  parsePaper,
+  addPaper,
+  getPaperMetadata,
+  getCachedAnalysis,
+  getCacheStatus,
   addRelatedPaper,
   addApplication,
   fetchApplications,
-  Paper, 
-  Analysis, 
-  PaperMetadata, 
+  fetchSolutions,
+  generateSolutionPlan,
+  Paper,
+  Analysis,
+  PaperMetadata,
   CacheStatus,
   ApplicationIdea,
   SimplePaperInfo,
-  ApplicationEntry
+  ApplicationEntry,
+  SolutionPlanRecord,
 } from './services/api';
 
 function App() {
   // View state
-  const [currentView, setCurrentView] = useState<'papers' | 'applications'>('papers');
-  
+  const [currentView, setCurrentView] = useState<AppView>('papers');
+
   // Papers state
   const [papers, setPapers] = useState<Paper[]>([]);
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [markdown, setMarkdown] = useState<string | null>(null);
   const [summary, setSummary] = useState<Analysis | null>(null);
   const [metadata, setMetadata] = useState<PaperMetadata | null>(null);
-  const [cacheStatus, setCacheStatus] = useState<CacheStatus>({ metadata: false, markdown: false, sections: false, analysis: false });
+  const [cacheStatus, setCacheStatus] = useState<CacheStatus>({
+    metadata: false,
+    markdown: false,
+    sections: false,
+    analysis: false,
+  });
   const [loading, setLoading] = useState(true);
   const [parsing, setParsing] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -46,6 +57,13 @@ function App() {
   const [applications, setApplications] = useState<ApplicationEntry[]>([]);
   const [selectedApplication, setSelectedApplication] = useState<ApplicationEntry | null>(null);
   const [loadingApplications, setLoadingApplications] = useState(true);
+  const [generatingPlan, setGeneratingPlan] = useState(false);
+
+  // Solutions state
+  const [solutions, setSolutions] = useState<SolutionPlanRecord[]>([]);
+  const [selectedSolution, setSelectedSolution] = useState<SolutionPlanRecord | null>(null);
+  const [loadingSolutions, setLoadingSolutions] = useState(false);
+  const [regeneratingSolution, setRegeneratingSolution] = useState(false);
 
   // Fetch papers on mount
   useEffect(() => {
@@ -82,20 +100,38 @@ function App() {
     loadApplications();
   }, []);
 
+  // Lazy-load solutions when entering the view
+  const loadSolutions = async () => {
+    try {
+      setLoadingSolutions(true);
+      const data = await fetchSolutions();
+      setSolutions(data);
+    } catch (err) {
+      console.error('Error fetching solutions:', err);
+    } finally {
+      setLoadingSolutions(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentView === 'solutions' && solutions.length === 0) {
+      loadSolutions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView]);
+
   const handleSelectPaper = async (paper: Paper) => {
     setSelectedPaper(paper);
     setMarkdown(null);
     setSummary(null);
     setMetadata(null);
     setError(null);
-    
-    // Load cache status and auto-load data (cached or fresh)
+
     if (paper.arxiv_id) {
       try {
         const status = await getCacheStatus(paper.arxiv_id);
         setCacheStatus(status);
-        
-        // Always load metadata (from cache if available, otherwise fetch fresh)
+
         try {
           setLoadingMetadata(true);
           const metadataResponse = await getPaperMetadata(paper.arxiv_id, false);
@@ -111,8 +147,7 @@ function App() {
         } finally {
           setLoadingMetadata(false);
         }
-        
-        // Auto-load cached markdown (only if cached - user must click to load if not)
+
         if (status.markdown) {
           try {
             setParsing(true);
@@ -124,8 +159,7 @@ function App() {
             setParsing(false);
           }
         }
-        
-        // Auto-load cached analysis (only if cached - user must click to analyze if not)
+
         if (status.analysis) {
           try {
             setAnalyzing(true);
@@ -154,7 +188,6 @@ function App() {
 
       if (response.success && response.markdown) {
         setMarkdown(response.markdown);
-        // Update cache status
         if (selectedPaper.arxiv_id) {
           const status = await getCacheStatus(selectedPaper.arxiv_id);
           setCacheStatus(status);
@@ -180,7 +213,6 @@ function App() {
 
       if (response.success && response.data) {
         setSummary(response.data);
-        // Update cache status
         const status = await getCacheStatus(selectedPaper.arxiv_id);
         setCacheStatus(status);
       } else {
@@ -193,7 +225,7 @@ function App() {
       setAnalyzing(false);
     }
   };
-  
+
   const handleReloadMetadata = async () => {
     if (!selectedPaper?.arxiv_id) return;
 
@@ -204,7 +236,6 @@ function App() {
 
       if (response.success && response.metadata) {
         setMetadata(response.metadata);
-        // Update cache status
         const status = await getCacheStatus(selectedPaper.arxiv_id);
         setCacheStatus(status);
       } else {
@@ -229,12 +260,11 @@ function App() {
   const handleAddPaper = async (arxivUrl: string) => {
     try {
       const response = await addPaper(arxivUrl);
-      
+
       if (response.success && response.paper) {
-        // Refresh the papers list
         const data = await fetchPapers();
         setPapers(data);
-        
+
         notifications.show({
           title: 'Success',
           message: `Added paper: ${response.paper.title}`,
@@ -266,12 +296,11 @@ function App() {
   ) => {
     try {
       const response = await addRelatedPaper(paperId, arxivId, title, authors);
-      
+
       if (response.success && response.paper) {
-        // Refresh the papers list
         const data = await fetchPapers();
         setPapers(data);
-        
+
         notifications.show({
           title: 'Success',
           message: `Added paper: ${response.paper.title}`,
@@ -304,13 +333,12 @@ function App() {
       const currentPaper: SimplePaperInfo = {
         title: selectedPaper.title,
         authors: selectedPaper.authors,
-        arxiv_id: selectedPaper.arxiv_id || undefined
+        arxiv_id: selectedPaper.arxiv_id || undefined,
       };
 
       const response = await addApplication(application, currentPaper, relatedPapers);
-      
+
       if (response.success) {
-        // Refresh applications list
         const data = await fetchApplications();
         setApplications(data);
 
@@ -336,11 +364,11 @@ function App() {
     }
   };
 
-  const handleViewChange = (view: 'papers' | 'applications') => {
+  const handleViewChange = (view: AppView) => {
     setCurrentView(view);
-    // Reset selections when switching views
     setSelectedPaper(null);
     setSelectedApplication(null);
+    setSelectedSolution(null);
     setMarkdown(null);
     setSummary(null);
     setMetadata(null);
@@ -355,55 +383,139 @@ function App() {
     setSelectedApplication(null);
   };
 
+  const handleGeneratePlan = async (application: ApplicationEntry, forceReload: boolean = false) => {
+    try {
+      setGeneratingPlan(true);
+      const response = await generateSolutionPlan(application.id, forceReload);
+      if (response.success && response.plan) {
+        const record: SolutionPlanRecord = {
+          application_id: application.id,
+          generated_at: response.generated_at,
+          plan: response.plan,
+          markdown: response.markdown,
+          brief: response.brief,
+        };
+        setSolutions((prev) => {
+          const filtered = prev.filter((s) => s.application_id !== application.id);
+          return [record, ...filtered];
+        });
+        setSelectedSolution(record);
+        setSelectedApplication(null);
+        setCurrentView('solutions');
+        notifications.show({
+          title: response.from_cache ? 'Plan loaded from cache' : 'System plan generated',
+          message: response.plan.name,
+          color: 'green',
+        });
+      } else {
+        notifications.show({
+          title: 'Plan generation failed',
+          message: response.error || 'Unknown error',
+          color: 'red',
+        });
+      }
+    } catch (err: any) {
+      console.error('Error generating plan:', err);
+      notifications.show({
+        title: 'Plan generation failed',
+        message: err?.message || 'Unknown error',
+        color: 'red',
+      });
+    } finally {
+      setGeneratingPlan(false);
+    }
+  };
+
+  const handleRegenerateSolution = async () => {
+    if (!selectedSolution?.application_id) return;
+    const app = applications.find((a) => a.id === selectedSolution.application_id);
+    if (!app) {
+      notifications.show({
+        title: 'Cannot regenerate',
+        message: 'Source application is no longer available.',
+        color: 'red',
+      });
+      return;
+    }
+    try {
+      setRegeneratingSolution(true);
+      await handleGeneratePlan(app, true);
+    } finally {
+      setRegeneratingSolution(false);
+    }
+  };
+
+  const renderPapersView = () =>
+    !selectedPaper ? (
+      <PaperList
+        papers={papers}
+        loading={loading}
+        onSelectPaper={handleSelectPaper}
+        onAddPaper={handleAddPaper}
+        selectedPaperId={null}
+      />
+    ) : (
+      <PaperDetail
+        paper={selectedPaper}
+        markdown={markdown}
+        summary={summary}
+        metadata={metadata}
+        cacheStatus={cacheStatus}
+        loading={parsing}
+        analyzing={analyzing}
+        loadingMetadata={loadingMetadata}
+        error={error}
+        onParse={handleParsePaper}
+        onAnalyze={handleAnalyzePaper}
+        onReloadMetadata={handleReloadMetadata}
+        onAddRelatedPaper={handleAddRelatedPaper}
+        onAddApplication={handleAddApplication}
+        onBack={handleBack}
+      />
+    );
+
+  const renderApplicationsView = () =>
+    !selectedApplication ? (
+      <ApplicationList
+        applications={applications}
+        loading={loadingApplications}
+        onSelectApplication={handleSelectApplication}
+        selectedApplicationId={null}
+      />
+    ) : (
+      <ApplicationDetail
+        application={selectedApplication}
+        onBack={handleBackFromApplication}
+        onGeneratePlan={(app) => handleGeneratePlan(app, false)}
+        generatingPlan={generatingPlan}
+      />
+    );
+
+  const renderSolutionsView = () =>
+    !selectedSolution ? (
+      <SolutionList
+        solutions={solutions}
+        loading={loadingSolutions}
+        onSelectSolution={(rec) => setSelectedSolution(rec)}
+        selectedApplicationId={null}
+      />
+    ) : (
+      <SolutionDetail
+        record={selectedSolution}
+        onBack={() => setSelectedSolution(null)}
+        onRegenerate={handleRegenerateSolution}
+        regenerating={regeneratingSolution}
+      />
+    );
+
   return (
     <Layout currentView={currentView} onViewChange={handleViewChange}>
       <Notifications />
       <Container size="xl">
-        {currentView === 'papers' ? (
-          // Papers View
-          !selectedPaper ? (
-            <PaperList
-              papers={papers}
-              loading={loading}
-              onSelectPaper={handleSelectPaper}
-              onAddPaper={handleAddPaper}
-              selectedPaperId={null}
-            />
-          ) : (
-            <PaperDetail
-              paper={selectedPaper}
-              markdown={markdown}
-              summary={summary}
-              metadata={metadata}
-              cacheStatus={cacheStatus}
-              loading={parsing}
-              analyzing={analyzing}
-              loadingMetadata={loadingMetadata}
-              error={error}
-              onParse={handleParsePaper}
-              onAnalyze={handleAnalyzePaper}
-              onReloadMetadata={handleReloadMetadata}
-              onAddRelatedPaper={handleAddRelatedPaper}
-              onAddApplication={handleAddApplication}
-              onBack={handleBack}
-            />
-          )
-        ) : (
-          // Applications View
-          !selectedApplication ? (
-            <ApplicationList
-              applications={applications}
-              loading={loadingApplications}
-              onSelectApplication={handleSelectApplication}
-              selectedApplicationId={null}
-            />
-          ) : (
-            <ApplicationDetail
-              application={selectedApplication}
-              onBack={handleBackFromApplication}
-            />
-          )
-        )}
+        {currentView === 'papers' && renderPapersView()}
+        {currentView === 'applications' && renderApplicationsView()}
+        {currentView === 'solutions' && renderSolutionsView()}
+        {currentView === 'auto-research' && <AutoResearchView />}
       </Container>
     </Layout>
   );

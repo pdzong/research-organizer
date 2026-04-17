@@ -248,3 +248,179 @@ export const fetchApplications = async (): Promise<ApplicationEntry[]> => {
   const response = await apiClient.get<FetchApplicationsResponse>('/applications');
   return response.data.applications;
 };
+
+// ─── Solution plans (codegen-ready system descriptions) ────────────────────
+
+export interface SolutionModule {
+  name: string;
+  responsibility: string;
+  inputs: string[];
+  outputs: string[];
+  technologies: string[];
+  paper_grounding: string[];
+}
+
+export interface SolutionDataModel {
+  name: string;
+  fields: string[];
+  notes?: string | null;
+}
+
+export interface SolutionAPISpec {
+  method: string;
+  path: string;
+  purpose: string;
+  request?: string | null;
+  response?: string | null;
+}
+
+export interface SolutionMilestone {
+  title: string;
+  deliverables: string[];
+  estimated_effort?: string | null;
+}
+
+export interface SolutionRisk {
+  description: string;
+  mitigation: string;
+}
+
+export interface SolutionPlan {
+  name: string;
+  tagline: string;
+  problem_statement: string;
+  target_users: string[];
+  scientific_grounding: string;
+  key_enabling_papers: string[];
+  system_overview: string;
+  architecture_diagram: string;
+  modules: SolutionModule[];
+  data_models: SolutionDataModel[];
+  apis: SolutionAPISpec[];
+  integration_points: string[];
+  tech_stack: string[];
+  milestones: SolutionMilestone[];
+  risks: SolutionRisk[];
+  success_metrics: string[];
+  open_questions: string[];
+  code_generation_prompt: string;
+}
+
+export interface SolutionPlanRecord {
+  application_id?: string;
+  generated_at?: string;
+  plan?: SolutionPlan;
+  markdown?: string;
+  brief?: string;
+}
+
+export interface GeneratePlanResponse {
+  success: boolean;
+  application_id?: string;
+  plan?: SolutionPlan;
+  markdown?: string;
+  brief?: string;
+  generated_at?: string;
+  from_cache?: boolean;
+  error?: string;
+}
+
+export const generateSolutionPlan = async (
+  applicationId: string,
+  forceReload: boolean = false
+): Promise<GeneratePlanResponse> => {
+  const params = forceReload ? { force_reload: true } : {};
+  const response = await apiClient.post<GeneratePlanResponse>(
+    `/applications/${encodeURIComponent(applicationId)}/plan`,
+    null,
+    { params }
+  );
+  return response.data;
+};
+
+export const getSolutionPlan = async (
+  applicationId: string
+): Promise<GeneratePlanResponse> => {
+  const response = await apiClient.get<GeneratePlanResponse>(
+    `/applications/${encodeURIComponent(applicationId)}/plan`
+  );
+  return response.data;
+};
+
+export const fetchSolutions = async (): Promise<SolutionPlanRecord[]> => {
+  const response = await apiClient.get<{ success: boolean; plans: SolutionPlanRecord[] }>(
+    '/solutions'
+  );
+  return response.data.plans || [];
+};
+
+// ─── Auto-research control plane ──────────────────────────────────────────
+
+export interface AutoResearchLogEntry {
+  ts: string;
+  level: string;
+  message: string;
+}
+
+export interface AutoResearchStatus {
+  state: 'idle' | 'running' | 'stopping' | 'stopped' | 'error';
+  source: string;
+  limit: number;
+  continuous: boolean;
+  interval_seconds: number;
+  started_at?: string | null;
+  finished_at?: string | null;
+  current_arxiv_id?: string | null;
+  current_step?: string | null;
+  processed_count: number;
+  skipped_count: number;
+  error_count: number;
+  application_count: number;
+  log: AutoResearchLogEntry[];
+  last_error?: string | null;
+}
+
+export interface AutoResearchStatusResponse {
+  success: boolean;
+  status: AutoResearchStatus;
+  error?: string;
+}
+
+export interface AutoResearchSource {
+  id: string;
+  label: string;
+}
+
+export const fetchAutoResearchSources = async (): Promise<AutoResearchSource[]> => {
+  const response = await apiClient.get<{ success: boolean; sources: AutoResearchSource[] }>(
+    '/auto-research/sources'
+  );
+  return response.data.sources || [];
+};
+
+export const startAutoResearch = async (params: {
+  source: string;
+  limit: number;
+  continuous: boolean;
+  interval_seconds: number;
+}): Promise<AutoResearchStatusResponse> => {
+  const response = await apiClient.post<AutoResearchStatusResponse>(
+    '/auto-research/start',
+    params
+  );
+  return response.data;
+};
+
+export const stopAutoResearch = async (): Promise<AutoResearchStatusResponse> => {
+  const response = await apiClient.post<AutoResearchStatusResponse>(
+    '/auto-research/stop'
+  );
+  return response.data;
+};
+
+export const getAutoResearchStatus = async (): Promise<AutoResearchStatusResponse> => {
+  const response = await apiClient.get<AutoResearchStatusResponse>(
+    '/auto-research/status'
+  );
+  return response.data;
+};

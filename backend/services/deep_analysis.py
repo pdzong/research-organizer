@@ -3,12 +3,22 @@ import csv
 from pathlib import Path
 from datetime import datetime
 
-from cache_service import load_analysis, load_metadata, load_markdown, save_markdown, save_metadata
-from some_extensions.research_tools import arxiv_search_tool
-from semantic_scholar import get_paper_metadata
-from openai_service import is_paper_relevant, summarize_paper
-from models import ApplicationIdea, PaperAnalysis
-from pdf_parser import download_and_parse_paper
+try:
+    # Preferred: package-relative imports (works when imported from anywhere)
+    from .cache_service import load_analysis, load_metadata, load_markdown, save_markdown, save_metadata
+    from .some_extensions.research_tools import arxiv_search_tool
+    from .semantic_scholar import get_paper_metadata
+    from .openai_service import is_paper_relevant, summarize_paper
+    from .models import ApplicationIdea, PaperAnalysis
+    from .pdf_parser import download_and_parse_paper
+except ImportError:
+    # Fallback for executing this file as a script from inside services/
+    from cache_service import load_analysis, load_metadata, load_markdown, save_markdown, save_metadata
+    from some_extensions.research_tools import arxiv_search_tool
+    from semantic_scholar import get_paper_metadata
+    from openai_service import is_paper_relevant, summarize_paper
+    from models import ApplicationIdea, PaperAnalysis
+    from pdf_parser import download_and_parse_paper
 import asyncio
 
 

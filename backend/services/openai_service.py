@@ -16,7 +16,7 @@ def get_openai_client() -> OpenAI:
         _client = OpenAI(api_key=api_key)
     return _client
 
-async def summarize_paper(markdown_text: str, model_id: str = "gpt-5.2") -> Dict[str, Any]:
+async def summarize_paper(markdown_text: str, model_id: str = "gpt-5.4") -> Dict[str, Any]:
     """
     Summarize a research paper using Structured Outputs.
     
@@ -74,7 +74,7 @@ async def summarize_paper(markdown_text: str, model_id: str = "gpt-5.2") -> Dict
             "error": str(e)
         }
 
-async def extract_paper_sections(raw_markdown: str, model_id: str = "gpt-5-nano") -> PaperSections:
+async def extract_paper_sections(raw_markdown: str, model_id: str = "gpt-5.4-nano") -> PaperSections:
     """
     Uses a fast, cheap model to segment the paper and discard noise (References, Appendix).
     """
@@ -125,7 +125,7 @@ async def is_paper_relevant(
     application_idea: ApplicationIdea,
     paper_title: str,
     paper_abstract: str,
-    model_id: str = "gpt-5-nano" 
+    model_id: str = "gpt-5.4-nano" 
 ) -> Dict[str, Any]:
     """
     Quickly filters a paper based on its Title and Abstract against a target Application.
