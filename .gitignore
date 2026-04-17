@@ -30,3 +30,6 @@ dist/
 # Logs
 *.log
 backend/data/results/
+
+# Runtime-generated config
+backend/data/llm_config.json

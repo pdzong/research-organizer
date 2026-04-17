@@ -1,94 +1,72 @@
-import os
-from openai import OpenAI
+"""
+High-level LLM tasks used by the rest of the backend.
+
+Historically this module was hard-wired to OpenAI (``client.responses.parse``).
+It is now a thin wrapper around :mod:`services.llm_clients`, which routes
+each call to whichever provider (OpenAI / Anthropic / Gemini) the user has
+configured for that role via :mod:`services.llm_config`.
+
+The module keeps its original name + function signatures so existing
+callers keep working unchanged. The legacy ``model_id`` override argument is
+still accepted and forwarded as a per-call override.
+"""
+
 from typing import Optional, Dict, Any
+
 from .models import PaperAnalysis, RelevanceDecision, ApplicationIdea, PaperSections
+from . import llm_clients
 
-# Global client variable
-_client: Optional[OpenAI] = None
 
-def get_openai_client() -> OpenAI:
-    """Get or create OpenAI client instance."""
-    global _client
-    if _client is None:
-        api_key = os.getenv("OPENAI_API_KEY")
-        if not api_key:
-            raise ValueError("OPENAI_API_KEY not found in environment variables")
-        _client = OpenAI(api_key=api_key)
-    return _client
-
-async def summarize_paper(markdown_text: str, model_id: str = "gpt-5.4") -> Dict[str, Any]:
+async def summarize_paper(markdown_text: str, model_id: Optional[str] = None) -> Dict[str, Any]:
     """
-    Summarize a research paper using Structured Outputs.
-    
-    Args:
-        markdown_text: The full paper text in markdown format.
-        
-    Returns:
-        dict: A dictionary representation of the PaperAnalysis model.
+    Extract structured knowledge from a paper's full markdown.
+
+    Uses the provider configured for the ``deep_analysis`` role. The optional
+    ``model_id`` overrides the model (provider stays as configured).
     """
+    print("🤖 Starting LLM analysis...")
+    system_prompt = """
+    You are an expert AI Research Scientist. Your goal is to extract structured knowledge from academic papers.
+
+    Follow this reasoning process:
+    1. **Scan for Context**: Read the Abstract and Introduction to understand the "Status Quo".
+    2. **Identify the Delta**: Look for the specific "Method" section to see what they changed.
+    3. **Filter Benchmarks**: Look at Tables and Results. ONLY extract results that clearly belong to THIS paper's method. Mark baselines as `is_this_paper_result=False`.
+    4. **Verify**: For every number you extract, find the exact quote/location in the text.
+    """
+
     try:
-        print("🤖 Starting LLM analysis...")
-        client = get_openai_client()
-        
-        # We use a multi-step prompt strategy within the system message
-        system_prompt = """
-        You are an expert AI Research Scientist. Your goal is to extract structured knowledge from academic papers.
-        
-        Follow this reasoning process:
-        1. **Scan for Context**: Read the Abstract and Introduction to understand the "Status Quo".
-        2. **Identify the Delta**: Look for the specific "Method" section to see what they changed.
-        3. **Filter Benchmarks**: Look at Tables and Results. ONLY extract results that clearly belong to THIS paper's method. Mark baselines as `is_this_paper_result=False`.
-        4. **Verify**: For every number you extract, find the exact quote/location in the text.
-        """
-
-        # Using OpenAI's native Structured Outputs (beta.chat.completions.parse)
-        response = client.responses.parse(
-            model=model_id, 
-            input=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Analyze this paper:\n\n{markdown_text}"}
-            ],
-            text_format=PaperAnalysis,
+        analysis, usage = await llm_clients.parse_structured(
+            role="deep_analysis",
+            schema=PaperAnalysis,
+            system=system_prompt,
+            user=f"Analyze this paper:\n\n{markdown_text}",
+            model=model_id,
         )
-        
-        # The SDK automatically validates and parses the JSON into your Pydantic model
-        analysis: PaperAnalysis = response.output_parsed
-        
-        # Convert Pydantic model to a clean dictionary
-        # excluding the "thought_process" field if you don't want to show it in the UI
         return {
             "success": True,
-            "data": analysis.model_dump(exclude={"analysis_thought_process"}), 
-            "usage": {
-                "model": response.model,
-                "input_tokens": response.usage.input_tokens,
-                "output_tokens": response.usage.output_tokens
-            }
+            "data": analysis.model_dump(exclude={"analysis_thought_process"}),
+            "usage": usage,
         }
-    
     except Exception as e:
         return {
             "success": False,
             "data": None,
             "usage": None,
-            "error": str(e)
+            "error": str(e),
         }
 
-async def extract_paper_sections(raw_markdown: str, model_id: str = "gpt-5.4-nano") -> PaperSections:
-    """
-    Uses a fast, cheap model to segment the paper and discard noise (References, Appendix).
-    """
-    print(f"🧹 Pre-processing with {model_id}...")
-    client = get_openai_client()
 
-    # The prompt is simple and instructional, focusing on "Segmentation" not "Reasoning"
+async def extract_paper_sections(raw_markdown: str, model_id: Optional[str] = None) -> PaperSections:
+    """Segment raw OCR markdown into sections using a cheap model."""
+    print("🧹 Pre-processing paper sections...")
     system_prompt = """
     You are a Research Assistant. Your job is to organize raw OCR markdown into logical sections.
-    
+
     Rules:
     1. **Extract Verbatim**: Do not summarize. Copy the text exactly as it appears in the sections.
     2. **Isolate Contributions**: Look specifically for the "Our contributions are..." or "In summary..." list at the end of the Introduction. Extract this text into `contributions_text`.
-    3. **Group Smartly**: 
+    3. **Group Smartly**:
        - Put "Related Work" into `introduction_text`.
        - Put "Ablation Studies" into `experiments_text`.
     4. **Find the Code**: Aggressively search for a GitHub or project page URL.
@@ -96,28 +74,24 @@ async def extract_paper_sections(raw_markdown: str, model_id: str = "gpt-5.4-nan
     """
 
     try:
-        response = client.responses.parse(
+        parsed, _ = await llm_clients.parse_structured(
+            role="sections",
+            schema=PaperSections,
+            system=system_prompt,
+            user=f"Organize this raw paper text:\n\n{raw_markdown}",
             model=model_id,
-            input=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Organize this raw paper text:\n\n{raw_markdown}"}
-            ],
-            text_format=PaperSections,
         )
-        return response.output_parsed
-
+        return parsed
     except Exception as e:
         print(f"⚠️ Pre-processing failed: {e}")
-        # Fallback: If pre-processing fails, return a dummy object containing the raw text
-        # so the pipeline doesn't break.
         return PaperSections(
             title="Unknown Title",
-            abstract_text=raw_markdown[:2000], 
+            abstract_text=raw_markdown[:2000],
             introduction_text="",
             methodology_text="",
-            experiments_text=raw_markdown, # dump everything here
+            experiments_text=raw_markdown,
             conclusion_text="",
-            github_url=None
+            github_url=None,
         )
 
 
@@ -125,57 +99,46 @@ async def is_paper_relevant(
     application_idea: ApplicationIdea,
     paper_title: str,
     paper_abstract: str,
-    model_id: str = "gpt-5.4-nano" 
+    model_id: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """
-    Quickly filters a paper based on its Title and Abstract against a target Application.
-    """
-    try:
-        client = get_openai_client()
-        
-        system_prompt = """
-        You are a strict Research Curator. 
-        Your task is to filter academic papers for a specific engineering application.
-        
-        Criteria for Relevance:
-        1. Does this paper propose a method, model, or dataset useful for the target application?
-        2. Is it technically aligned (e.g., if the app is Computer Vision, reject pure NLP papers unless multimodal)?
-        
-        Output a boolean decision and a one-sentence justification.
-        """
-        
-        user_prompt = f"""
-        Target Application (JSON): 
-        {application_idea.model_dump_json(indent=2)}
-        
-        Candidate Paper:
-        - Title: {paper_title}
-        - Abstract: {paper_abstract}
-        """
+    """Yes/no filter that checks whether a paper matches an application idea."""
+    system_prompt = """
+    You are a strict Research Curator.
+    Your task is to filter academic papers for a specific engineering application.
 
-        response = client.responses.parse(
+    Criteria for Relevance:
+    1. Does this paper propose a method, model, or dataset useful for the target application?
+    2. Is it technically aligned (e.g., if the app is Computer Vision, reject pure NLP papers unless multimodal)?
+
+    Output a boolean decision and a one-sentence justification.
+    """
+
+    user_prompt = f"""
+    Target Application (JSON):
+    {application_idea.model_dump_json(indent=2)}
+
+    Candidate Paper:
+    - Title: {paper_title}
+    - Abstract: {paper_abstract}
+    """
+
+    try:
+        result, _ = await llm_clients.parse_structured(
+            role="relevance",
+            schema=RelevanceDecision,
+            system=system_prompt,
+            user=user_prompt,
             model=model_id,
-            input=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            text_format=RelevanceDecision,
         )
-        
-        result: RelevanceDecision = response.output_parsed
-        
         return {
             "success": True,
             "decision": result.is_relevant,
-            "reason": result.reasoning
+            "reason": result.reasoning,
         }
-
     except Exception as e:
         print(f"Filter Error on '{paper_title}': {e}")
-        # Fail safe: In case of error, we default to False (skip) or True (keep) depending on your preference.
-        # usually defaulting to False is safer to prevent pipeline clutter.
         return {
-            "success": False, 
-            "decision": False, 
-            "reason": f"Error: {str(e)}"
+            "success": False,
+            "decision": False,
+            "reason": f"Error: {str(e)}",
         }

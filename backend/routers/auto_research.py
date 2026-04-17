@@ -29,6 +29,16 @@ class StartRequest(BaseModel):
         ge=10,
         description="Sleep between batches in continuous mode.",
     )
+    generate_plans: bool = Field(
+        default=False,
+        description="If true, auto-generate codegen-ready SolutionPlans for each plan-worthy application derived from a paper.",
+    )
+    plan_min_confidence: float = Field(
+        default=0.6,
+        ge=0.0,
+        le=1.0,
+        description="Plan-worthiness gate threshold (0-1).",
+    )
 
 
 class StatusResponse(BaseModel):
@@ -49,6 +59,8 @@ async def start_auto_research(req: StartRequest) -> StatusResponse:
         limit=req.limit,
         continuous=req.continuous,
         interval_seconds=req.interval_seconds,
+        generate_plans=req.generate_plans,
+        plan_min_confidence=req.plan_min_confidence,
     )
     return StatusResponse(
         success=result.get("success", False),

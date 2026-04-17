@@ -198,49 +198,47 @@ def clear_cache(arxiv_id: str, cache_type: Optional[str] = None) -> bool:
         print(f"Error clearing cache: {e}")
         return False
 
-def save_application(application: Dict[str, Any], current_paper: Dict[str, Any], related_papers: list) -> bool:
+def save_application(application: Dict[str, Any], current_paper: Dict[str, Any], related_papers: list) -> Optional[str]:
     """
     Save an application idea to applications.json.
-    
+
     Args:
         application: Dict with 'domain' and 'specific_utility' fields
         current_paper: Dict with 'title', 'authors', and optional 'arxiv_id'
         related_papers: List of dicts, each with 'title', 'authors', and optional 'arxiv_id'
-    
+
     Returns:
-        True if successful, False otherwise
+        The new entry's ``id`` on success, ``None`` on failure.
+        (Callers that treated this as a ``bool`` still work: ``id`` strings are truthy.)
     """
     try:
-        # Ensure cache directory exists
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        
-        # Load existing applications or create new list
+
         applications = []
         if APPLICATIONS_FILE.exists():
             with open(APPLICATIONS_FILE, 'r', encoding='utf-8') as f:
                 applications = json.load(f)
-        
-        # Create new application entry
+
+        entry_id = datetime.utcnow().isoformat()
         new_entry = {
-            "id": datetime.utcnow().isoformat(),
+            "id": entry_id,
             "application": application,
             "current_paper": current_paper,
             "related_papers": related_papers,
             "added_at": datetime.utcnow().isoformat()
         }
-        
+
         applications.append(new_entry)
-        
-        # Save back to file
+
         with open(APPLICATIONS_FILE, 'w', encoding='utf-8') as f:
             json.dump(applications, f, indent=2, ensure_ascii=False)
-        
+
         print(f"Saved application '{application.get('domain', 'Unknown')}' to applications.json")
-        return True
-    
+        return entry_id
+
     except Exception as e:
         print(f"Error saving application: {e}")
-        return False
+        return None
 
 def load_applications() -> list:
     """

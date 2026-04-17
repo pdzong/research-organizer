@@ -50,6 +50,8 @@ export function AutoResearchView() {
   const [limit, setLimit] = useState<number>(5);
   const [continuous, setContinuous] = useState<boolean>(false);
   const [intervalSeconds, setIntervalSeconds] = useState<number>(300);
+  const [generatePlans, setGeneratePlans] = useState<boolean>(false);
+  const [planMinConfidence, setPlanMinConfidence] = useState<number>(0.6);
 
   const pollRef = useRef<number | null>(null);
 
@@ -74,6 +76,8 @@ export function AutoResearchView() {
           setLimit(r.status.limit);
           setContinuous(r.status.continuous);
           setIntervalSeconds(r.status.interval_seconds);
+          if (typeof r.status.generate_plans === 'boolean') setGeneratePlans(r.status.generate_plans);
+          if (typeof r.status.plan_min_confidence === 'number') setPlanMinConfidence(r.status.plan_min_confidence);
         }
       } catch (e) {
         console.error(e);
@@ -117,6 +121,8 @@ export function AutoResearchView() {
         limit,
         continuous,
         interval_seconds: intervalSeconds,
+        generate_plans: generatePlans,
+        plan_min_confidence: planMinConfidence,
       });
       setStatus(r.status);
       if (!r.success) {
@@ -230,6 +236,31 @@ export function AutoResearchView() {
             />
           </Group>
 
+          <Divider label="Target plans" labelPosition="left" my={0} />
+
+          <Group grow align="flex-end">
+            <Switch
+              label="Generate target plans"
+              description="After each paper, auto-build a codegen-ready SolutionPlan for every plan-worthy application derived from it."
+              checked={generatePlans}
+              onChange={(e) => setGeneratePlans(e.currentTarget.checked)}
+              disabled={isRunning}
+            />
+            <NumberInput
+              label="Plan-worthy confidence ≥"
+              description="Applications below this gate confidence are skipped."
+              min={0}
+              max={1}
+              step={0.05}
+              decimalScale={2}
+              value={planMinConfidence}
+              onChange={(v) =>
+                setPlanMinConfidence(typeof v === 'number' ? v : parseFloat(String(v) || '0.6'))
+              }
+              disabled={isRunning || !generatePlans}
+            />
+          </Group>
+
           <Group justify="flex-end" gap="xs">
             <Button
               variant="subtle"
@@ -288,6 +319,12 @@ export function AutoResearchView() {
             <Stat label="Skipped (cached)" value={status.skipped_count} color="gray" />
             <Stat label="Errors" value={status.error_count} color="red" />
             <Stat label="Applications saved" value={status.application_count} color="grape" />
+            {status.generate_plans && (
+              <>
+                <Stat label="Plans generated" value={status.plan_count ?? 0} color="blue" />
+                <Stat label="Plans gated out" value={status.plan_skipped_count ?? 0} color="gray" />
+              </>
+            )}
           </Group>
         )}
 

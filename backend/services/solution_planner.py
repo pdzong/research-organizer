@@ -21,13 +21,76 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from . import cache_service
+from pydantic import BaseModel, Field
+
+from . import cache_service, llm_clients
 from .models import (
     ApplicationIdea,
     SolutionPlan,
 )
-from .openai_service import get_openai_client
 from .semantic_scholar import get_paper_metadata
+
+
+class PlanWorthiness(BaseModel):
+    """Cheap yes/no gate for 'is this application concrete enough to plan?'."""
+    is_plan_worthy: bool = Field(..., description="True if this application is concrete and grounded enough to justify a full system plan.")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Model's own 0..1 confidence.")
+    reasoning: str = Field(..., description="One-sentence justification for the verdict.")
+
+
+_PLAN_WORTHY_SYSTEM_PROMPT = """
+You are a strict Product Curator. You receive an auto-derived "application idea" built
+from a scientific paper. Your job is to decide whether it is concrete enough to warrant
+investing in a full, codegen-ready system plan.
+
+Reject ideas that are:
+* Purely hypothetical ("could maybe help doctors one day").
+* Dual-use thin wrappers around a single paper with no real product surface.
+* Too abstract to produce a real architecture / API / milestone plan from.
+
+Accept ideas that:
+* Target a specific end-user or workflow.
+* Leverage a clear, implementable method from the paper.
+* Can plausibly be scoped into 3-7 modules and shipped.
+""".strip()
+
+
+async def is_application_plan_worthy(application_entry: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Quick LLM gate used by the auto-research runner to decide whether to spend
+    tokens building a full SolutionPlan for an auto-derived application.
+    """
+    try:
+        app = application_entry.get("application") or {}
+        current_paper = application_entry.get("current_paper") or {}
+        user_prompt = (
+            f"## Candidate application\n"
+            f"- Domain: {app.get('domain', '')}\n"
+            f"- Specific utility: {app.get('specific_utility', '')}\n\n"
+            f"## Source paper\n"
+            f"- Title: {current_paper.get('title', '')}\n"
+            f"- arxiv: {current_paper.get('arxiv_id', '')}\n"
+        )
+        verdict, _ = await llm_clients.parse_structured(
+            role="plan_worthy",
+            schema=PlanWorthiness,
+            system=_PLAN_WORTHY_SYSTEM_PROMPT,
+            user=user_prompt,
+        )
+        return {
+            "success": True,
+            "is_plan_worthy": verdict.is_plan_worthy,
+            "confidence": verdict.confidence,
+            "reasoning": verdict.reasoning,
+        }
+    except Exception as e:
+        # Fail safe: skip plan generation on error (cheaper than generating junk).
+        return {
+            "success": False,
+            "is_plan_worthy": False,
+            "confidence": 0.0,
+            "reasoning": f"gate error: {e}",
+        }
 
 
 # ─── Context assembly ────────────────────────────────────────────────────────
@@ -148,11 +211,9 @@ start building from it without asking clarifying questions about the
 async def _draft_brief(
     application: ApplicationIdea,
     paper_contexts: List[Dict[str, Any]],
-    model_id: str = "gpt-5-mini",
+    model_id: Optional[str] = None,
 ) -> str:
     """Step 1: cheap pass that turns raw paper context into a tight brief."""
-    client = get_openai_client()
-
     user_prompt = (
         f"## Target application\n"
         f"- Domain: {application.domain}\n"
@@ -160,27 +221,22 @@ async def _draft_brief(
         f"## Scientific context\n\n"
         + "\n\n---\n\n".join(_format_paper_context(c) for c in paper_contexts)
     )
-
-    response = client.responses.create(
+    text, _usage = await llm_clients.generate_text(
+        role="plan_brief",
+        system=_BRIEF_SYSTEM_PROMPT,
+        user=user_prompt,
         model=model_id,
-        input=[
-            {"role": "system", "content": _BRIEF_SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
     )
-    # The Responses API exposes the aggregated text via ``output_text``.
-    return getattr(response, "output_text", "") or ""
+    return text
 
 
 async def _draft_plan(
     application: ApplicationIdea,
     paper_contexts: List[Dict[str, Any]],
     brief: str,
-    model_id: str = "gpt-5.4",
+    model_id: Optional[str] = None,
 ) -> SolutionPlan:
     """Step 2: synthesize the structured `SolutionPlan`."""
-    client = get_openai_client()
-
     user_prompt = (
         f"## Target application\n"
         f"- Domain: {application.domain}\n"
@@ -189,16 +245,13 @@ async def _draft_plan(
         f"## Scientific context\n\n"
         + "\n\n---\n\n".join(_format_paper_context(c) for c in paper_contexts)
     )
-
-    response = client.responses.parse(
+    plan, _usage = await llm_clients.parse_structured(
+        role="plan_synthesis",
+        schema=SolutionPlan,
+        system=_PLAN_SYSTEM_PROMPT,
+        user=user_prompt,
         model=model_id,
-        input=[
-            {"role": "system", "content": _PLAN_SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
-        text_format=SolutionPlan,
     )
-    plan: SolutionPlan = response.output_parsed
     return plan
 
 
@@ -207,8 +260,8 @@ async def _draft_plan(
 
 async def generate_solution_plan(
     application_entry: Dict[str, Any],
-    brief_model_id: str = "gpt-5-mini",
-    plan_model_id: str = "gpt-5.4",
+    brief_model_id: Optional[str] = None,
+    plan_model_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Generate a SolutionPlan from an application entry stored in
