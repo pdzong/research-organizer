@@ -1,5 +1,55 @@
 [
   {
+    "id": "2604.15308",
+    "title": "RAD-2: Scaling Reinforcement Learning in a Generator-Discriminator Framework",
+    "authors": [
+      "Hao Gao",
+      "Shaoyu Chen",
+      "Yifan Zhu",
+      "Yuehao Song",
+      "Wenyu Liu"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2604.15308",
+    "arxiv_id": "2604.15308",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-04-17T20:31:43.927485",
+        "markdown": "2026-04-17T20:33:52.054197",
+        "sections": "2026-04-17T20:35:03.765767",
+        "analysis": "2026-04-17T20:36:21.067829"
+      },
+      "metadata": "cache/2604.15308/metadata.json",
+      "markdown": "cache/2604.15308/markdown.md",
+      "sections": "cache/2604.15308/sections.json",
+      "analysis": "cache/2604.15308/analysis.json"
+    }
+  },
+  {
+    "id": "2604.14268",
+    "title": "HY-World 2.0: A Multi-Modal World Model for Reconstructing, Generating, and Simulating 3D Worlds",
+    "authors": [
+      "Team HY-World",
+      "Chenjie Cao",
+      "Xuhui Zuo",
+      "Zhenwei Wang",
+      "Yisu Zhang"
+    ],
+    "arxiv_url": "https://arxiv.org/abs/2604.14268",
+    "arxiv_id": "2604.14268",
+    "cached": {
+      "lastUpdated": {
+        "metadata": "2026-04-17T20:24:47.040786",
+        "markdown": "2026-04-17T20:29:22.232795",
+        "sections": "2026-04-17T20:30:16.239585",
+        "analysis": "2026-04-17T20:31:24.611938"
+      },
+      "metadata": "cache/2604.14268/metadata.json",
+      "markdown": "cache/2604.14268/markdown.md",
+      "sections": "cache/2604.14268/sections.json",
+      "analysis": "cache/2604.14268/analysis.json"
+    }
+  },
+  {
     "id": "2604.11784",
     "title": "ClawGUI: A Unified Framework for Training, Evaluating, and Deploying GUI Agents",
     "authors": [
