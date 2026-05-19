@@ -64,6 +64,24 @@ npm run dev
 
 ## Test Checklist
 
+### 0. Optional Local vLLM Smoke Test
+
+This validates only the Docker Compose-hosted local model endpoint. It does not
+wire the model into the backend provider registry yet.
+
+Start the local model service:
+```bash
+bash scripts/start-local-vllm.sh
+```
+
+In another terminal, run:
+```bash
+bash scripts/smoke-local-vllm.sh
+```
+
+Expected result: the script waits for `http://localhost:9001/v1/models`, calls
+`/v1/chat/completions`, and prints a non-empty response.
+
 ### 1. Backend API Tests
 
 Visit `http://localhost:8000/docs` to access the interactive API documentation.
