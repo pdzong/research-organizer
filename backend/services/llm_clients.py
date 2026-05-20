@@ -15,13 +15,15 @@ Supported providers
   schema.
 * ``gemini``    — uses ``response_mime_type="application/json"`` with
   ``response_schema`` (new ``google-genai`` SDK).
+* ``local_vllm`` — uses the OpenAI-compatible Chat Completions API exposed by
+  a local vLLM server.
 
 Dependencies
 ------------
-All three SDKs are *soft* deps: the adapter only imports a provider's SDK
-when it's actually needed for a call. If a provider's SDK or API key is
-missing and the caller selects that provider, a ``RuntimeError`` with a
-clear message is raised.
+All SDKs are *soft* deps: the adapter only imports a provider's SDK when it's
+actually needed for a call. If a provider's SDK, API key, or endpoint is
+missing and the caller selects that provider, a ``RuntimeError`` with a clear
+message is raised.
 """
 
 from __future__ import annotations
@@ -50,6 +52,18 @@ def _resolve(role: str, provider: Optional[str], model: Optional[str]) -> tuple[
     """Resolve final provider + model given optional overrides."""
     defaults = llm_config.get_role(role)
     return (provider or defaults["provider"], model or defaults["model"])
+
+
+def _usage_attr(usage: Any, *names: str) -> Optional[int]:
+    if usage is None:
+        return None
+    for name in names:
+        value = getattr(usage, name, None)
+        if value is None and isinstance(usage, dict):
+            value = usage.get(name)
+        if value is not None:
+            return value
+    return None
 
 
 # ─── OpenAI ───────────────────────────────────────────────────────────────
@@ -246,6 +260,183 @@ def _gemini_text(model: str, system: str, user: str) -> tuple[str, Dict[str, Any
     return text, usage
 
 
+# ─── Local vLLM ───────────────────────────────────────────────────────────
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if not raw:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _vllm_client():
+    try:
+        from openai import OpenAI  # noqa: F401
+    except ImportError as e:
+        raise RuntimeError(
+            "openai SDK not installed. Run `pip install openai` or install "
+            "backend requirements before using local_vllm."
+        ) from e
+    from openai import OpenAI
+
+    base_url = os.getenv("LOCAL_VLLM_BASE_URL", "http://localhost:9001/v1")
+    api_key = os.getenv("LOCAL_VLLM_API_KEY", "EMPTY")
+    return OpenAI(base_url=base_url, api_key=api_key)
+
+
+def _vllm_extra_body() -> Dict[str, Any]:
+    """
+    Qwen reasoning models can otherwise emit thinking text before the answer,
+    which breaks structured parsing. Allow opt-out for other local models.
+    """
+    if not _env_bool("LOCAL_VLLM_DISABLE_THINKING", True):
+        return {}
+    return {"chat_template_kwargs": {"enable_thinking": False}}
+
+
+def _vllm_usage(response: Any, model: str) -> Dict[str, Any]:
+    usage = getattr(response, "usage", None)
+    return {
+        "model": getattr(response, "model", model),
+        "provider": "local_vllm",
+        "input_tokens": _usage_attr(usage, "input_tokens", "prompt_tokens"),
+        "output_tokens": _usage_attr(usage, "output_tokens", "completion_tokens"),
+    }
+
+
+def _vllm_model_not_found(exc: Exception) -> bool:
+    status_code = getattr(exc, "status_code", None)
+    if status_code == 404:
+        return True
+    message = str(exc).lower()
+    return "model" in message and ("does not exist" in message or "not found" in message)
+
+
+def _vllm_first_served_model(client: Any) -> Optional[str]:
+    try:
+        models = client.models.list()
+        data = getattr(models, "data", None) or []
+        if not data:
+            return None
+        return getattr(data[0], "id", None)
+    except Exception:
+        return None
+
+
+def _vllm_chat_completion(client: Any, model: str, **kwargs: Any) -> Any:
+    try:
+        return client.chat.completions.create(model=model, **kwargs)
+    except Exception as e:
+        fallback_model = os.getenv("LOCAL_VLLM_FALLBACK_MODEL")
+        if _vllm_model_not_found(e):
+            fallback_model = fallback_model or _vllm_first_served_model(client)
+            if fallback_model and fallback_model != model:
+                return client.chat.completions.create(model=fallback_model, **kwargs)
+        raise
+
+
+def _vllm_text(model: str, system: str, user: str) -> tuple[str, Dict[str, Any]]:
+    client = _vllm_client()
+    response = _vllm_chat_completion(
+        client,
+        model,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        temperature=0,
+        max_tokens=_env_int("LOCAL_VLLM_TEXT_MAX_TOKENS", 4096),
+        extra_body=_vllm_extra_body(),
+    )
+    text = getattr(response.choices[0].message, "content", "") or ""
+    return text, _vllm_usage(response, model)
+
+
+def _vllm_validate_json(content: str, schema: Type[T]) -> T:
+    stripped = (content or "").strip()
+    candidates = [stripped]
+
+    if stripped.startswith("```"):
+        lines = stripped.splitlines()
+        if lines:
+            lines = lines[1:]
+        if lines and lines[-1].strip().startswith("```"):
+            lines = lines[:-1]
+        candidates.append("\n".join(lines).strip())
+
+    start = stripped.find("{")
+    end = stripped.rfind("}")
+    if start != -1 and end > start:
+        candidates.append(stripped[start:end + 1])
+
+    last_error: Optional[Exception] = None
+    for candidate in candidates:
+        if not candidate:
+            continue
+        try:
+            return schema.model_validate_json(candidate)
+        except Exception as e:
+            last_error = e
+
+    preview = stripped[:500].replace("\n", "\\n")
+    raise RuntimeError(
+        f"local_vllm did not return valid {schema.__name__} JSON: "
+        f"{last_error}. Output preview: {preview}"
+    )
+
+
+def _vllm_parse(model: str, system: str, user: str, schema: Type[T]) -> tuple[T, Dict[str, Any]]:
+    client = _vllm_client()
+    schema_json = schema.model_json_schema()
+    response = _vllm_chat_completion(
+        client,
+        model,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    system
+                    + "\nReturn only valid JSON matching the supplied schema. "
+                    + "Do not include reasoning, markdown fences, or any text outside JSON."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "JSON schema:\n"
+                    + json.dumps(schema_json, indent=2)
+                    + "\n\nTask:\n"
+                    + user
+                ),
+            },
+        ],
+        temperature=0,
+        max_tokens=_env_int("LOCAL_VLLM_STRUCTURED_MAX_TOKENS", 8192),
+        response_format={
+            "type": "json_schema",
+            "json_schema": {
+                "name": schema.__name__,
+                "schema": schema_json,
+                "strict": True,
+            },
+        },
+        extra_body=_vllm_extra_body(),
+    )
+    content = getattr(response.choices[0].message, "content", "") or ""
+    return _vllm_validate_json(content, schema), _vllm_usage(response, model)
+
+
 # ─── Public API ───────────────────────────────────────────────────────────
 
 
@@ -271,6 +462,8 @@ async def parse_structured(
             return _anthropic_parse(mod, system, user, schema)
         if prov == "gemini":
             return _gemini_parse(mod, system, user, schema)
+        if prov == "local_vllm":
+            return _vllm_parse(mod, system, user, schema)
         raise RuntimeError(f"unsupported provider: {prov!r}")
 
     return await asyncio.to_thread(_call)
@@ -293,6 +486,8 @@ async def generate_text(
             return _anthropic_text(mod, system, user)
         if prov == "gemini":
             return _gemini_text(mod, system, user)
+        if prov == "local_vllm":
+            return _vllm_text(mod, system, user)
         raise RuntimeError(f"unsupported provider: {prov!r}")
 
     return await asyncio.to_thread(_call)

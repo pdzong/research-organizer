@@ -17,6 +17,7 @@ Provider naming
 * ``openai``   — OpenAI Platform (``OPENAI_API_KEY``).
 * ``anthropic`` — Anthropic Claude (``ANTHROPIC_API_KEY``).
 * ``gemini``   — Google Gemini (``GOOGLE_API_KEY`` or ``GEMINI_API_KEY``).
+* ``local_vllm`` — Local vLLM OpenAI-compatible endpoint.
 """
 
 from __future__ import annotations
@@ -77,6 +78,14 @@ PROVIDERS: Dict[str, Dict[str, Any]] = {
             "gemini-2.0-flash",
             "gemini-1.5-pro",
             "gemini-1.5-flash",
+        ],
+    },
+    "local_vllm": {
+        "label": "Local vLLM",
+        "env_keys": ["LOCAL_VLLM_BASE_URL"],
+        "suggested_models": [
+            "Qwen/Qwen3.6-35B-A3B-FP8",
+            "local-qwen3.6",
         ],
     },
 }

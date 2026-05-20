@@ -49,6 +49,7 @@ async def summarize_paper(markdown_text: str, model_id: Optional[str] = None) ->
             "usage": usage,
         }
     except Exception as e:
+        print(f"⚠️ LLM analysis failed: {e}")
         return {
             "success": False,
             "data": None,
@@ -88,6 +89,7 @@ async def extract_paper_sections(raw_markdown: str, model_id: Optional[str] = No
             title="Unknown Title",
             abstract_text=raw_markdown[:2000],
             introduction_text="",
+            contributions_text="",
             methodology_text="",
             experiments_text=raw_markdown,
             conclusion_text="",
