@@ -52,6 +52,12 @@ services:
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - TAVILY_API_KEY=${TAVILY_API_KEY:-}
+      # Dockerized backend can reach a host-running vLLM endpoint through
+      # host.docker.internal. Set BACKEND_LOCAL_VLLM_BASE_URL=http://llm:9001/v1
+      # if you want direct Compose service DNS instead.
+      - LOCAL_VLLM_BASE_URL=${BACKEND_LOCAL_VLLM_BASE_URL:-http://host.docker.internal:9001/v1}
+      - LOCAL_VLLM_API_KEY=${LOCAL_VLLM_API_KEY:-EMPTY}
+      - LOCAL_VLLM_DISABLE_THINKING=${LOCAL_VLLM_DISABLE_THINKING:-true}
       # Points to the OCR container; falls back to PyMuPDF if unreachable
       - OCR_SERVER_URL=http://ocr:8080/v1/chat/completions
       # Redirect Python's tempfile to the shared volume so OCR can read images
@@ -59,6 +65,8 @@ services:
     volumes:
       - ./backend/data:/app/data   # persist papers, cache, phoenix DB
       - ocr_temp:/ocr_temp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     # Backend starts independently — it gracefully falls back to PyMuPDF
     # when OCR is still loading, so no hard dependency is needed.
     restart: unless-stopped
