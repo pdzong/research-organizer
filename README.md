@@ -114,6 +114,10 @@ This starts:
 
 Phoenix UI is available at `http://localhost:6006` once the backend is up.
 
+**Optional local LLM profile:** `bash scripts/start-local-vllm.sh` starts the `local-llm` Compose profile (Qwen via vLLM on port 9001). This requires a separate `spark-vllm-docker/` build context that is not included in this repository — obtain it before using that profile.
+
+**Product roadmap:** see [ROADMAP.md](ROADMAP.md) for phased development toward company-focused research intelligence.
+
 ### Run locally
 
 **Backend:**
