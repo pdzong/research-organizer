@@ -65,8 +65,15 @@ services:
       - LOCAL_VLLM_BASE_URL=${BACKEND_LOCAL_VLLM_BASE_URL:-http://host.docker.internal:9001/v1}
       - LOCAL_VLLM_API_KEY=${LOCAL_VLLM_API_KEY:-EMPTY}
       - LOCAL_VLLM_DISABLE_THINKING=${LOCAL_VLLM_DISABLE_THINKING:-true}
+      # PDF parser feature flag: auto | local_ocr | zai_ocr | pymupdf
+      - PDF_PARSER_MODE=${PDF_PARSER_MODE:-auto}
+      # Hosted Z.ai GLM-OCR API key (same model as the local OCR service,
+      # no GPU needed). Used by zai_ocr mode and by auto mode when the
+      # local OCR container is not running.
+      - ZAI_API_KEY=${ZAI_API_KEY:-}
       # Optional GLM-OCR / vLLM vision endpoint (OpenAI-compatible /v1/chat/completions).
-      # Leave empty to use PyMuPDF only. For a remote API, set e.g.:
+      # Leave empty to use Z.ai (if ZAI_API_KEY set) or PyMuPDF. For a remote
+      # OpenAI-compatible OCR server, set e.g.:
       # OCR_SERVER_URL=https://your-host/v1/chat/completions
       # With --profile ocr, defaults to the local Compose OCR container.
       - OCR_SERVER_URL=${OCR_SERVER_URL:-}

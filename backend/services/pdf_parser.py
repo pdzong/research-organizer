@@ -1,3 +1,4 @@
+import base64
 import httpx
 import fitz  # PyMuPDF
 from typing import Optional
@@ -12,6 +13,32 @@ import requests
 # same code works both locally (localhost:8080) and inside Docker (ocr:8080).
 # Leave unset or empty to skip OCR and use PyMuPDF only.
 _DEFAULT_OCR_URL = (os.environ.get("OCR_SERVER_URL") or "").strip()
+
+# Z.ai hosted GLM-OCR (layout parsing) API. Same model as the local vLLM
+# service, but fully managed — no GPU required. Requires ZAI_API_KEY.
+_DEFAULT_ZAI_OCR_URL = os.environ.get(
+    "ZAI_OCR_URL", "https://api.z.ai/api/paas/v4/layout_parsing"
+)
+
+# Z.ai limits for the layout_parsing endpoint.
+_ZAI_MAX_PDF_BYTES = 50 * 1024 * 1024
+_ZAI_MAX_PDF_PAGES = 100
+
+# PDF parser feature flag (PDF_PARSER_MODE):
+#   auto      - local OCR if reachable -> Z.ai API if key set -> PyMuPDF
+#   local_ocr - local vLLM GLM-OCR (PyMuPDF fallback on failure)
+#   zai_ocr   - hosted Z.ai GLM-OCR API (PyMuPDF fallback on failure)
+#   pymupdf   - pure-Python text extraction, no OCR
+VALID_PARSER_MODES = ("auto", "local_ocr", "zai_ocr", "pymupdf")
+
+
+def get_parser_mode() -> str:
+    """Resolve the PDF parser feature flag from the environment."""
+    mode = (os.environ.get("PDF_PARSER_MODE") or "auto").strip().lower()
+    if mode not in VALID_PARSER_MODES:
+        print(f"⚠️ Unknown PDF_PARSER_MODE '{mode}', falling back to 'auto'")
+        return "auto"
+    return mode
 
 def check_ocr_endpoint(server_url: str = _DEFAULT_OCR_URL, timeout: float = 2.0) -> bool:
     """
@@ -151,6 +178,108 @@ def pdf_bytes_to_markdown_ocr(
     return "# Research Paper\n\n" + "".join(full_markdown)
 
 
+def pdf_bytes_to_markdown_zai(
+    pdf_bytes: bytes,
+    api_url: str = _DEFAULT_ZAI_OCR_URL,
+    timeout: float = 300.0,
+) -> str:
+    """
+    Convert PDF bytes to Markdown using the hosted Z.ai GLM-OCR API.
+
+    The whole PDF is sent as a base64 data URI in a single layout_parsing
+    call; the API runs the full GLM-OCR pipeline (layout detection + OCR)
+    server-side and returns markdown. No GPU required.
+
+    Requires ZAI_API_KEY in the environment.
+
+    Raises:
+        Exception if the API call fails or the document limits are exceeded.
+    """
+    api_key = os.environ.get("ZAI_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("ZAI_API_KEY is not set.")
+
+    if len(pdf_bytes) > _ZAI_MAX_PDF_BYTES:
+        raise RuntimeError(
+            f"PDF is {len(pdf_bytes)} bytes, exceeding the Z.ai limit of "
+            f"{_ZAI_MAX_PDF_BYTES} bytes."
+        )
+
+    with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:
+        page_count = len(doc)
+    if page_count > _ZAI_MAX_PDF_PAGES:
+        raise RuntimeError(
+            f"PDF has {page_count} pages, exceeding the Z.ai limit of "
+            f"{_ZAI_MAX_PDF_PAGES} pages."
+        )
+
+    print(f"📖 Sending {page_count}-page PDF to Z.ai GLM-OCR API...")
+    data_uri = "data:application/pdf;base64," + base64.b64encode(pdf_bytes).decode("ascii")
+
+    start_time = time.time()
+    response = requests.post(
+        api_url,
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": "glm-ocr",
+            "file": data_uri,
+            "need_layout_visualization": False,
+        },
+        timeout=timeout,
+    )
+    response.raise_for_status()
+    result = response.json()
+
+    if "error" in result:
+        raise RuntimeError(f"Z.ai GLM-OCR API error: {result['error']}")
+
+    # md_results is normally a top-level string; tolerate per-page lists and
+    # responses nested under "data".
+    md = result.get("md_results")
+    if md is None and isinstance(result.get("data"), dict):
+        md = result["data"].get("md_results")
+    if isinstance(md, list):
+        md = "\n\n".join(str(part) for part in md)
+    if not md or not isinstance(md, str):
+        raise RuntimeError(f"Z.ai GLM-OCR API returned no markdown: {str(result)[:500]}")
+
+    print(f"✅ Z.ai GLM-OCR done in {time.time() - start_time:.2f}s")
+    return md
+
+
+def _select_parser(mode: str, ocr_server_url: str) -> str:
+    """
+    Pick the concrete parser ("local_ocr", "zai_ocr" or "pymupdf") for the
+    given mode, checking availability where "auto" requires it.
+    """
+    if mode == "auto":
+        if ocr_server_url and check_ocr_endpoint(ocr_server_url):
+            print("🔍 Local OCR endpoint detected, using local GLM-OCR...")
+            return "local_ocr"
+        if os.environ.get("ZAI_API_KEY", "").strip():
+            print("☁️ ZAI_API_KEY set, using hosted Z.ai GLM-OCR API...")
+            return "zai_ocr"
+        print("📄 No OCR available, using PyMuPDF parser...")
+        return "pymupdf"
+    return mode
+
+
+def _parse_with(parser: str, pdf_bytes: bytes, ocr_server_url: str) -> str:
+    """Run a concrete parser, raising on failure so callers can fall back."""
+    if parser == "local_ocr":
+        # A forced local_ocr mode with the server down would otherwise be
+        # swallowed by the per-page loop; fail fast so we can fall back.
+        if not (ocr_server_url and check_ocr_endpoint(ocr_server_url)):
+            raise RuntimeError(f"Local OCR endpoint not reachable at {ocr_server_url!r}")
+        return pdf_bytes_to_markdown_ocr(pdf_bytes, ocr_server_url)
+    if parser == "zai_ocr":
+        return pdf_bytes_to_markdown_zai(pdf_bytes)
+    return parse_pdf_to_markdown(pdf_bytes)
+
+
 async def download_pdf(arxiv_url: str) -> bytes:
     """
     Download PDF from ArXiv given an ArXiv URL.
@@ -181,23 +310,29 @@ async def parse_pdf_bytes(
     pdf_bytes: bytes,
     ocr_server_url: str = _DEFAULT_OCR_URL,
 ) -> dict:
-    """Parse downloaded PDF bytes to markdown (OCR with PyMuPDF fallback)."""
-    ocr_available = bool(ocr_server_url) and check_ocr_endpoint(ocr_server_url)
+    """
+    Parse downloaded PDF bytes to markdown.
 
-    if ocr_available:
-        print("🔍 OCR endpoint detected, using local OCR model...")
+    The parser is chosen by the PDF_PARSER_MODE feature flag (see
+    get_parser_mode): local GLM-OCR (vLLM), the hosted Z.ai GLM-OCR API, or
+    PyMuPDF. OCR parsers fall back to PyMuPDF on failure.
+    """
+    mode = get_parser_mode()
+    parser = _select_parser(mode, ocr_server_url)
+
+    if parser != "pymupdf":
         try:
-            markdown = pdf_bytes_to_markdown_ocr(pdf_bytes, ocr_server_url)
-            print("✅ OCR parsing successful")
+            markdown = _parse_with(parser, pdf_bytes, ocr_server_url)
+            print(f"✅ {parser} parsing successful")
             return {
                 "success": True,
                 "markdown": markdown,
                 "size_bytes": len(pdf_bytes),
                 "error": None,
-                "method": "ocr",
+                "method": parser,
             }
         except Exception as ocr_error:
-            print(f"⚠️ OCR parsing failed: {ocr_error}")
+            print(f"⚠️ {parser} parsing failed: {ocr_error}")
             print("📄 Falling back to PyMuPDF parser...")
             markdown = parse_pdf_to_markdown(pdf_bytes)
             return {
@@ -209,7 +344,6 @@ async def parse_pdf_bytes(
                 "ocr_error": str(ocr_error),
             }
 
-    print("📄 OCR endpoint not available, using PyMuPDF parser...")
     markdown = parse_pdf_to_markdown(pdf_bytes)
     return {
         "success": True,

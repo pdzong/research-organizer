@@ -59,6 +59,7 @@ class ParseResponse(BaseModel):
     size_bytes: Optional[int]
     error: Optional[str]
     from_cache: Optional[bool] = False
+    method: Optional[str] = None  # local_ocr | zai_ocr | pymupdf | pymupdf_fallback
 
 class AnalyzeResponse(BaseModel):
     success: bool

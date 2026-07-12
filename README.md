@@ -5,7 +5,7 @@ A full-stack web application for turning research papers into **codegen-ready sy
 The pipeline goes:
 
 1. **Collect** papers from ArXiv or HuggingFace daily papers.
-2. **Parse** the PDF to markdown (optional local vLLM OCR service).
+2. **Parse** the PDF to markdown (GLM-OCR via the hosted Z.ai API or an optional local vLLM service, with a PyMuPDF fallback).
 3. **Analyze** the paper with a structured-output LLM call (novelty, methodology, benchmarks, applications).
 4. **Derive** concrete application ideas from the analysis.
 5. **Plan**: turn each application (+ its grounding papers) into a concrete `SolutionPlan` — architecture, modules, APIs, milestones, tech stack, and a self-contained `code_generation_prompt` ready to hand to a downstream code-gen agent.
@@ -16,7 +16,7 @@ Each LLM role can be routed to **OpenAI**, **Anthropic Claude**, or **Google Gem
 ## Features
 
 - **Manage papers** — curated local list, add any paper by ArXiv URL.
-- **PDF parsing** — PyMuPDF by default; pluggable local OCR service (vLLM) available via Docker.
+- **PDF parsing** — selectable via the `PDF_PARSER_MODE` flag: hosted Z.ai GLM-OCR API (no GPU), local GLM-OCR via vLLM (GPU), or plain PyMuPDF. `auto` picks the best available and OCR modes fall back to PyMuPDF on failure.
 - **Structured analysis** — novelty, methodology, applications, benchmarks, and citation-backed quotes via native Structured Outputs.
 - **Rich metadata** — Semantic Scholar citations, recommendations, influential citation counts.
 - **Relevance scoring** — visual color gradients over related papers. See [RELEVANCE_SCORING.md](RELEVANCE_SCORING.md).
@@ -113,6 +113,21 @@ This starts:
 - (Optional) OCR service on `http://localhost:8001`
 
 Phoenix UI is available at `http://localhost:6006` once the backend is up.
+
+No GPU is required. To also run the local GPU OCR service (vLLM + GLM-OCR on `http://localhost:8080`), opt in with `docker compose --profile ocr up --build`.
+
+#### PDF parsing modes
+
+The parser is selected by the `PDF_PARSER_MODE` env var:
+
+| Mode | What it does | Requirements |
+|------|--------------|--------------|
+| `auto` (default) | Local OCR if reachable → Z.ai API if `ZAI_API_KEY` set → PyMuPDF | — |
+| `zai_ocr` | Hosted [Z.ai GLM-OCR API](https://docs.z.ai/guides/vlm/glm-ocr) — same model as the local service, no GPU | `ZAI_API_KEY` |
+| `local_ocr` | Local vLLM GLM-OCR service | NVIDIA GPU, `--profile ocr` |
+| `pymupdf` | Pure-Python text extraction (no math/table fidelity) | — |
+
+OCR modes automatically fall back to PyMuPDF if the OCR call fails. The `/api/papers/{id}/parse` response includes a `method` field reporting which parser produced the markdown.
 
 **Optional local LLM profile:** `bash scripts/start-local-vllm.sh` starts the `local-llm` Compose profile (Qwen via vLLM on port 9001). This requires a separate `spark-vllm-docker/` build context that is not included in this repository — obtain it before using that profile.
 
