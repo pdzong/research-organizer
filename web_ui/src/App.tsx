@@ -127,19 +127,23 @@ function App() {
     setMetadata(null);
     setError(null);
 
-    if (paper.arxiv_id) {
+    if (paper.id) {
       try {
-        const status = await getCacheStatus(paper.arxiv_id);
+        const status = await getCacheStatus(paper.id);
         setCacheStatus(status);
 
         try {
           setLoadingMetadata(true);
-          const metadataResponse = await getPaperMetadata(paper.arxiv_id, false);
+          const metadataResponse = await getPaperMetadata(paper.id, false);
           if (metadataResponse.success && metadataResponse.metadata) {
             setMetadata(metadataResponse.metadata);
           } else {
             console.error('Metadata fetch failed:', metadataResponse.error);
-            setError(metadataResponse.error || 'Failed to load metadata');
+            // Semantic Scholar may simply not know papers added from other
+            // sources; only treat it as an error for arXiv-backed papers.
+            if (paper.arxiv_id) {
+              setError(metadataResponse.error || 'Failed to load metadata');
+            }
           }
         } catch (metadataErr) {
           console.error('Error fetching metadata:', metadataErr);
@@ -163,7 +167,7 @@ function App() {
         if (status.analysis) {
           try {
             setAnalyzing(true);
-            const response = await getCachedAnalysis(paper.arxiv_id, false);
+            const response = await getCachedAnalysis(paper.id, false);
             if (response.success && response.data) {
               setSummary(response.data);
             }
@@ -188,10 +192,8 @@ function App() {
 
       if (response.success && response.markdown) {
         setMarkdown(response.markdown);
-        if (selectedPaper.arxiv_id) {
-          const status = await getCacheStatus(selectedPaper.arxiv_id);
-          setCacheStatus(status);
-        }
+        const status = await getCacheStatus(selectedPaper.id);
+        setCacheStatus(status);
       } else {
         setError(response.error || 'Failed to parse paper');
       }
@@ -204,16 +206,16 @@ function App() {
   };
 
   const handleAnalyzePaper = async (forceReload: boolean = false) => {
-    if (!selectedPaper?.arxiv_id) return;
+    if (!selectedPaper) return;
 
     try {
       setAnalyzing(true);
       setError(null);
-      const response = await getCachedAnalysis(selectedPaper.arxiv_id, forceReload);
+      const response = await getCachedAnalysis(selectedPaper.id, forceReload);
 
       if (response.success && response.data) {
         setSummary(response.data);
-        const status = await getCacheStatus(selectedPaper.arxiv_id);
+        const status = await getCacheStatus(selectedPaper.id);
         setCacheStatus(status);
       } else {
         setError(response.error || 'Failed to analyze paper');
@@ -227,16 +229,16 @@ function App() {
   };
 
   const handleReloadMetadata = async () => {
-    if (!selectedPaper?.arxiv_id) return;
+    if (!selectedPaper) return;
 
     try {
       setLoadingMetadata(true);
       setError(null);
-      const response = await getPaperMetadata(selectedPaper.arxiv_id, true);
+      const response = await getPaperMetadata(selectedPaper.id, true);
 
       if (response.success && response.metadata) {
         setMetadata(response.metadata);
-        const status = await getCacheStatus(selectedPaper.arxiv_id);
+        const status = await getCacheStatus(selectedPaper.id);
         setCacheStatus(status);
       } else {
         setError(response.error || 'Failed to reload metadata');
@@ -255,6 +257,11 @@ function App() {
     setSummary(null);
     setMetadata(null);
     setError(null);
+  };
+
+  const handleLibraryRefresh = async () => {
+    const data = await fetchPapers();
+    setPapers(data);
   };
 
   const handleAddPaper = async (arxivUrl: string) => {
@@ -452,6 +459,7 @@ function App() {
         loading={loading}
         onSelectPaper={handleSelectPaper}
         onAddPaper={handleAddPaper}
+        onLibraryRefresh={handleLibraryRefresh}
         selectedPaperId={null}
       />
     ) : (

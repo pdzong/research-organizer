@@ -15,6 +15,10 @@ export interface Paper {
   authors: string[];
   arxiv_url: string | null;
   arxiv_id: string | null;
+  source?: string | null;
+  pdf_url?: string | null;
+  landing_url?: string | null;
+  published_date?: string | null;
 }
 
 export interface ParseResponse {
@@ -104,6 +108,79 @@ export const analyzePaper = async (markdown: string): Promise<AnalyzeResponse> =
 
 export const addPaper = async (arxivUrl: string): Promise<AddPaperResponse> => {
   const response = await apiClient.post<AddPaperResponse>('/papers/add', { arxiv_url: arxivUrl });
+  return response.data;
+};
+
+// ─── Paper discovery sources ────────────────────────────────────────────────
+
+export interface SourceField {
+  id: string;
+  label: string;
+}
+
+export interface SourceInfo {
+  id: string;
+  label: string;
+  fields: SourceField[];
+}
+
+export interface SourcePaper {
+  id: string;
+  source: string;
+  source_record_id: string;
+  title: string;
+  authors: string[];
+  abstract: string | null;
+  published_date: string | null;
+  landing_url: string | null;
+  pdf_url: string | null;
+  is_open_access: boolean | null;
+  citation_count: number | null;
+  relevance_score: number | null;
+  fields_of_study: string[];
+  venue: string | null;
+  external_ids: Record<string, string>;
+}
+
+export interface DiscoverResponse {
+  success: boolean;
+  source: string;
+  papers: SourcePaper[];
+  error?: string | null;
+}
+
+export type DiscoverSort = 'relevance' | 'recency' | 'citations';
+
+export const fetchSources = async (): Promise<SourceInfo[]> => {
+  const response = await apiClient.get<SourceInfo[]>('/sources');
+  return response.data;
+};
+
+export const discoverPapers = async (
+  sourceId: string,
+  options: {
+    query?: string;
+    field?: string;
+    days?: number;
+    limit?: number;
+    sort?: DiscoverSort;
+  } = {}
+): Promise<DiscoverResponse> => {
+  const params: Record<string, string | number> = {};
+  if (options.query) params.query = options.query;
+  if (options.field) params.field = options.field;
+  if (options.days) params.days = options.days;
+  if (options.limit) params.limit = options.limit;
+  if (options.sort) params.sort = options.sort;
+  const response = await apiClient.get<DiscoverResponse>(
+    `/sources/${encodeURIComponent(sourceId)}/discover`,
+    { params }
+  );
+  return response.data;
+};
+
+export const addPaperFromSource = async (paper: SourcePaper): Promise<AddPaperResponse> => {
+  const response = await apiClient.post<AddPaperResponse>('/papers/add-from-source', paper);
   return response.data;
 };
 

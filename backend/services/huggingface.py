@@ -226,6 +226,62 @@ async def fetch_papers() -> List[Dict[str, any]]:
     """
     return load_papers()
 
+async def add_paper_from_source(source_paper: dict) -> dict:
+    """
+    Add a paper discovered via a source provider (arxiv, openalex, ...).
+
+    Expects a normalized SourcePaper-shaped dict. Uses the arXiv ID as the
+    primary id when available (so the existing parse/metadata flows work
+    unchanged); otherwise uses the source-neutral id (e.g. "openalex_W123").
+    """
+    external_ids = source_paper.get("external_ids") or {}
+    arxiv_id = external_ids.get("arxiv")
+    doi = external_ids.get("doi")
+    primary_id = arxiv_id or source_paper["id"]
+
+    papers = load_papers()
+
+    # Deduplicate by id, arXiv ID and DOI
+    for p in papers:
+        if p.get("id") == primary_id or p.get("id") == source_paper["id"]:
+            return {"success": False, "error": f"Paper {primary_id} already exists in the list"}
+        if arxiv_id and p.get("arxiv_id") == arxiv_id:
+            return {"success": False, "error": f"Paper with ArXiv ID {arxiv_id} already exists in the list"}
+        if doi and (p.get("external_ids") or {}).get("doi") == doi:
+            return {"success": False, "error": f"Paper with DOI {doi} already exists in the list"}
+
+    paper = {
+        "id": primary_id,
+        "title": source_paper["title"],
+        "authors": source_paper.get("authors") or ["Unknown"],
+        "arxiv_url": f"https://arxiv.org/abs/{arxiv_id}" if arxiv_id else None,
+        "arxiv_id": arxiv_id,
+        "source": source_paper.get("source"),
+        "pdf_url": source_paper.get("pdf_url"),
+        "landing_url": source_paper.get("landing_url"),
+        "external_ids": external_ids,
+        "published_date": source_paper.get("published_date"),
+        "added_date": datetime.now().isoformat(),
+    }
+
+    papers.insert(0, paper)
+    if save_papers(papers):
+        return {
+            "success": True,
+            "paper": paper,
+            "message": f"Added paper: {paper['title']}"
+        }
+    return {"success": False, "error": "Failed to save papers list"}
+
+
+def get_paper_record(paper_id: str) -> Optional[Dict[str, any]]:
+    """Look up a stored paper record by its primary id."""
+    for p in load_papers():
+        if p.get("id") == paper_id:
+            return p
+    return None
+
+
 async def add_paper_from_semantic_scholar(paper_id: str, arxiv_id: Optional[str], title: str, authors: List[str]) -> dict:
     """
     Add a paper from Semantic Scholar data.

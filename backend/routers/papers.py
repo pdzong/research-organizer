@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Dict, Optional
-from services.huggingface import fetch_papers, add_paper, add_paper_from_semantic_scholar
+from services.huggingface import fetch_papers, add_paper, add_paper_from_semantic_scholar, add_paper_from_source, get_paper_record
 from services.pdf_parser import download_and_parse_paper
+from services.sources import SourcePaper
 from services.openai_service import summarize_paper, is_paper_relevant, extract_paper_sections
 from services.semantic_scholar import get_paper_metadata
 from services import cache_service
@@ -29,6 +30,10 @@ class PaperResponse(BaseModel):
     authors: List[str]
     arxiv_url: Optional[str]
     arxiv_id: Optional[str]
+    source: Optional[str] = None
+    pdf_url: Optional[str] = None
+    landing_url: Optional[str] = None
+    published_date: Optional[str] = None
 
 class ParseResponse(BaseModel):
     success: bool
@@ -36,6 +41,7 @@ class ParseResponse(BaseModel):
     size_bytes: Optional[int]
     error: Optional[str]
     from_cache: Optional[bool] = False
+    method: Optional[str] = None  # local_ocr | zai_ocr | pymupdf | pymupdf_fallback
 
 class AnalyzeResponse(BaseModel):
     success: bool
@@ -126,6 +132,22 @@ async def add_related_paper(request: AddRelatedPaperRequest):
             "error": str(e)
         }
 
+@router.post("/papers/add-from-source", response_model=AddPaperResponse)
+async def add_paper_from_source_endpoint(paper: SourcePaper):
+    """
+    Add a paper discovered via a source provider (see /api/sources).
+    """
+    try:
+        result = await add_paper_from_source(paper.model_dump())
+        return result
+    except Exception as e:
+        return {
+            "success": False,
+            "paper": None,
+            "message": None,
+            "error": str(e)
+        }
+
 @router.get("/papers/{paper_id}/parse", response_model=ParseResponse)
 async def parse_paper(
     paper_id: str, 
@@ -155,10 +177,14 @@ async def parse_paper(
                     "from_cache": True
                 }
         
-        # If no arxiv_url provided, construct from paper_id
+        # Resolve the content URL: explicit arxiv_url param, then the stored
+        # record's arxiv_url or direct pdf_url, then legacy arXiv fallback.
+        if not arxiv_url:
+            record = get_paper_record(paper_id) or {}
+            arxiv_url = record.get("arxiv_url") or record.get("pdf_url")
         if not arxiv_url:
             arxiv_url = f"https://arxiv.org/abs/{paper_id}"
-        
+
         result = await download_and_parse_paper(arxiv_url)
         
         # Cache the result if successful
@@ -309,7 +335,11 @@ async def get_paper_metadata_endpoint(
                     "from_cache": True
                 }
         
-        result = await get_paper_metadata(arxiv_id)
+        # Resolve the best Semantic Scholar reference for this paper:
+        # ArXiv ID when present, otherwise a stored DOI.
+        record = get_paper_record(arxiv_id) or {}
+        paper_ref = record.get("arxiv_id") or (record.get("external_ids") or {}).get("doi") or arxiv_id
+        result = await get_paper_metadata(paper_ref)
         
         # Cache the result if successful
         if result.get("success"):

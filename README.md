@@ -5,7 +5,7 @@ A full-stack web application for turning research papers into **codegen-ready sy
 The pipeline goes:
 
 1. **Collect** papers from ArXiv or HuggingFace daily papers.
-2. **Parse** the PDF to markdown (optional local vLLM OCR service).
+2. **Parse** the PDF to markdown (GLM-OCR via the hosted Z.ai API or an optional local vLLM service, with a PyMuPDF fallback).
 3. **Analyze** the paper with a structured-output LLM call (novelty, methodology, benchmarks, applications).
 4. **Derive** concrete application ideas from the analysis.
 5. **Plan**: turn each application (+ its grounding papers) into a concrete `SolutionPlan` — architecture, modules, APIs, milestones, tech stack, and a self-contained `code_generation_prompt` ready to hand to a downstream code-gen agent.
@@ -16,7 +16,8 @@ Each LLM role can be routed to **OpenAI**, **Anthropic Claude**, or **Google Gem
 ## Features
 
 - **Manage papers** — curated local list, add any paper by ArXiv URL.
-- **PDF parsing** — PyMuPDF by default; pluggable local OCR service (vLLM) available via Docker.
+- **Discover papers** — a Discover tab next to your library lists recent papers from pluggable sources (arXiv, OpenAlex), ranked by relevance, recency, or citations, filterable by field, addable in one click. New sources are added in code under `backend/services/sources/`.
+- **PDF parsing** — selectable via the `PDF_PARSER_MODE` flag: hosted Z.ai GLM-OCR API (no GPU, ~$0.03/M tokens), local GLM-OCR via vLLM (GPU), or plain PyMuPDF. `auto` picks the best available.
 - **Structured analysis** — novelty, methodology, applications, benchmarks, and citation-backed quotes via native Structured Outputs.
 - **Rich metadata** — Semantic Scholar citations, recommendations, influential citation counts.
 - **Relevance scoring** — visual color gradients over related papers. See [RELEVANCE_SCORING.md](RELEVANCE_SCORING.md).
@@ -96,6 +97,7 @@ OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 GOOGLE_API_KEY=...           # or GEMINI_API_KEY
 TAVILY_API_KEY=              # optional — enables the deep-research extension
+ZAI_API_KEY=                 # optional — hosted GLM-OCR for high-quality PDF parsing
 ```
 
 OpenAI is the default provider for every role; any role can be routed to a different provider from the Settings modal in the UI (gear icon in the header) once that provider's key is set.
@@ -110,9 +112,27 @@ This starts:
 
 - Backend (FastAPI) on `http://localhost:8000`
 - Frontend (Vite → nginx) on `http://localhost` (port 80)
-- (Optional) OCR service on `http://localhost:8001`
+
+No GPU is required. To also run the local GPU OCR service (vLLM + GLM-OCR on `http://localhost:8080`), opt in with:
+
+```bash
+docker compose --profile local-ocr up --build
+```
 
 Phoenix UI is available at `http://localhost:6006` once the backend is up.
+
+### PDF parsing modes
+
+The parser is selected by the `PDF_PARSER_MODE` env var:
+
+| Mode | What it does | Requirements |
+|------|--------------|--------------|
+| `auto` (default) | Local OCR if reachable → Z.ai API if `ZAI_API_KEY` set → PyMuPDF | — |
+| `zai_ocr` | Hosted [Z.ai GLM-OCR API](https://docs.z.ai/guides/vlm/glm-ocr) — same model as the local service, ~$0.03 per million tokens | `ZAI_API_KEY` |
+| `local_ocr` | Local vLLM GLM-OCR service | NVIDIA GPU, `--profile local-ocr` |
+| `pymupdf` | Pure-Python text extraction (no math/table fidelity) | — |
+
+OCR modes automatically fall back to PyMuPDF if the OCR call fails.
 
 ### Run locally
 

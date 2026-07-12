@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import papers, solutions, auto_research, config
+from routers import papers, solutions, auto_research, config, sources
 import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
@@ -86,6 +86,7 @@ app.include_router(papers.router, prefix="/api", tags=["papers"])
 app.include_router(solutions.router, prefix="/api", tags=["solutions"])
 app.include_router(auto_research.router, prefix="/api", tags=["auto-research"])
 app.include_router(config.router, prefix="/api", tags=["config"])
+app.include_router(sources.router, prefix="/api", tags=["sources"])
 
 @app.get("/")
 async def root():

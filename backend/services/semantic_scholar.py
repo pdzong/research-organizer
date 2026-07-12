@@ -41,12 +41,25 @@ def _format_related_paper(paper) -> Optional[Dict[str, Any]]:
         print(f"Error formatting related paper: {e}")
         return None
 
-async def get_paper_metadata(arxiv_id: str, include_related: bool = True) -> Dict[str, Any]:
+def _to_s2_identifier(paper_ref: str) -> str:
     """
-    Fetch paper metadata from Semantic Scholar using ArXiv ID.
+    Build a Semantic Scholar lookup identifier from a bare reference.
+    Accepts already-prefixed ids ("ARXIV:...", "DOI:..."), DOIs (contain "/")
+    and bare ArXiv IDs.
+    """
+    if ":" in paper_ref.split("/")[0]:
+        return paper_ref  # already prefixed, e.g. "DOI:10.1234/abc"
+    if "/" in paper_ref:
+        return f"DOI:{paper_ref}"
+    return f"ARXIV:{paper_ref}"
+
+async def get_paper_metadata(paper_ref: str, include_related: bool = True) -> Dict[str, Any]:
+    """
+    Fetch paper metadata from Semantic Scholar.
     
     Args:
-        arxiv_id: The ArXiv ID (e.g., "1706.03762")
+        paper_ref: An ArXiv ID (e.g. "1706.03762"), a DOI, or a prefixed
+            Semantic Scholar identifier ("ARXIV:...", "DOI:...")
         include_related: Whether to fetch citations and recommendations (default: True)
     
     Returns:
@@ -58,13 +71,13 @@ async def get_paper_metadata(arxiv_id: str, include_related: bool = True) -> Dic
         paper = await loop.run_in_executor(
             None, 
             sch.get_paper, 
-            f"ARXIV:{arxiv_id}"
+            _to_s2_identifier(paper_ref)
         )
         
         if not paper:
             return {
                 "success": False,
-                "error": f"Paper not found in Semantic Scholar for ArXiv ID: {arxiv_id}"
+                "error": f"Paper not found in Semantic Scholar for: {paper_ref}"
             }
         
         # Extract relevant metadata

@@ -1,17 +1,19 @@
-import { Card, Text, Group, Stack, Badge, Loader, Center, Button, TextInput, Modal } from '@mantine/core';
-import { IconUsers, IconExternalLink, IconPlus } from '@tabler/icons-react';
+import { Card, Text, Group, Stack, Badge, Loader, Center, Button, TextInput, Modal, Tabs } from '@mantine/core';
+import { IconUsers, IconExternalLink, IconPlus, IconBooks, IconTelescope } from '@tabler/icons-react';
 import { useState } from 'react';
 import { Paper } from '../services/api';
+import { DiscoverPapers } from './DiscoverPapers';
 
 interface PaperListProps {
   papers: Paper[];
   loading: boolean;
   onSelectPaper: (paper: Paper) => void;
   onAddPaper: (arxivUrl: string) => Promise<void>;
+  onLibraryRefresh: () => Promise<void>;
   selectedPaperId: string | null;
 }
 
-export function PaperList({ papers, loading, onSelectPaper, onAddPaper, selectedPaperId }: PaperListProps) {
+export function PaperList({ papers, loading, onSelectPaper, onAddPaper, onLibraryRefresh, selectedPaperId }: PaperListProps) {
   const [modalOpened, setModalOpened] = useState(false);
   const [arxivUrl, setArxivUrl] = useState('');
   const [adding, setAdding] = useState(false);
@@ -31,27 +33,27 @@ export function PaperList({ papers, loading, onSelectPaper, onAddPaper, selected
     }
   };
 
-  if (loading) {
-    return (
-      <Center h={400}>
-        <Stack align="center">
-          <Loader size="lg" />
-          <Text c="dimmed">Loading papers...</Text>
-        </Stack>
-      </Center>
-    );
-  }
+  const renderLibrary = () => {
+    if (loading) {
+      return (
+        <Center h={400}>
+          <Stack align="center">
+            <Loader size="lg" />
+            <Text c="dimmed">Loading papers...</Text>
+          </Stack>
+        </Center>
+      );
+    }
 
-  if (papers.length === 0) {
-    return (
-      <Center h={400}>
-        <Text c="dimmed">No papers found</Text>
-      </Center>
-    );
-  }
+    if (papers.length === 0) {
+      return (
+        <Center h={400}>
+          <Text c="dimmed">No papers found</Text>
+        </Center>
+      );
+    }
 
-  return (
-    <>
+    return (
       <Stack gap="md">
         <Group justify="space-between">
           <Text size="xl" fw={700}>Research Papers ({papers.length})</Text>
@@ -97,30 +99,57 @@ export function PaperList({ papers, loading, onSelectPaper, onAddPaper, selected
               </Text>
             </Group>
 
-            {paper.arxiv_id && (
-              <Group gap="xs">
+            <Group gap="xs">
+              {paper.arxiv_id ? (
                 <Badge color="blue" variant="light">
                   ArXiv: {paper.arxiv_id}
                 </Badge>
-                {paper.arxiv_url && (
-                  <Button
-                    component="a"
-                    href={paper.arxiv_url}
-                    target="_blank"
-                    variant="subtle"
-                    size="xs"
-                    rightSection={<IconExternalLink size={14} />}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    View on ArXiv
-                  </Button>
-                )}
-              </Group>
-            )}
+              ) : paper.source ? (
+                <Badge color="gray" variant="light">
+                  {paper.source}
+                </Badge>
+              ) : null}
+              {(paper.arxiv_url || paper.landing_url) && (
+                <Button
+                  component="a"
+                  href={paper.arxiv_url || paper.landing_url || undefined}
+                  target="_blank"
+                  variant="subtle"
+                  size="xs"
+                  rightSection={<IconExternalLink size={14} />}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {paper.arxiv_url ? 'View on ArXiv' : 'View source'}
+                </Button>
+              )}
+            </Group>
           </Stack>
         </Card>
-      ))}
+        ))}
       </Stack>
+    );
+  };
+
+  return (
+    <>
+      <Tabs defaultValue="library" keepMounted={false}>
+        <Tabs.List>
+          <Tabs.Tab value="library" leftSection={<IconBooks size={16} />}>
+            My Papers ({papers.length})
+          </Tabs.Tab>
+          <Tabs.Tab value="discover" leftSection={<IconTelescope size={16} />}>
+            Discover
+          </Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="library" pt="md">
+          {renderLibrary()}
+        </Tabs.Panel>
+
+        <Tabs.Panel value="discover" pt="md">
+          <DiscoverPapers libraryPapers={papers} onLibraryRefresh={onLibraryRefresh} />
+        </Tabs.Panel>
+      </Tabs>
 
       <Modal
         opened={modalOpened}
