@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from datetime import datetime
 
-# Cache directory structure
+from .source_paper import paper_matches_cache_ref
+
 CACHE_DIR = Path(__file__).parent.parent / "data" / "cache"
 PAPERS_FILE = Path(__file__).parent.parent / "data" / "papers.json"
 APPLICATIONS_FILE = CACHE_DIR / "applications.json"
@@ -113,7 +114,7 @@ def update_paper_cache_ref(arxiv_id: str, cache_type: str, file_path: str):
         
         # Find the paper and update cache reference
         for paper in papers:
-            if paper.get("arxiv_id") == arxiv_id:
+            if paper_matches_cache_ref(paper, arxiv_id):
                 if "cached" not in paper:
                     paper["cached"] = {}
                 if "lastUpdated" not in paper["cached"]:

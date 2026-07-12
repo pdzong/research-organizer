@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { AppShell, Title, Text, Group, SegmentedControl, ActionIcon, Tooltip } from '@mantine/core';
-import { IconFlask, IconFileText, IconBulb, IconRocket, IconRobot, IconSettings } from '@tabler/icons-react';
+import { IconFlask, IconFileText, IconBulb, IconRocket, IconRobot, IconSettings, IconTelescope } from '@tabler/icons-react';
 import { ReactNode } from 'react';
 import { LlmConfigModal } from './LlmConfigModal';
 
-export type AppView = 'papers' | 'applications' | 'solutions' | 'auto-research';
+export type AppView = 'papers' | 'discover' | 'applications' | 'solutions' | 'auto-research';
 
 interface LayoutProps {
   children: ReactNode;
@@ -44,6 +44,15 @@ export function Layout({ children, currentView, onViewChange }: LayoutProps) {
                     <Group gap="xs" wrap="nowrap">
                       <IconFileText size={14} />
                       <span>Papers</span>
+                    </Group>
+                  ),
+                },
+                {
+                  value: 'discover',
+                  label: (
+                    <Group gap="xs" wrap="nowrap">
+                      <IconTelescope size={14} />
+                      <span>Discover</span>
                     </Group>
                   ),
                 },

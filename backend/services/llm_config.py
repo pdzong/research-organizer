@@ -41,6 +41,7 @@ ROLES: Dict[str, str] = {
     "plan_brief": "Cheap aggregation pass that drafts a brief before plan synthesis.",
     "plan_synthesis": "Structured SolutionPlan synthesis.",
     "plan_worthy": "Gate that decides whether an auto-derived application is worth turning into a full plan.",
+    "strategic_fit": "Scores a paper against a company research profile (opportunities, threats, fit).",
 }
 
 
@@ -102,6 +103,7 @@ DEFAULTS: Dict[str, Dict[str, str]] = {
     "plan_brief":     {"provider": "openai", "model": "gpt-5-mini"},
     "plan_synthesis": {"provider": "openai", "model": "gpt-5.4"},
     "plan_worthy":    {"provider": "openai", "model": "gpt-5.4-nano"},
+    "strategic_fit":  {"provider": "openai", "model": "gpt-5-mini"},
 }
 
 

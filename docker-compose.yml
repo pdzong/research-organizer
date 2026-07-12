@@ -1,7 +1,11 @@
 services:
 
   # ── OCR Service (vLLM + GLM-OCR, requires NVIDIA GPU) ─────────────────────
+  # Optional — start with: docker compose --profile ocr up
+  # Per-page OCR does not need a 41k context window; a lower max_model_len avoids
+  # KV-cache OOM on smaller GPUs. Tune via OCR_MAX_MODEL_LEN / OCR_GPU_MEMORY_UTILIZATION.
   ocr:
+    profiles: ["ocr"]
     build: ./ocr      # extends vllm/vllm-openai with an up-to-date transformers
     # Override the image's ENTRYPOINT entirely so we control the full command.
     # Without this, the image's built-in entrypoint gets prepended and causes
@@ -16,9 +20,9 @@ services:
       - --port
       - "8080"
       - --gpu-memory-utilization
-      - "0.7"
+      - "${OCR_GPU_MEMORY_UTILIZATION:-0.85}"
       - --max-model-len
-      - "41072"
+      - "${OCR_MAX_MODEL_LEN:-8192}"
       - --limit-mm-per-prompt
       - '{"image":2}'
       - --trust-remote-code
@@ -61,9 +65,12 @@ services:
       - LOCAL_VLLM_BASE_URL=${BACKEND_LOCAL_VLLM_BASE_URL:-http://host.docker.internal:9001/v1}
       - LOCAL_VLLM_API_KEY=${LOCAL_VLLM_API_KEY:-EMPTY}
       - LOCAL_VLLM_DISABLE_THINKING=${LOCAL_VLLM_DISABLE_THINKING:-true}
-      # Points to the OCR container; falls back to PyMuPDF if unreachable
-      - OCR_SERVER_URL=http://ocr:8080/v1/chat/completions
-      # Redirect Python's tempfile to the shared volume so OCR can read images
+      # Optional GLM-OCR / vLLM vision endpoint (OpenAI-compatible /v1/chat/completions).
+      # Leave empty to use PyMuPDF only. For a remote API, set e.g.:
+      # OCR_SERVER_URL=https://your-host/v1/chat/completions
+      # With --profile ocr, defaults to the local Compose OCR container.
+      - OCR_SERVER_URL=${OCR_SERVER_URL:-}
+      # Shared temp dir when using the local OCR profile (page images via file://)
       - TMPDIR=/ocr_temp
     volumes:
       - ./backend/data:/app/data   # persist papers, cache, phoenix DB

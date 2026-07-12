@@ -9,6 +9,7 @@ import { ApplicationDetail } from './components/ApplicationDetail';
 import { SolutionList } from './components/SolutionList';
 import { SolutionDetail } from './components/SolutionDetail';
 import { AutoResearchView } from './components/AutoResearchView';
+import { DiscoverView } from './components/DiscoverView';
 import {
   fetchPapers,
   parsePaper,
@@ -513,6 +514,7 @@ function App() {
       <Notifications />
       <Container size="xl">
         {currentView === 'papers' && renderPapersView()}
+        {currentView === 'discover' && <DiscoverView />}
         {currentView === 'applications' && renderApplicationsView()}
         {currentView === 'solutions' && renderSolutionsView()}
         {currentView === 'auto-research' && <AutoResearchView />}

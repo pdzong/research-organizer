@@ -1,11 +1,15 @@
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Dict, Optional
-from services.huggingface import fetch_papers, add_paper, add_paper_from_semantic_scholar
-from services.pdf_parser import download_and_parse_paper
+import re
+
+from services.huggingface import fetch_papers, add_paper, add_paper_from_semantic_scholar, load_papers, add_source_paper
+from services.pdf_parser import download_and_parse_paper, download_and_parse_url
 from services.openai_service import summarize_paper, is_paper_relevant, extract_paper_sections
 from services.semantic_scholar import get_paper_metadata
 from services import cache_service
+from services.source_paper import SourcePaper, find_paper_by_id, resolve_cache_key_for_paper_id, resolve_pdf_url
+from services.sources.openalex import get_openalex_work
 from services.some_extensions.research_tools import arxiv_search_tool
 from services.models import ApplicationIdea, PaperSections
 
@@ -15,7 +19,19 @@ class AnalyzeRequest(BaseModel):
     markdown: str
 
 class AddPaperRequest(BaseModel):
-    arxiv_url: str
+    """
+    Generalized add-paper request (P1-005). Provide ONE of:
+
+    * ``arxiv_url`` / ``url`` with an arxiv.org link (legacy behaviour)
+    * ``url`` with a doi.org / openalex.org link, or a direct ``.pdf`` link
+    * ``doi`` — resolved via OpenAlex
+    * ``source`` + ``source_record_id`` — e.g. ``openalex`` + ``W2741809807``
+    """
+    arxiv_url: Optional[str] = None
+    url: Optional[str] = None
+    doi: Optional[str] = None
+    source: Optional[str] = None
+    source_record_id: Optional[str] = None
 
 class AddRelatedPaperRequest(BaseModel):
     paper_id: str
@@ -27,8 +43,15 @@ class PaperResponse(BaseModel):
     id: str
     title: str
     authors: List[str]
-    arxiv_url: Optional[str]
-    arxiv_id: Optional[str]
+    arxiv_url: Optional[str] = None
+    arxiv_id: Optional[str] = None
+    source: Optional[str] = None
+    pdf_url: Optional[str] = None
+    landing_url: Optional[str] = None
+    published_date: Optional[str] = None
+    is_open_access: Optional[bool] = None
+    oa_status: Optional[str] = None
+    doi: Optional[str] = None
 
 class ParseResponse(BaseModel):
     success: bool
@@ -82,18 +105,69 @@ async def get_papers():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching papers: {str(e)}")
 
+def _paper_from_direct_pdf_url(url: str) -> SourcePaper:
+    """Minimal record for a bare PDF link (no metadata source)."""
+    filename = url.rstrip("/").rsplit("/", 1)[-1]
+    title = re.sub(r"\.pdf$", "", filename, flags=re.IGNORECASE).replace("_", " ").replace("-", " ").strip()
+    record_id = re.sub(r"[^a-zA-Z0-9._-]+", "_", url.split("://", 1)[-1])[:120]
+    return SourcePaper(
+        id=f"web:{record_id}",
+        source="web",
+        source_record_id=url,
+        title=title or "Untitled PDF",
+        pdf_url=url,
+        landing_url=url,
+    )
+
+
 @router.post("/papers/add", response_model=AddPaperResponse)
 async def add_new_paper(request: AddPaperRequest):
     """
-    Add a new paper by ArXiv URL.
-    Validates the URL and fetches metadata from ArXiv.
-    
-    Args:
-        request: AddPaperRequest with arxiv_url field
+    Add a new paper (P1-005). Accepts an arXiv URL, a DOI, an OpenAlex
+    work id/URL, or a direct PDF link. DOIs and OpenAlex ids are resolved
+    through the OpenAlex API into source-neutral records.
     """
     try:
-        result = await add_paper(request.arxiv_url)
-        return result
+        ref = (request.arxiv_url or request.url or "").strip()
+
+        # 1. Legacy path: arxiv.org URLs keep the existing metadata flow
+        if ref and "arxiv.org" in ref:
+            return await add_paper(ref)
+
+        # 2. Explicit source record (currently only openalex)
+        if request.source and request.source_record_id:
+            if request.source != "openalex":
+                return {"success": False, "error": f"Unsupported source: {request.source}"}
+            paper = await get_openalex_work(request.source_record_id)
+            if not paper:
+                return {"success": False, "error": f"OpenAlex work not found: {request.source_record_id}"}
+            return add_source_paper(paper)
+
+        # 3. DOI (field or doi.org URL) — resolved via OpenAlex
+        doi = (request.doi or "").strip()
+        if not doi and ref and "doi.org" in ref:
+            doi = ref
+        if doi:
+            paper = await get_openalex_work(doi)
+            if not paper:
+                return {"success": False, "error": f"No OpenAlex record found for DOI: {doi}"}
+            return add_source_paper(paper)
+
+        # 4. OpenAlex URL or bare work id
+        if ref and ("openalex.org" in ref or re.fullmatch(r"[Ww]\d+", ref)):
+            paper = await get_openalex_work(ref)
+            if not paper:
+                return {"success": False, "error": f"OpenAlex work not found: {ref}"}
+            return add_source_paper(paper)
+
+        # 5. Direct PDF link
+        if ref.lower().startswith("http") and ref.lower().endswith(".pdf"):
+            return add_source_paper(_paper_from_direct_pdf_url(ref))
+
+        return {
+            "success": False,
+            "error": "Provide an arXiv URL, DOI, OpenAlex id/URL, or a direct .pdf link",
+        }
     except Exception as e:
         return {
             "success": False,
@@ -135,18 +209,18 @@ async def parse_paper(
     """
     Download and parse a paper's PDF to markdown.
     After parsing, extracts structured sections for better analysis.
-    
-    Args:
-        paper_id: The paper ID (ArXiv ID)
-        arxiv_url: Optional ArXiv URL. If not provided, will construct from paper_id
-        force_reload: If True, bypass cache and re-download
+
+    Supports ArXiv papers (by id or URL) and records with a direct ``pdf_url``.
     """
     try:
-        # Check cache first unless force reload
+        papers = load_papers()
+        paper = find_paper_by_id(papers, paper_id)
+        cache_key = resolve_cache_key_for_paper_id(papers, paper_id)
+
         if not force_reload:
-            cached_markdown = cache_service.load_markdown(paper_id)
+            cached_markdown = cache_service.load_markdown(cache_key)
             if cached_markdown:
-                print(f"Loaded markdown from cache for {paper_id}")
+                print(f"Loaded markdown from cache for {cache_key}")
                 return {
                     "success": True,
                     "markdown": cached_markdown,
@@ -154,36 +228,50 @@ async def parse_paper(
                     "error": None,
                     "from_cache": True
                 }
-        
-        # If no arxiv_url provided, construct from paper_id
-        if not arxiv_url:
-            arxiv_url = f"https://arxiv.org/abs/{paper_id}"
-        
-        result = await download_and_parse_paper(arxiv_url)
-        
-        # Cache the result if successful
+
+        pdf_url = resolve_pdf_url(paper) if paper else None
+        arxiv_id = paper.get("arxiv_id") if paper else None
+        if not arxiv_id and paper_id.startswith("arxiv:"):
+            arxiv_id = paper_id.split(":", 1)[1]
+
+        if pdf_url and not arxiv_id and not arxiv_url:
+            result = await download_and_parse_url(pdf_url)
+        elif arxiv_url or arxiv_id:
+            if not arxiv_url:
+                arxiv_url = (
+                    paper.get("arxiv_url")
+                    if paper and paper.get("arxiv_url")
+                    else f"https://arxiv.org/abs/{arxiv_id}"
+                )
+            result = await download_and_parse_paper(arxiv_url)
+        elif pdf_url:
+            result = await download_and_parse_url(pdf_url)
+        else:
+            return {
+                "success": False,
+                "markdown": None,
+                "size_bytes": None,
+                "error": "No PDF URL or ArXiv id available for this paper",
+                "from_cache": False,
+            }
+
         if result.get("success") and result.get("markdown"):
             markdown_text = result["markdown"]
-            cache_service.save_markdown(paper_id, markdown_text)
-            print(f"Saved markdown to cache for {paper_id}")
-            
-            # Extract structured sections from the markdown
+            cache_service.save_markdown(cache_key, markdown_text)
+            print(f"Saved markdown to cache for {cache_key}")
+
             try:
-                print(f"🧹 Extracting paper sections for {paper_id}...")
+                print(f"🧹 Extracting paper sections for {cache_key}...")
                 sections: PaperSections = await extract_paper_sections(markdown_text)
-                
-                # Save sections to cache
                 sections_dict = sections.model_dump()
-                cache_service.save_sections(paper_id, sections_dict)
-                print(f"✅ Saved paper sections to cache for {paper_id}")
-                
+                cache_service.save_sections(cache_key, sections_dict)
+                print(f"✅ Saved paper sections to cache for {cache_key}")
             except Exception as section_error:
-                print(f"⚠️ Failed to extract sections for {paper_id}: {section_error}")
-                # Continue even if section extraction fails
-        
+                print(f"⚠️ Failed to extract sections for {cache_key}: {section_error}")
+
         result["from_cache"] = False
         return result
-    
+
     except Exception as e:
         return {
             "success": False,

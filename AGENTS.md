@@ -29,7 +29,7 @@ This is a **Research Paper Analyzer** — a full-stack web application (Python F
 
 ### Running tests
 
-No automated test suite exists in this codebase. Manual testing is done via API calls and the web UI. See `TESTING.md` for manual testing guidance.
+Standalone test scripts live in `backend/test_*.py` (source-neutral papers, OpenAlex provider, PDF-URL parsing, generalized add, company profiles). Run each directly with the venv Python (e.g. `backend/venv/Scripts/python.exe backend/test_company_profiles.py` from the repo root, with `backend` as cwd); they print an "all tests passed" line on success and need no API keys (LLM calls are mocked). There is no pytest configuration. Broader manual testing is done via API calls and the web UI — see `TESTING.md` (the "Testing discovery & company-profiled research" section covers the P1/P2 features).
 
 ### API docs
 

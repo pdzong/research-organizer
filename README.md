@@ -154,9 +154,18 @@ Shortcut scripts:
 
 ### Browse & analyze papers
 
-1. Open the **Papers** tab. The default list ships with several curated papers; add new ones via "Add Paper" (paste any ArXiv URL).
+1. Open the **Papers** tab. The default list ships with several curated papers; add new ones via "Add Paper" (paste an arXiv URL, a DOI like `10.7717/peerj.4375`, a doi.org / OpenAlex link, or a direct `.pdf` URL).
 2. Select a paper → "Load Paper Content" parses the PDF. "Analyze Paper" runs the structured-output LLM pass.
 3. The analysis screen shows novelty, methodology, applications, and benchmark results with source quotes.
+
+### Discover & company-profiled research
+
+Open the **Discover** tab to search beyond the curated list:
+
+- **Keyword search** queries OpenAlex (250M+ scholarly works) and returns open-access results with source badges; click **Add** to pull any result into your library.
+- **Company profiles** capture what a company builds, its tech stack, strategic questions, watch topics, and strategic assumptions. Create one via "New profile".
+- **Discover for company** searches OpenAlex for each of the profile's watch topics and (optionally) runs **strategic-fit scoring** on the top results: an LLM scores each paper 0–100 against the profile and recommends `ignore` / `watch` / `analyze` / `prototype`, listing opportunities, threats, and any challenged assumptions.
+- Any library paper can also be scored against a profile via `POST /api/profiles/{id}/score/{paper_id}` (results are cached per paper + profile).
 
 ### Derive applications
 
@@ -193,6 +202,7 @@ Click the gear icon in the header. The modal lists every LLM role used by the ba
 - `plan_brief` — cheap aggregation pass before plan synthesis.
 - `plan_synthesis` — structured SolutionPlan generation.
 - `plan_worthy` — auto-research plan-worthiness gate.
+- `strategic_fit` — scores a paper against a company research profile.
 
 For each role, pick a provider and a model. Model names are free-form (suggestions are provided per provider, but you can type any model id). Overrides are persisted to `backend/data/llm_config.json` and take effect immediately.
 
@@ -201,11 +211,23 @@ For each role, pick a provider and a model. Model names are free-form (suggestio
 Papers:
 
 - `GET  /api/papers`
-- `POST /api/papers/add`
+- `POST /api/papers/add` — body: `{arxiv_url}` / `{url}` / `{doi}` / `{source, source_record_id}`
 - `GET  /api/papers/{paper_id}/parse`
 - `GET  /api/papers/{arxiv_id}/metadata`
 - `GET  /api/papers/{arxiv_id}/analyze`
 - `POST /api/papers/analyze`
+
+Sources (discovery):
+
+- `GET  /api/sources`
+- `GET  /api/sources/search?source=openalex&query=…&limit=20&since=YYYY-MM-DD`
+
+Company profiles:
+
+- `GET  /api/profiles`, `POST /api/profiles`
+- `GET/PUT/DELETE /api/profiles/{id}`, `POST /api/profiles/{id}/activate`, `GET /api/profiles/active`
+- `POST /api/profiles/{id}/score/{paper_id}` — strategic-fit scoring (cached; `?force_reload=true` to re-run)
+- `GET  /api/profiles/{id}/discover?limit_per_topic=5&since=…&score_top=3` — watch-topic discovery + optional scoring
 
 Applications:
 
@@ -272,7 +294,8 @@ cd web_ui && npm run build
 
 - **`OPENAI_API_KEY not set`** — set at least one provider key in `.env`, or route all roles in the Settings modal to a provider whose key is present.
 - **Anthropic / Gemini SDK missing** — if you routed a role to Anthropic or Gemini but didn't install the SDK, `pip install -r backend/requirements.txt` to pick up `anthropic` and `google-genai`.
-- **OCR service crashes** — the upstream `vllm/vllm-openai:nightly` image sometimes drops transitive deps; the provided `ocr/Dockerfile` pins `pandas>=2.0,<3` to work around this.
+- **OCR optional** — default `docker compose up` runs backend + frontend only (PyMuPDF parsing). For local GPU OCR: `docker compose --profile ocr up`. Set `OCR_SERVER_URL` to an external GLM-OCR/vLLM endpoint if you host it elsewhere; leave empty to skip OCR.
+- **OCR service crashes (KV cache OOM)** — when using `--profile ocr`, defaults are `OCR_MAX_MODEL_LEN=8192` and `OCR_GPU_MEMORY_UTILIZATION=0.85`. If vLLM still fails (e.g. `UVA is not available` on some GPU/driver combos), skip OCR or use PyMuPDF-only mode.
 - **CORS errors** — make sure the backend is on 8000 and the frontend on 5173 / 80.
 - **Frontend build errors** — `rm -rf web_ui/node_modules && cd web_ui && npm install`.
 

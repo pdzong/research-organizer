@@ -15,6 +15,13 @@ export interface Paper {
   authors: string[];
   arxiv_url: string | null;
   arxiv_id: string | null;
+  source?: string | null;
+  pdf_url?: string | null;
+  landing_url?: string | null;
+  published_date?: string | null;
+  is_open_access?: boolean | null;
+  oa_status?: string | null;
+  doi?: string | null;
 }
 
 export interface ParseResponse {
@@ -102,8 +109,23 @@ export const analyzePaper = async (markdown: string): Promise<AnalyzeResponse> =
   return response.data;
 };
 
-export const addPaper = async (arxivUrl: string): Promise<AddPaperResponse> => {
-  const response = await apiClient.post<AddPaperResponse>('/papers/add', { arxiv_url: arxivUrl });
+export const addPaper = async (reference: string): Promise<AddPaperResponse> => {
+  // Backend accepts an arXiv URL, DOI, OpenAlex id/URL, or direct .pdf link (P1-005)
+  const payload = /^10\./.test(reference.trim())
+    ? { doi: reference.trim() }
+    : { url: reference.trim() };
+  const response = await apiClient.post<AddPaperResponse>('/papers/add', payload);
+  return response.data;
+};
+
+export const addPaperFromSource = async (
+  source: string,
+  sourceRecordId: string
+): Promise<AddPaperResponse> => {
+  const response = await apiClient.post<AddPaperResponse>('/papers/add', {
+    source,
+    source_record_id: sourceRecordId,
+  });
   return response.data;
 };
 
@@ -352,6 +374,181 @@ export const fetchSolutions = async (): Promise<SolutionPlanRecord[]> => {
     '/solutions'
   );
   return response.data.plans || [];
+};
+
+// ─── Source discovery (OpenAlex, …) ───────────────────────────────────────
+
+export interface SourcePaperResult {
+  id: string;
+  source: string;
+  source_record_id: string;
+  title: string;
+  authors: string[];
+  abstract?: string | null;
+  published_date?: string | null;
+  landing_url?: string | null;
+  pdf_url?: string | null;
+  is_open_access?: boolean | null;
+  oa_status?: string | null;
+  arxiv_id?: string | null;
+  doi?: string | null;
+  external_ids?: Record<string, string>;
+  source_metadata?: Record<string, any>;
+  matched_topic?: string;
+  strategic_fit?: StrategicFitAssessment;
+  strategic_fit_error?: string;
+}
+
+export interface SourceSearchResponse {
+  success: boolean;
+  source: string;
+  papers: SourcePaperResult[];
+  count: number;
+  error?: string | null;
+}
+
+export const searchSource = async (params: {
+  source?: string;
+  query: string;
+  limit?: number;
+  since?: string;
+  openAccessOnly?: boolean;
+}): Promise<SourceSearchResponse> => {
+  const response = await apiClient.get<SourceSearchResponse>('/sources/search', {
+    params: {
+      source: params.source || 'openalex',
+      query: params.query,
+      limit: params.limit ?? 20,
+      since: params.since,
+      open_access_only: params.openAccessOnly ?? true,
+    },
+  });
+  return response.data;
+};
+
+// ─── Company research profiles ────────────────────────────────────────────
+
+export interface CompanyProfile {
+  id: string;
+  name: string;
+  industry?: string | null;
+  description?: string | null;
+  tech_stack: string[];
+  strategic_questions: string[];
+  watch_topics: string[];
+  assumptions: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompanyProfileInput {
+  name: string;
+  industry?: string | null;
+  description?: string | null;
+  tech_stack: string[];
+  strategic_questions: string[];
+  watch_topics: string[];
+  assumptions: string[];
+}
+
+export interface StrategicFitAssessment {
+  fit_score: number;
+  relevance_summary: string;
+  opportunities: string[];
+  threats: string[];
+  challenged_assumptions: string[];
+  recommended_action: 'ignore' | 'watch' | 'analyze' | 'prototype';
+  reasoning: string;
+  profile_id?: string;
+  paper_id?: string;
+  scored_at?: string;
+}
+
+export interface ProfileListResponse {
+  success: boolean;
+  profiles: CompanyProfile[];
+  active_profile_id: string | null;
+}
+
+export const fetchProfiles = async (): Promise<ProfileListResponse> => {
+  const response = await apiClient.get<ProfileListResponse>('/profiles');
+  return response.data;
+};
+
+export const createProfile = async (data: CompanyProfileInput): Promise<CompanyProfile> => {
+  const response = await apiClient.post<{ success: boolean; profile: CompanyProfile }>(
+    '/profiles',
+    data
+  );
+  return response.data.profile;
+};
+
+export const updateProfile = async (
+  profileId: string,
+  data: CompanyProfileInput
+): Promise<CompanyProfile> => {
+  const response = await apiClient.put<{ success: boolean; profile: CompanyProfile }>(
+    `/profiles/${encodeURIComponent(profileId)}`,
+    data
+  );
+  return response.data.profile;
+};
+
+export const deleteProfile = async (profileId: string): Promise<void> => {
+  await apiClient.delete(`/profiles/${encodeURIComponent(profileId)}`);
+};
+
+export const activateProfile = async (profileId: string): Promise<void> => {
+  await apiClient.post(`/profiles/${encodeURIComponent(profileId)}/activate`);
+};
+
+export interface StrategicFitResponse {
+  success: boolean;
+  assessment: StrategicFitAssessment | null;
+  from_cache: boolean;
+  error?: string | null;
+}
+
+export const scorePaperForProfile = async (
+  profileId: string,
+  paperId: string,
+  forceReload: boolean = false
+): Promise<StrategicFitResponse> => {
+  const params = forceReload ? { force_reload: true } : {};
+  const response = await apiClient.post<StrategicFitResponse>(
+    `/profiles/${encodeURIComponent(profileId)}/score/${encodeURIComponent(paperId)}`,
+    null,
+    { params }
+  );
+  return response.data;
+};
+
+export interface ProfileDiscoverResponse {
+  success: boolean;
+  profile_id: string;
+  topics_searched: string[];
+  papers: SourcePaperResult[];
+  count: number;
+  error?: string | null;
+}
+
+export const discoverForProfile = async (params: {
+  profileId: string;
+  limitPerTopic?: number;
+  since?: string;
+  scoreTop?: number;
+}): Promise<ProfileDiscoverResponse> => {
+  const response = await apiClient.get<ProfileDiscoverResponse>(
+    `/profiles/${encodeURIComponent(params.profileId)}/discover`,
+    {
+      params: {
+        limit_per_topic: params.limitPerTopic ?? 5,
+        since: params.since,
+        score_top: params.scoreTop ?? 0,
+      },
+    }
+  );
+  return response.data;
 };
 
 // ─── Auto-research control plane ──────────────────────────────────────────

@@ -10,9 +10,8 @@ import requests
 
 # Allow the OCR server URL to be overridden via environment variable so the
 # same code works both locally (localhost:8080) and inside Docker (ocr:8080).
-_DEFAULT_OCR_URL = os.environ.get(
-    "OCR_SERVER_URL", "http://localhost:8080/v1/chat/completions"
-)
+# Leave unset or empty to skip OCR and use PyMuPDF only.
+_DEFAULT_OCR_URL = (os.environ.get("OCR_SERVER_URL") or "").strip()
 
 def check_ocr_endpoint(server_url: str = _DEFAULT_OCR_URL, timeout: float = 2.0) -> bool:
     """
@@ -157,15 +156,108 @@ async def download_pdf(arxiv_url: str) -> bytes:
     Download PDF from ArXiv given an ArXiv URL.
     Converts abs URL to pdf URL if needed.
     """
-    # Convert arxiv.org/abs/XXXX to arxiv.org/pdf/XXXX.pdf
     pdf_url = arxiv_url.replace('/abs/', '/pdf/')
     if not pdf_url.endswith('.pdf'):
         pdf_url += '.pdf'
-    
-    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+    return await download_pdf_url(pdf_url)
+
+
+async def download_pdf_url(pdf_url: str) -> bytes:
+    """Download PDF bytes from any HTTP(S) URL."""
+    async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as client:
         response = await client.get(pdf_url)
         response.raise_for_status()
-        return response.content
+        content_type = (response.headers.get("content-type") or "").lower()
+        data = response.content
+        if not data.startswith(b"%PDF"):
+            if "pdf" not in content_type:
+                raise ValueError(
+                    f"URL did not return a PDF (content-type: {content_type or 'unknown'})"
+                )
+        return data
+
+
+async def parse_pdf_bytes(
+    pdf_bytes: bytes,
+    ocr_server_url: str = _DEFAULT_OCR_URL,
+) -> dict:
+    """Parse downloaded PDF bytes to markdown (OCR with PyMuPDF fallback)."""
+    ocr_available = bool(ocr_server_url) and check_ocr_endpoint(ocr_server_url)
+
+    if ocr_available:
+        print("🔍 OCR endpoint detected, using local OCR model...")
+        try:
+            markdown = pdf_bytes_to_markdown_ocr(pdf_bytes, ocr_server_url)
+            print("✅ OCR parsing successful")
+            return {
+                "success": True,
+                "markdown": markdown,
+                "size_bytes": len(pdf_bytes),
+                "error": None,
+                "method": "ocr",
+            }
+        except Exception as ocr_error:
+            print(f"⚠️ OCR parsing failed: {ocr_error}")
+            print("📄 Falling back to PyMuPDF parser...")
+            markdown = parse_pdf_to_markdown(pdf_bytes)
+            return {
+                "success": True,
+                "markdown": markdown,
+                "size_bytes": len(pdf_bytes),
+                "error": None,
+                "method": "pymupdf_fallback",
+                "ocr_error": str(ocr_error),
+            }
+
+    print("📄 OCR endpoint not available, using PyMuPDF parser...")
+    markdown = parse_pdf_to_markdown(pdf_bytes)
+    return {
+        "success": True,
+        "markdown": markdown,
+        "size_bytes": len(pdf_bytes),
+        "error": None,
+        "method": "pymupdf",
+    }
+
+
+async def download_and_parse_url(
+    pdf_url: str,
+    ocr_server_url: str = _DEFAULT_OCR_URL,
+) -> dict:
+    """Download and parse a paper from a direct PDF URL."""
+    try:
+        print(f"📥 Downloading PDF from {pdf_url}")
+        pdf_bytes = await download_pdf_url(pdf_url)
+        print(f"✅ Downloaded {len(pdf_bytes)} bytes")
+        result = await parse_pdf_bytes(pdf_bytes, ocr_server_url)
+        result["source_url"] = pdf_url
+        return result
+    except Exception as e:
+        return {
+            "success": False,
+            "markdown": None,
+            "error": str(e),
+            "method": None,
+        }
+
+
+async def download_and_parse_paper(arxiv_url: str, ocr_server_url: str = _DEFAULT_OCR_URL) -> dict:
+    """Download and parse a paper from an ArXiv abs/pdf URL."""
+    try:
+        print(f"📥 Downloading PDF from {arxiv_url}")
+        pdf_bytes = await download_pdf(arxiv_url)
+        print(f"✅ Downloaded {len(pdf_bytes)} bytes")
+        result = await parse_pdf_bytes(pdf_bytes, ocr_server_url)
+        result["source_url"] = arxiv_url
+        return result
+    except Exception as e:
+        return {
+            "success": False,
+            "markdown": None,
+            "error": str(e),
+            "method": None,
+        }
+
 
 def parse_pdf_to_markdown(pdf_bytes: bytes) -> str:
     """
@@ -173,42 +265,35 @@ def parse_pdf_to_markdown(pdf_bytes: bytes) -> str:
     Extracts text and attempts to preserve structure.
     """
     try:
-        # Open PDF from bytes
         doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-        
+
         markdown_content = []
         markdown_content.append("# Research Paper\n")
-        
+
         for page_num in range(len(doc)):
             page = doc[page_num]
-            
-            # Extract text blocks with position info
             blocks = page.get_text("blocks")
-            
+
             page_text = []
             for block in blocks:
-                # block format: (x0, y0, x1, y1, "text", block_no, block_type)
                 if len(block) >= 5:
                     text = block[4].strip()
                     if text:
                         page_text.append(text)
-            
-            # Join blocks with proper spacing
+
             if page_text:
                 markdown_content.append(f"\n## Page {page_num + 1}\n")
                 markdown_content.append('\n\n'.join(page_text))
-        
+
         doc.close()
-        
+
         full_text = '\n'.join(markdown_content)
-        
-        # Post-processing to improve markdown formatting
         full_text = improve_markdown_formatting(full_text)
-        
         return full_text
-    
+
     except Exception as e:
         raise Exception(f"Error parsing PDF: {str(e)}")
+
 
 def improve_markdown_formatting(text: str) -> str:
     """
@@ -249,69 +334,3 @@ def improve_markdown_formatting(text: str) -> str:
     
     return text
 
-async def download_and_parse_paper(arxiv_url: str, ocr_server_url: str = _DEFAULT_OCR_URL) -> dict:
-    """
-    Download and parse a paper from ArXiv.
-    Attempts to use local OCR endpoint if available, falls back to PyMuPDF if not.
-    
-    Args:
-        arxiv_url: ArXiv URL of the paper
-        ocr_server_url: URL of the local OCR server (optional)
-    
-    Returns:
-        dict with markdown content and metadata
-    """
-    try:
-        # Download PDF
-        print(f"📥 Downloading PDF from {arxiv_url}")
-        pdf_bytes = await download_pdf(arxiv_url)
-        print(f"✅ Downloaded {len(pdf_bytes)} bytes")
-        
-        # Check if OCR endpoint is available
-        ocr_available = check_ocr_endpoint(ocr_server_url)
-        
-        if ocr_available:
-            print("🔍 OCR endpoint detected, using local OCR model...")
-            try:
-                markdown = pdf_bytes_to_markdown_ocr(pdf_bytes, ocr_server_url)
-                print("✅ OCR parsing successful")
-                
-                return {
-                    "success": True,
-                    "markdown": markdown,
-                    "size_bytes": len(pdf_bytes),
-                    "error": None,
-                    "method": "ocr"
-                }
-            except Exception as ocr_error:
-                print(f"⚠️ OCR parsing failed: {ocr_error}")
-                print("📄 Falling back to PyMuPDF parser...")
-                markdown = parse_pdf_to_markdown(pdf_bytes)
-                
-                return {
-                    "success": True,
-                    "markdown": markdown,
-                    "size_bytes": len(pdf_bytes),
-                    "error": None,
-                    "method": "pymupdf_fallback",
-                    "ocr_error": str(ocr_error)
-                }
-        else:
-            print("📄 OCR endpoint not available, using PyMuPDF parser...")
-            markdown = parse_pdf_to_markdown(pdf_bytes)
-            
-            return {
-                "success": True,
-                "markdown": markdown,
-                "size_bytes": len(pdf_bytes),
-                "error": None,
-                "method": "pymupdf"
-            }
-    
-    except Exception as e:
-        return {
-            "success": False,
-            "markdown": None,
-            "error": str(e),
-            "method": None
-        }

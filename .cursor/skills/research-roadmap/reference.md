@@ -13,10 +13,10 @@
 ### P0 — done
 P0-001 … P0-004
 
-### P1 — source expansion
+### P1 — source expansion — done
 P1-001 … P1-006
 
-### P2 — company profiles
+### P2 — company profiles (active)
 P2-001 … P2-005
 
 ### P3 — surprise risk

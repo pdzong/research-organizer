@@ -2,9 +2,11 @@ import httpx
 import json
 import os
 import re
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from pathlib import Path
 from datetime import datetime
+
+from .source_paper import SourcePaper, enrich_storage_dict, normalize_legacy_paper
 
 PAPERS_FILE = Path(__file__).parent.parent / "data" / "papers.json"
 
@@ -69,14 +71,15 @@ def get_default_papers() -> List[Dict[str, any]]:
         }
     ]
 
-def load_papers() -> List[Dict[str, any]]:
+def load_papers() -> List[Dict[str, Any]]:
     """Load papers from JSON file, create with defaults if doesn't exist."""
     try:
         if PAPERS_FILE.exists():
             with open(PAPERS_FILE, 'r', encoding='utf-8') as f:
                 papers = json.load(f)
-                print(f"Loaded {len(papers)} papers from {PAPERS_FILE}")
-                return papers
+                normalized = [enrich_storage_dict(p) for p in papers]
+                print(f"Loaded {len(normalized)} papers from {PAPERS_FILE}")
+                return normalized
         else:
             # Create data directory and default papers file
             PAPERS_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -88,7 +91,7 @@ def load_papers() -> List[Dict[str, any]]:
         print(f"Error loading papers file: {e}. Using defaults.")
         return get_default_papers()
 
-def save_papers(papers: List[Dict[str, any]]) -> bool:
+def save_papers(papers: List[Dict[str, Any]]) -> bool:
     """Save papers to JSON file."""
     try:
         PAPERS_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -161,13 +164,13 @@ async def validate_arxiv_url(arxiv_url: str) -> dict:
             
             return {
                 "success": True,
-                "paper": {
+                "paper": normalize_legacy_paper({
                     "id": arxiv_id,
                     "title": title,
                     "authors": authors,
                     "arxiv_url": normalized_url,
-                    "arxiv_id": arxiv_id
-                }
+                    "arxiv_id": arxiv_id,
+                }).to_storage_dict(),
             }
     
     except httpx.HTTPError as e:
@@ -197,8 +200,12 @@ async def add_paper(arxiv_url: str) -> dict:
     # Load existing papers
     papers = load_papers()
     
-    # Check if paper already exists
-    if any(p["arxiv_id"] == paper["arxiv_id"] for p in papers):
+    # Check if paper already exists (by stable id or arxiv_id)
+    if any(
+        p.get("id") == paper.get("id")
+        or (paper.get("arxiv_id") and p.get("arxiv_id") == paper["arxiv_id"])
+        for p in papers
+    ):
         return {
             "success": False,
             "error": f"Paper {paper['arxiv_id']} already exists in the list"
@@ -220,11 +227,39 @@ async def add_paper(arxiv_url: str) -> dict:
             "error": "Failed to save paper to file"
         }
 
-async def fetch_papers() -> List[Dict[str, any]]:
+async def fetch_papers() -> List[Dict[str, Any]]:
     """
     Fetch papers from local JSON file.
     """
     return load_papers()
+
+
+def add_source_paper(paper: SourcePaper) -> dict:
+    """
+    Add a normalized ``SourcePaper`` to the library (P1-005).
+
+    Dedupes on stable id, DOI, and ArXiv id across sources.
+    """
+    papers = load_papers()
+
+    doi = paper.doi
+    arxiv_id = paper.arxiv_id
+    for p in papers:
+        if p.get("id") == paper.id:
+            return {"success": False, "error": f"Paper {paper.id} already exists in the list"}
+        existing_ids = p.get("external_ids") or {}
+        if doi and (existing_ids.get("doi") == doi or p.get("doi") == doi):
+            return {"success": False, "error": f"Paper with DOI {doi} already exists in the list"}
+        if arxiv_id and p.get("arxiv_id") == arxiv_id:
+            return {"success": False, "error": f"Paper with ArXiv ID {arxiv_id} already exists in the list"}
+
+    record = paper.to_storage_dict()
+    record["added_date"] = datetime.now().isoformat()
+    papers.insert(0, record)
+
+    if save_papers(papers):
+        return {"success": True, "paper": record, "message": f"Added paper: {paper.title}"}
+    return {"success": False, "error": "Failed to save paper to file"}
 
 async def add_paper_from_semantic_scholar(paper_id: str, arxiv_id: Optional[str], title: str, authors: List[str]) -> dict:
     """
@@ -260,7 +295,7 @@ async def add_paper_from_semantic_scholar(paper_id: str, arxiv_id: Optional[str]
     # Create paper object
     arxiv_url = f"https://arxiv.org/abs/{arxiv_id}" if arxiv_id else None
     
-    paper = {
+    paper = normalize_legacy_paper({
         "id": primary_id,
         "title": title,
         "authors": authors if isinstance(authors, list) else [authors],
@@ -268,8 +303,14 @@ async def add_paper_from_semantic_scholar(paper_id: str, arxiv_id: Optional[str]
         "arxiv_id": arxiv_id,
         "semantic_scholar_id": paper_id,
         "added_date": datetime.now().isoformat(),
-        "cache_status": {}
-    }
+        "cache_status": {},
+        "source": "arxiv" if arxiv_id else "semantic_scholar",
+        "source_record_id": arxiv_id or paper_id,
+        "external_ids": {
+            **({"arxiv": arxiv_id} if arxiv_id else {}),
+            "s2": paper_id,
+        },
+    }).to_storage_dict()
     
     # Add paper to the beginning of the list
     papers.insert(0, paper)

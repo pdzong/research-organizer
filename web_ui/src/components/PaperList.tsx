@@ -97,26 +97,41 @@ export function PaperList({ papers, loading, onSelectPaper, onAddPaper, selected
               </Text>
             </Group>
 
-            {paper.arxiv_id && (
-              <Group gap="xs">
+            <Group gap="xs">
+              {paper.source && paper.source !== 'arxiv' && (
+                <Badge color="grape" variant="light">
+                  {paper.source}
+                </Badge>
+              )}
+              {paper.arxiv_id && (
                 <Badge color="blue" variant="light">
                   ArXiv: {paper.arxiv_id}
                 </Badge>
-                {paper.arxiv_url && (
-                  <Button
-                    component="a"
-                    href={paper.arxiv_url}
-                    target="_blank"
-                    variant="subtle"
-                    size="xs"
-                    rightSection={<IconExternalLink size={14} />}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    View on ArXiv
-                  </Button>
-                )}
-              </Group>
-            )}
+              )}
+              {paper.is_open_access && (
+                <Badge color="green" variant="light">
+                  open access
+                </Badge>
+              )}
+              {paper.doi && (
+                <Badge color="cyan" variant="light">
+                  DOI: {paper.doi}
+                </Badge>
+              )}
+              {(paper.arxiv_url || paper.landing_url) && (
+                <Button
+                  component="a"
+                  href={paper.arxiv_url || paper.landing_url || undefined}
+                  target="_blank"
+                  variant="subtle"
+                  size="xs"
+                  rightSection={<IconExternalLink size={14} />}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {paper.arxiv_url ? 'View on ArXiv' : 'View source'}
+                </Button>
+              )}
+            </Group>
           </Stack>
         </Card>
       ))}
@@ -129,7 +144,8 @@ export function PaperList({ papers, loading, onSelectPaper, onAddPaper, selected
       >
         <Stack gap="md">
           <TextInput
-            label="ArXiv URL"
+            label="Paper reference"
+            description="arXiv URL, DOI (10.…), doi.org / OpenAlex link, or a direct .pdf URL"
             placeholder="https://arxiv.org/abs/1706.03762"
             value={arxivUrl}
             onChange={(e) => setArxivUrl(e.target.value)}

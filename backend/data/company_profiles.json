@@ -1,0 +1,28 @@
+{
+  "active_profile_id": "acme-conversational-ai",
+  "profiles": [
+    {
+      "id": "acme-conversational-ai",
+      "name": "Acme Conversational AI",
+      "industry": "Customer support software",
+      "description": "Builds chat-based customer support bots for e-commerce stores.",
+      "tech_stack": [
+        "Python",
+        "RAG pipelines",
+        "fine-tuned small LLMs"
+      ],
+      "strategic_questions": [
+        "Will on-device LLMs make our cloud offering obsolete?"
+      ],
+      "watch_topics": [
+        "retrieval augmented generation",
+        "small language models on-device"
+      ],
+      "assumptions": [
+        "Customers will keep paying for cloud-hosted inference"
+      ],
+      "created_at": "2026-07-12T08:34:45.542935",
+      "updated_at": "2026-07-12T08:34:45.542935"
+    }
+  ]
+}

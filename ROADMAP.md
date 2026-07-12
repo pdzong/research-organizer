@@ -7,10 +7,10 @@
 
 | Field | Value |
 |-------|-------|
-| **Last updated** | 2026-07-01 |
+| **Last updated** | 2026-07-12 |
 | **Vision** | Research-as-a-service: help companies spot relevant advances, weak signals, and disruption risks before they are obvious in product roadmaps |
-| **Active phase** | P1 — Source expansion (first vertical slice) |
-| **Next task** | [P1-001](#p1-001-add-sourcepaper-model) |
+| **Active phase** | P2 — Company research profiles |
+| **Next task** | [P2-003](#p2-003-thread-profile-into-relevance--plan_worthy-prompts) |
 | **Blocked by** | — |
 
 ### At a glance
@@ -18,8 +18,8 @@
 | Phase | Name | Status | Progress |
 |-------|------|--------|----------|
 | P0 | Housekeeping & dev ergonomics | done | 4/4 |
-| P1 | Source expansion (OpenAlex slice) | todo | 0/6 |
-| P2 | Company research profiles | todo | 0/5 |
+| P1 | Source expansion (OpenAlex slice) | done | 6/6 |
+| P2 | Company research profiles | in progress | 3/5 |
 | P3 | Surprise-risk & assumption ledger | todo | 0/4 |
 | P4 | Technology radar & weak signals | todo | 0/4 |
 | P5 | Scheduled briefings | todo | 0/3 |
@@ -86,30 +86,84 @@ Implements **Phase 1 + first vertical slice** from [KNOWLEDGE_SOURCES_EXPANSION_
 
 | ID | Task | Status | Depends | Acceptance |
 |----|------|--------|---------|------------|
-| P1-001 | Add `SourcePaper` model with source-neutral fields | todo | — | Pydantic model; backward-compatible with existing `arxiv_id` records |
-| P1-002 | Allow parse from direct `pdf_url` on paper record | todo | P1-001 | `GET /api/papers/{id}/parse` works for records with `pdf_url` only |
-| P1-003 | Implement OpenAlex discovery provider | todo | P1-001 | `GET /api/sources/search?source=openalex&query=…` returns normalized papers |
-| P1-004 | Resolve OA content from OpenAlex `best_oa_location` | todo | P1-003 | Added paper can fetch and parse OA PDF when available |
-| P1-005 | Generalize `POST /api/papers/add` (URL, DOI, source record) | todo | P1-001 | Accept arXiv URL, DOI, or `{source, source_record_id}` |
-| P1-006 | Frontend: rename add-paper input; show source/OA badges | todo | P1-005 | UI supports non-ArXiv adds; badges on paper cards |
+| P1-001 | Add `SourcePaper` model with source-neutral fields | done | — | Pydantic model; backward-compatible with existing `arxiv_id` records |
+| P1-002 | Allow parse from direct `pdf_url` on paper record | done | P1-001 | `GET /api/papers/{id}/parse` works for records with `pdf_url` only |
+| P1-003 | Implement OpenAlex discovery provider | done | P1-001 | `GET /api/sources/search?source=openalex&query=…` returns normalized papers |
+| P1-004 | Resolve OA content from OpenAlex `best_oa_location` | done | P1-003 | Added paper can fetch and parse OA PDF when available |
+| P1-005 | Generalize `POST /api/papers/add` (URL, DOI, source record) | done | P1-001 | Accept arXiv URL, DOI, or `{source, source_record_id}` |
+| P1-006 | Frontend: rename add-paper input; show source/OA badges | done | P1-005 | UI supports non-ArXiv adds; badges on paper cards |
 
 ### P1-001: Add SourcePaper model
 
-- **Status:** `todo`
-- **Files likely touched:** `backend/services/models.py`, `backend/services/huggingface.py`, `backend/data/papers.json` schema
-- **Notes:** Keep `arxiv_id` optional; add `doi`, `source`, `source_record_id`, `pdf_url`, `oa_status`.
+- **Status:** `done`
+- **Files:** `backend/services/source_paper.py`, `backend/services/huggingface.py`, `backend/services/cache_service.py`, `backend/test_source_paper.py`
+- **Notes:** `SourcePaper` + `normalize_legacy_paper()` + `paper_cache_key()` / `paper_legacy_cache_key()`. Legacy cache dirs unchanged (`cache/{arxiv_id}/`).
 
----
+### P1-002: Allow parse from direct pdf_url
+
+- **Status:** `done`
+- **Files:** `backend/services/pdf_parser.py`, `backend/routers/papers.py`, `backend/services/source_paper.py`, `backend/test_pdf_url_parse.py`
+
+### P1-003: Implement OpenAlex discovery provider
+
+- **Status:** `done`
+- **Files:** `backend/services/sources/openalex.py`, `backend/routers/sources.py`, `backend/test_openalex_provider.py`
+- **Endpoints:** `GET /api/sources`, `GET /api/sources/search?source=openalex&query=…`
+
+### P1-004: Resolve OA content from OpenAlex
+
+- **Status:** `done`
+- **Notes:** OpenAlex works are normalized with `pdf_url` from `best_oa_location` (P1-003); once added to the library, `GET /api/papers/{id}/parse` downloads and parses that PDF (P1-002). Verified live with an ACL Anthology OA PDF.
+
+### P1-005: Generalize POST /api/papers/add
+
+- **Status:** `done`
+- **Files:** `backend/routers/papers.py` (dispatch), `backend/services/huggingface.py` (`add_source_paper` with id/DOI/arXiv dedupe), `backend/services/sources/openalex.py` (`get_openalex_work`), `backend/test_add_paper_generalized.py`
+- **Accepts:** arXiv URL (legacy flow), DOI or doi.org URL (resolved via OpenAlex), OpenAlex id/URL, `{source, source_record_id}`, or a direct `.pdf` link (minimal `web` record).
+
+### P1-006: Frontend Discover tab + badges
+
+- **Status:** `done`
+- **Files:** `web_ui/src/components/DiscoverView.tsx` (new), `web_ui/src/components/Layout.tsx`, `web_ui/src/components/PaperList.tsx`, `web_ui/src/services/api.ts`
+- **Notes:** New **Discover** tab: OpenAlex keyword search, company-profile discovery with strategic-fit badges, one-click add to library. Paper list shows source / open-access / DOI badges; add-paper modal accepts any reference type.
 
 ## P2 — Company research profiles
 
 | ID | Task | Status | Depends | Acceptance |
 |----|------|--------|---------|------------|
-| P2-001 | Define `CompanyProfile` schema + JSON storage | todo | P1-001 | `backend/data/company_profiles.json` + CRUD API |
-| P2-002 | Add strategic-fit scoring LLM role | todo | P2-001 | Papers/applications scored 0–1 with reasoning vs active profile |
+| P2-001 | Define `CompanyProfile` schema + JSON storage | done | P1-001 | `backend/data/company_profiles.json` + CRUD API |
+| P2-002 | Add strategic-fit scoring LLM role | done | P2-001 | Papers/applications scored with reasoning vs active profile |
 | P2-003 | Thread profile into relevance + plan_worthy prompts | todo | P2-002 | Auto-research and manual flows respect active profile |
-| P2-004 | UI: profile selector + editor | todo | P2-001 | Header or settings area to switch/create profiles |
-| P2-005 | Filter paper list and auto-research by profile watch topics | todo | P2-004 | Watch topics drive discovery queries |
+| P2-004 | UI: profile selector + editor | todo | P2-001 | Header or settings area to switch/create/**edit** profiles |
+| P2-005 | Profile-driven discovery (watch topics → OpenAlex) | done | P2-001 | Watch topics drive discovery queries with optional fit scoring |
+
+### P2-001: CompanyProfile schema + storage + CRUD
+
+- **Status:** `done`
+- **Files:** `backend/services/company_profiles.py`, `backend/routers/profiles.py`, `backend/test_company_profiles.py`
+- **Schema:** name, industry, description, `tech_stack[]`, `strategic_questions[]`, `watch_topics[]` (drive discovery), `assumptions[]` (P3 surprise-risk hook).
+- **Endpoints:** `GET/POST /api/profiles`, `GET/PUT/DELETE /api/profiles/{id}`, `POST /api/profiles/{id}/activate`, `GET /api/profiles/active`. First profile becomes active automatically.
+
+### P2-002: Strategic-fit scoring role
+
+- **Status:** `done`
+- **Files:** `backend/services/strategic_fit.py`, `backend/services/llm_config.py` (new `strategic_fit` role, default `gpt-5-mini`)
+- **Endpoint:** `POST /api/profiles/{id}/score/{paper_id}` — returns `fit_score` 0–100, opportunities, threats, challenged assumptions, recommended action (`ignore`/`watch`/`analyze`/`prototype`). Cached per (paper, profile) at `cache/{key}/strategic_fit_{profile_id}.json`; uses abstract + cached deep analysis as context.
+
+### P2-003: Thread profile into relevance + plan_worthy prompts
+
+- **Status:** `todo` — **this is the next task.**
+- **Goal:** auto-research and manual analyze flows should consider the active company profile (e.g. pass profile context into `relevance` and `plan_worthy` prompts, and optionally auto-score processed papers).
+
+### P2-004: UI profile selector + editor
+
+- **Status:** `todo` (partially covered: Discover tab has profile **select + create**; missing: edit/delete UI, header-level selector visible across views)
+
+### P2-005: Profile-driven discovery
+
+- **Status:** `done` (simple version; scope adjusted from "filter paper list & auto-research" — auto-research integration moved under P2-003)
+- **Endpoint:** `GET /api/profiles/{id}/discover?limit_per_topic=5&since=YYYY-MM-DD&score_top=N` — searches OpenAlex per watch topic, dedupes, optionally runs strategic-fit scoring on the top N results.
+- **UI:** Discover tab → "Discover for company" button.
 
 ---
 
@@ -163,6 +217,11 @@ Addresses the “we didn’t see LLMs coming” failure mode.
 | Date | Change |
 |------|--------|
 | 2026-07-01 | Initial roadmap created from product direction discussion. P0 completed. P1 set as active phase. |
+| 2026-07-01 | P1-001 done: `SourcePaper` model, legacy normalization at read time, cache key helpers. |
+| 2026-07-01 | P1-002 done: parse from direct `pdf_url`; refactored PDF download/parse helpers. |
+| 2026-07-03 | P1-003 done: OpenAlex discovery provider + `/api/sources/search`. |
+| 2026-07-12 | P1 complete (P1-004/005/006): generalized add (DOI/OpenAlex/PDF), OA parse verified, Discover tab + badges. |
+| 2026-07-12 | P2 started: P2-001 profiles CRUD, P2-002 strategic-fit role + scoring endpoint, P2-005 profile-driven discovery (simple). First end-to-end company-profiled research flow works. Next: P2-003. |
 
 ---
 

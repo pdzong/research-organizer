@@ -1,6 +1,132 @@
 [
   {
-    "id": "2604.15308",
+    "id": "openalex:W2741809807",
+    "source": "openalex",
+    "source_record_id": "W2741809807",
+    "title": "The state of OA: a large-scale analysis of the prevalence and impact of Open Access articles",
+    "authors": [
+      "Heather Piwowar",
+      "Jason R Priem",
+      "Vincent Larivière",
+      "Juan Pablo Alperín",
+      "Lisa Matthias",
+      "Bree Norlander",
+      "Ashley Farley",
+      "Jevin D. West",
+      "Stefanie Haustein"
+    ],
+    "abstract": "Despite growing interest in Open Access (OA) to scholarly literature, there is an unmet need for large-scale, up-to-date, and reproducible studies assessing the prevalence and characteristics of OA. We address this need using oaDOI, an open online service that determines OA status for 67 million articles. We use three samples, each of 100,000 articles, to investigate OA in three populations: (1) all journal articles assigned a Crossref DOI, (2) recent journal articles indexed in Web of Science, and (3) articles viewed by users of Unpaywall, an open-source browser extension that lets users find OA articles using oaDOI. We estimate that at least 28% of the scholarly literature is OA (19M in total) and that this proportion is growing, driven particularly by growth in Gold and Hybrid. The most recent year analyzed (2015) also has the highest percentage of OA (45%). Because of this growth, and the fact that readers disproportionately access newer articles, we find that Unpaywall users encounter OA quite frequently: 47% of articles they view are OA. Notably, the most common mechanism for OA is not Gold, Green, or Hybrid OA, but rather an under-discussed category we dub Bronze: articles made free-to-read on the publisher website, without an explicit Open license. We also examine the citation impact of OA articles, corroborating the so-called open-access citation advantage: accounting for age and discipline, OA articles receive 18% more citations than average, an effect driven primarily by Green and Hybrid OA. We encourage further research using the free oaDOI service, as a way to inform OA policy and practice.",
+    "published_date": "2018-02-13",
+    "landing_url": "https://doi.org/10.7717/peerj.4375",
+    "is_open_access": true,
+    "license": "cc-by",
+    "external_ids": {
+      "openalex": "W2741809807",
+      "doi": "10.7717/peerj.4375",
+      "pmid": "29456894"
+    },
+    "source_metadata": {
+      "cited_by_count": 1230,
+      "publication_year": 2018,
+      "type": "book-chapter",
+      "topics": [
+        "scientometrics and bibliometrics research",
+        "Academic Publishing and Open Access",
+        "Research Data Management Practices"
+      ],
+      "oa_status": "gold",
+      "openalex_url": "https://openalex.org/W2741809807"
+    },
+    "doi": "10.7717/peerj.4375",
+    "oa_status": "open",
+    "added_date": "2026-07-12T08:39:35.058621"
+  },
+  {
+    "id": "openalex:W4389519118",
+    "source": "openalex",
+    "source_record_id": "W4389519118",
+    "title": "Active Retrieval Augmented Generation",
+    "authors": [
+      "Zhengbao Jiang",
+      "Frank F. Xu",
+      "Luyu Gao",
+      "Zhiqing Sun",
+      "Qian Liu",
+      "Jane Dwivedi-Yu",
+      "Yiming Yang",
+      "Jamie Callan",
+      "Graham Neubig"
+    ],
+    "abstract": "Zhengbao Jiang, Frank Xu, Luyu Gao, Zhiqing Sun, Qian Liu, Jane Dwivedi-Yu, Yiming Yang, Jamie Callan, Graham Neubig. Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing. 2023.",
+    "published_date": "2023-01-01",
+    "landing_url": "https://doi.org/10.18653/v1/2023.emnlp-main.495",
+    "pdf_url": "https://aclanthology.org/2023.emnlp-main.495.pdf",
+    "is_open_access": true,
+    "license": "cc-by",
+    "external_ids": {
+      "openalex": "W4389519118",
+      "doi": "10.18653/v1/2023.emnlp-main.495"
+    },
+    "source_metadata": {
+      "cited_by_count": 354,
+      "publication_year": 2023,
+      "type": "article",
+      "topics": [
+        "Topic Modeling",
+        "Natural Language Processing Techniques"
+      ],
+      "oa_status": "gold",
+      "openalex_url": "https://openalex.org/W4389519118"
+    },
+    "doi": "10.18653/v1/2023.emnlp-main.495",
+    "oa_status": "open",
+    "added_date": "2026-07-12T08:37:28.036704",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-07-12T08:37:36.882183",
+        "sections": "2026-07-12T08:38:59.733239"
+      },
+      "markdown": "cache/doi_10.18653_v1_2023.emnlp-main.495/markdown.md",
+      "sections": "cache/doi_10.18653_v1_2023.emnlp-main.495/sections.json"
+    }
+  },
+  {
+    "id": "arxiv:2606.30534",
+    "source": "arxiv",
+    "source_record_id": "2606.30534",
+    "title": "Orca: The World is in Your Mind",
+    "authors": [
+      "Yihao Wang",
+      "Yuheng Ji",
+      "Mingyu Cao",
+      "Yanqing Shen",
+      "Runze Xiao"
+    ],
+    "landing_url": "https://arxiv.org/abs/2606.30534",
+    "pdf_url": "https://arxiv.org/pdf/2606.30534.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2606.30534"
+    },
+    "source_metadata": {},
+    "arxiv_id": "2606.30534",
+    "oa_status": "open",
+    "arxiv_url": "https://arxiv.org/abs/2606.30534",
+    "cached": {
+      "lastUpdated": {
+        "markdown": "2026-07-03T04:58:07.351583",
+        "metadata": "2026-07-03T04:58:08.746665",
+        "sections": "2026-07-03T04:58:53.601174",
+        "analysis": "2026-07-03T05:25:24.619218"
+      },
+      "markdown": "cache/2606.30534/markdown.md",
+      "metadata": "cache/2606.30534/metadata.json",
+      "sections": "cache/2606.30534/sections.json",
+      "analysis": "cache/2606.30534/analysis.json"
+    }
+  },
+  {
+    "id": "arxiv:2604.15308",
     "title": "RAD-2: Scaling Reinforcement Learning in a Generator-Discriminator Framework",
     "authors": [
       "Hao Gao",
@@ -22,10 +148,20 @@
       "markdown": "cache/2604.15308/markdown.md",
       "sections": "cache/2604.15308/sections.json",
       "analysis": "cache/2604.15308/analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2604.15308",
+    "landing_url": "https://arxiv.org/abs/2604.15308",
+    "pdf_url": "https://arxiv.org/pdf/2604.15308.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2604.15308"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2604.14268",
+    "id": "arxiv:2604.14268",
     "title": "HY-World 2.0: A Multi-Modal World Model for Reconstructing, Generating, and Simulating 3D Worlds",
     "authors": [
       "Team HY-World",
@@ -47,10 +183,20 @@
       "markdown": "cache/2604.14268/markdown.md",
       "sections": "cache/2604.14268/sections.json",
       "analysis": "cache/2604.14268/analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2604.14268",
+    "landing_url": "https://arxiv.org/abs/2604.14268",
+    "pdf_url": "https://arxiv.org/pdf/2604.14268.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2604.14268"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2604.11784",
+    "id": "arxiv:2604.11784",
     "title": "ClawGUI: A Unified Framework for Training, Evaluating, and Deploying GUI Agents",
     "authors": [
       "Fei Tang",
@@ -72,10 +218,20 @@
       "sections": "cache/2604.11784/sections.json",
       "metadata": "cache/2604.11784/metadata.json",
       "analysis": "cache/2604.11784/analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2604.11784",
+    "landing_url": "https://arxiv.org/abs/2604.11784",
+    "pdf_url": "https://arxiv.org/pdf/2604.11784.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2604.11784"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2603.19220",
+    "id": "arxiv:2603.19220",
     "title": "Nemotron-Cascade 2: Post-Training LLMs with Cascade RL and Multi-Domain On-Policy Distillation",
     "authors": [
       "Zhuolin Yang",
@@ -97,10 +253,20 @@
       "sections": "cache/2603.19220/sections.json",
       "metadata": "cache/2603.19220/metadata.json",
       "analysis": "cache/2603.19220/analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2603.19220",
+    "landing_url": "https://arxiv.org/abs/2603.19220",
+    "pdf_url": "https://arxiv.org/pdf/2603.19220.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2603.19220"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.20459",
+    "id": "arxiv:2602.20459",
     "title": "PreScience: A Benchmark for Forecasting Scientific Contributions",
     "authors": [
       "Anirudh Ajith",
@@ -122,10 +288,20 @@
       "sections": "cache/2602.20459/sections.json",
       "metadata": "cache/2602.20459/metadata.json",
       "analysis": "cache/2602.20459/analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.20459",
+    "landing_url": "https://arxiv.org/abs/2602.20459",
+    "pdf_url": "https://arxiv.org/pdf/2602.20459.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.20459"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.21193",
+    "id": "arxiv:2602.21193",
     "title": "On Data Engineering for Scaling LLM Terminal Capabilities",
     "authors": [
       "Renjie Pi",
@@ -145,10 +321,20 @@
       "metadata": "cache/2602.21193/metadata.json",
       "markdown": "cache/2602.21193/markdown.md",
       "sections": "cache/2602.21193/sections.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.21193",
+    "landing_url": "https://arxiv.org/abs/2602.21193",
+    "pdf_url": "https://arxiv.org/pdf/2602.21193.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.21193"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.20159",
+    "id": "arxiv:2602.20159",
     "title": "A Very Big Video Reasoning Suite",
     "authors": [
       "Maijunxian Wang",
@@ -170,10 +356,20 @@
       "sections": "cache/2602.20159/sections.json",
       "metadata": "cache/2602.20159/metadata.json",
       "analysis": "cache/2602.20159/analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.20159",
+    "landing_url": "https://arxiv.org/abs/2602.20159",
+    "pdf_url": "https://arxiv.org/pdf/2602.20159.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.20159"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.12675",
+    "id": "arxiv:2602.12675",
     "title": "SLA2: Sparse-Linear Attention with Learnable Routing and QAT",
     "authors": [
       "Jintao Zhang",
@@ -193,10 +389,20 @@
       "metadata": "cache/2602.12675/metadata.json",
       "markdown": "cache/2602.12675/markdown.md",
       "sections": "cache/2602.12675/sections.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.12675",
+    "landing_url": "https://arxiv.org/abs/2602.12675",
+    "pdf_url": "https://arxiv.org/pdf/2602.12675.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.12675"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.15763",
+    "id": "arxiv:2602.15763",
     "title": "GLM-5: from Vibe Coding to Agentic Engineering",
     "authors": [
       "GLM-5 Team",
@@ -218,10 +424,20 @@
       "sections": "cache\\2602.15763\\sections.json",
       "metadata": "cache\\2602.15763\\metadata.json",
       "analysis": "cache\\2602.15763\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.15763",
+    "landing_url": "https://arxiv.org/abs/2602.15763",
+    "pdf_url": "https://arxiv.org/pdf/2602.15763.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.15763"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2304.03442",
+    "id": "arxiv:2304.03442",
     "title": "Generative Agents: Interactive Simulacra of Human Behavior",
     "authors": [
       "Joon Sung Park",
@@ -239,10 +455,20 @@
       },
       "metadata": "cache\\2304.03442\\metadata.json",
       "markdown": "cache\\2304.03442\\markdown.md"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2304.03442",
+    "landing_url": "https://arxiv.org/abs/2304.03442",
+    "pdf_url": "https://arxiv.org/pdf/2304.03442.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2304.03442"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2505.11831",
+    "id": "arxiv:2505.11831",
     "title": "ARC-AGI-2: A New Challenge for Frontier AI Reasoning Systems",
     "authors": [
       "Francois Chollet",
@@ -264,10 +490,20 @@
       "markdown": "cache\\2505.11831\\markdown.md",
       "sections": "cache\\2505.11831\\sections.json",
       "analysis": "cache\\2505.11831\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2505.11831",
+    "landing_url": "https://arxiv.org/abs/2505.11831",
+    "pdf_url": "https://arxiv.org/pdf/2505.11831.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2505.11831"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.05400",
+    "id": "arxiv:2602.05400",
     "title": "OPUS: Towards Efficient and Principled Data Selection in Large Language Model Pre-training in Every Iteration",
     "authors": [
       "Shaobo Wang",
@@ -289,10 +525,20 @@
       "markdown": "cache\\2602.05400\\markdown.md",
       "sections": "cache\\2602.05400\\sections.json",
       "analysis": "cache\\2602.05400\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.05400",
+    "landing_url": "https://arxiv.org/abs/2602.05400",
+    "pdf_url": "https://arxiv.org/pdf/2602.05400.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.05400"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.04215",
+    "id": "arxiv:2602.04215",
     "title": "OAT: Ordered Action Tokenization",
     "authors": [
       "Chaoqi Liu",
@@ -314,10 +560,20 @@
       "markdown": "cache\\2602.04215\\markdown.md",
       "sections": "cache\\2602.04215\\sections.json",
       "analysis": "cache\\2602.04215\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.04215",
+    "landing_url": "https://arxiv.org/abs/2602.04215",
+    "pdf_url": "https://arxiv.org/pdf/2602.04215.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.04215"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.02751",
+    "id": "arxiv:2602.02751",
     "title": "Scaling Small Agents Through Strategy Auctions",
     "authors": [
       "Lisa Alazraki",
@@ -338,10 +594,20 @@
       "markdown": "cache\\2602.02751\\markdown.md",
       "sections": "cache\\2602.02751\\sections.json",
       "analysis": "cache\\2602.02751\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.02751",
+    "landing_url": "https://arxiv.org/abs/2602.02751",
+    "pdf_url": "https://arxiv.org/pdf/2602.02751.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.02751"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2512.08186",
+    "id": "arxiv:2512.08186",
     "title": "Ground Slow, Move Fast: A Dual-System Foundation Model for Generalizable Vision-and-Language Navigation",
     "authors": [
       "Meng Wei",
@@ -372,10 +638,21 @@
       "markdown": "cache\\2512.08186\\markdown.md",
       "sections": "cache\\2512.08186\\sections.json",
       "analysis": "cache\\2512.08186\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2512.08186",
+    "landing_url": "https://arxiv.org/abs/2512.08186",
+    "pdf_url": "https://arxiv.org/pdf/2512.08186.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2512.08186",
+      "s2": "da6b412367452cce3e45498fbbb2008d95fd0257"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.00919",
+    "id": "arxiv:2602.00919",
     "title": "Green-VLA: Staged Vision-Language-Action Model for Generalist Robots",
     "authors": [
       "I. Apanasevich",
@@ -397,10 +674,20 @@
       "markdown": "cache\\2602.00919\\markdown.md",
       "sections": "cache\\2602.00919\\sections.json",
       "analysis": "cache\\2602.00919\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.00919",
+    "landing_url": "https://arxiv.org/abs/2602.00919",
+    "pdf_url": "https://arxiv.org/pdf/2602.00919.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.00919"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.19508",
+    "id": "arxiv:2601.19508",
     "title": "Rethinking Intelligence: Brain-like Neuron Network",
     "authors": [
       "Weifeng Liu"
@@ -419,10 +706,21 @@
       "metadata": "cache\\2601.19508\\metadata.json",
       "markdown": "cache\\2601.19508\\markdown.md",
       "analysis": "cache\\2601.19508\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.19508",
+    "landing_url": "https://arxiv.org/abs/2601.19508",
+    "pdf_url": "https://arxiv.org/pdf/2601.19508.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.19508",
+      "s2": "fa985d1fd99f57f9d53b9896a71290874ee678b2"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2509.26507",
+    "id": "arxiv:2509.26507",
     "title": "The Dragon Hatchling: The Missing Link between the Transformer and Models of the Brain",
     "authors": [
       "Adrian Kosowski",
@@ -440,10 +738,20 @@
       },
       "metadata": "cache\\2509.26507\\metadata.json",
       "markdown": "cache\\2509.26507\\markdown.md"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2509.26507",
+    "landing_url": "https://arxiv.org/abs/2509.26507",
+    "pdf_url": "https://arxiv.org/pdf/2509.26507.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2509.26507"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2602.04705",
+    "id": "arxiv:2602.04705",
     "title": "ERNIE 5.0 Technical Report",
     "authors": [
       "Haifeng Wang",
@@ -461,10 +769,20 @@
       },
       "markdown": "cache\\2602.04705\\markdown.md",
       "metadata": "cache\\2602.04705\\metadata.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2602.04705",
+    "landing_url": "https://arxiv.org/abs/2602.04705",
+    "pdf_url": "https://arxiv.org/pdf/2602.04705.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2602.04705"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.21558",
+    "id": "arxiv:2601.21558",
     "title": "ASTRA: Automated Synthesis of agentic Trajectories and Reinforcement Arenas",
     "authors": [
       "Xiaoyu Tian",
@@ -484,10 +802,20 @@
       "markdown": "cache\\2601.21558\\markdown.md",
       "metadata": "cache\\2601.21558\\metadata.json",
       "analysis": "cache\\2601.21558\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.21558",
+    "landing_url": "https://arxiv.org/abs/2601.21558",
+    "pdf_url": "https://arxiv.org/pdf/2601.21558.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.21558"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.17058",
+    "id": "arxiv:2601.17058",
     "title": "Can LLMs Clean Up Your Mess? A Survey of Application-Ready Data Preparation with LLMs",
     "authors": [
       "Wei Zhou",
@@ -507,10 +835,20 @@
       "metadata": "cache\\2601.17058\\metadata.json",
       "markdown": "cache\\2601.17058\\markdown.md",
       "analysis": "cache\\2601.17058\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.17058",
+    "landing_url": "https://arxiv.org/abs/2601.17058",
+    "pdf_url": "https://arxiv.org/pdf/2601.17058.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.17058"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.20614",
+    "id": "arxiv:2601.20614",
     "title": "Harder Is Better: Boosting Mathematical Reasoning via Difficulty-Aware GRPO and Multi-Aspect Question Reformulation",
     "authors": [
       "Yanqi Dai",
@@ -530,10 +868,20 @@
       "markdown": "cache\\2601.20614\\markdown.md",
       "analysis": "cache\\2601.20614\\analysis.json",
       "metadata": "cache\\2601.20614\\metadata.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.20614",
+    "landing_url": "https://arxiv.org/abs/2601.20614",
+    "pdf_url": "https://arxiv.org/pdf/2601.20614.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.20614"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.16175",
+    "id": "arxiv:2601.16175",
     "title": "Learning to Discover at Test Time",
     "authors": [
       "Mert Yuksekgonul",
@@ -553,10 +901,20 @@
       "markdown": "cache\\2601.16175\\markdown.md",
       "analysis": "cache\\2601.16175\\analysis.json",
       "metadata": "cache\\2601.16175\\metadata.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.16175",
+    "landing_url": "https://arxiv.org/abs/2601.16175",
+    "pdf_url": "https://arxiv.org/pdf/2601.16175.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.16175"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2510.08191",
+    "id": "arxiv:2510.08191",
     "title": "Training-Free Group Relative Policy Optimization",
     "authors": [
       "Yuzheng Cai",
@@ -576,10 +934,20 @@
       "markdown": "cache\\2510.08191\\markdown.md",
       "analysis": "cache\\2510.08191\\analysis.json",
       "metadata": "cache\\2510.08191\\metadata.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2510.08191",
+    "landing_url": "https://arxiv.org/abs/2510.08191",
+    "pdf_url": "https://arxiv.org/pdf/2510.08191.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2510.08191"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.10825",
+    "id": "arxiv:2601.10825",
     "title": "Reasoning Models Generate Societies of Thought",
     "authors": [
       "Junsol Kim",
@@ -599,10 +967,20 @@
       "markdown": "cache\\2601.10825\\markdown.md",
       "metadata": "cache\\2601.10825\\metadata.json",
       "analysis": "cache\\2601.10825\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.10825",
+    "landing_url": "https://arxiv.org/abs/2601.10825",
+    "pdf_url": "https://arxiv.org/pdf/2601.10825.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.10825"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2506.08872",
+    "id": "arxiv:2506.08872",
     "title": "Your Brain on ChatGPT: Accumulation of Cognitive Debt when Using an AI Assistant for Essay Writing Task",
     "authors": [
       "Nataliya Kosmyna",
@@ -622,10 +1000,20 @@
       "metadata": "cache\\2506.08872\\metadata.json",
       "markdown": "cache\\2506.08872\\markdown.md",
       "analysis": "cache\\2506.08872\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2506.08872",
+    "landing_url": "https://arxiv.org/abs/2506.08872",
+    "pdf_url": "https://arxiv.org/pdf/2506.08872.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2506.08872"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2511.21928",
+    "id": "arxiv:2511.21928",
     "title": "Prompted Policy Search: Reinforcement Learning through Linguistic and Numerical Reasoning in LLMs",
     "authors": [
       "Yifan Zhou",
@@ -645,10 +1033,20 @@
       "markdown": "cache\\2511.21928\\markdown.md",
       "metadata": "cache\\2511.21928\\metadata.json",
       "analysis": "cache\\2511.21928\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2511.21928",
+    "landing_url": "https://arxiv.org/abs/2511.21928",
+    "pdf_url": "https://arxiv.org/pdf/2511.21928.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2511.21928"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2512.15274",
+    "id": "arxiv:2512.15274",
     "title": "Well Begun, Half Done: Reinforcement Learning with Prefix Optimization for LLM Reasoning",
     "authors": [
       "Yiliu Sun",
@@ -668,10 +1066,20 @@
       "markdown": "cache\\2512.15274\\markdown.md",
       "analysis": "cache\\2512.15274\\analysis.json",
       "metadata": "cache\\2512.15274\\metadata.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2512.15274",
+    "landing_url": "https://arxiv.org/abs/2512.15274",
+    "pdf_url": "https://arxiv.org/pdf/2512.15274.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2512.15274"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2210.03629",
+    "id": "arxiv:2210.03629",
     "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
     "authors": [
       "Shunyu Yao",
@@ -691,10 +1099,20 @@
       "markdown": "cache\\2210.03629\\markdown.md",
       "metadata": "cache\\2210.03629\\metadata.json",
       "analysis": "cache\\2210.03629\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2210.03629",
+    "landing_url": "https://arxiv.org/abs/2210.03629",
+    "pdf_url": "https://arxiv.org/pdf/2210.03629.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2210.03629"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2504.13837",
+    "id": "arxiv:2504.13837",
     "title": "Does Reinforcement Learning Really Incentivize Reasoning Capacity in LLMs Beyond the Base Model?",
     "authors": [
       "Yang Yue",
@@ -714,10 +1132,20 @@
       "markdown": "cache\\2504.13837\\markdown.md",
       "metadata": "cache\\2504.13837\\metadata.json",
       "analysis": "cache\\2504.13837\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2504.13837",
+    "landing_url": "https://arxiv.org/abs/2504.13837",
+    "pdf_url": "https://arxiv.org/pdf/2504.13837.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2504.13837"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.11496",
+    "id": "arxiv:2601.11496",
     "title": "The Poisoned Apple Effect: Strategic Manipulation of Mediated Markets via Technology Expansion of AI Agents",
     "authors": [
       "Eilam Shapira",
@@ -735,10 +1163,20 @@
       "metadata": "cache\\2601.11496\\metadata.json",
       "markdown": "cache\\2601.11496\\markdown.md",
       "analysis": "cache\\2601.11496\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.11496",
+    "landing_url": "https://arxiv.org/abs/2601.11496",
+    "pdf_url": "https://arxiv.org/pdf/2601.11496.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.11496"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.08225",
+    "id": "arxiv:2601.08225",
     "title": "User-Oriented Multi-Turn Dialogue Generation with Tool Use at scale",
     "authors": [
       "Jungho Cho",
@@ -756,10 +1194,20 @@
       "markdown": "cache\\2601.08225\\markdown.md",
       "metadata": "cache\\2601.08225\\metadata.json",
       "analysis": "cache\\2601.08225\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.08225",
+    "landing_url": "https://arxiv.org/abs/2601.08225",
+    "pdf_url": "https://arxiv.org/pdf/2601.08225.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.08225"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.06789",
+    "id": "arxiv:2601.06789",
     "title": "MemGovern: Enhancing Code Agents through Learning from Governed Human Experiences",
     "authors": [
       "Qihao Wang",
@@ -779,10 +1227,20 @@
       "metadata": "cache\\2601.06789\\metadata.json",
       "markdown": "cache\\2601.06789\\markdown.md",
       "analysis": "cache\\2601.06789\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.06789",
+    "landing_url": "https://arxiv.org/abs/2601.06789",
+    "pdf_url": "https://arxiv.org/pdf/2601.06789.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.06789"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.07022",
+    "id": "arxiv:2601.07022",
     "title": "Solar Open Technical Report",
     "authors": [
       "Sungrae Park",
@@ -802,10 +1260,20 @@
       "metadata": "cache\\2601.07022\\metadata.json",
       "markdown": "cache\\2601.07022\\markdown.md",
       "analysis": "cache\\2601.07022\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.07022",
+    "landing_url": "https://arxiv.org/abs/2601.07022",
+    "pdf_url": "https://arxiv.org/pdf/2601.07022.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.07022"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.06953",
+    "id": "arxiv:2601.06953",
     "title": "X-Coder: Advancing Competitive Programming with Fully Synthetic Tasks, Solutions, and Tests",
     "authors": [
       "Jie Wu",
@@ -823,10 +1291,20 @@
       },
       "metadata": "cache\\2601.06953\\metadata.json",
       "markdown": "cache\\2601.06953\\markdown.md"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.06953",
+    "landing_url": "https://arxiv.org/abs/2601.06953",
+    "pdf_url": "https://arxiv.org/pdf/2601.06953.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.06953"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2601.05242",
+    "id": "arxiv:2601.05242",
     "title": "GDPO: Group reward-Decoupled Normalization Policy Optimization for Multi-reward RL Optimization",
     "authors": [
       "Shih-Yang Liu",
@@ -848,10 +1326,20 @@
       "analysis": "cache\\2601.05242\\analysis.json",
       "metadata": "cache\\2601.05242\\metadata.json",
       "sections": "cache/2601.05242/sections.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2601.05242",
+    "landing_url": "https://arxiv.org/abs/2601.05242",
+    "pdf_url": "https://arxiv.org/pdf/2601.05242.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2601.05242"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2512.24880",
+    "id": "arxiv:2512.24880",
     "title": "mHC: Manifold-Constrained Hyper-Connections",
     "authors": [
       "Zhenda Xie",
@@ -861,10 +1349,20 @@
       "Chengqi Deng"
     ],
     "arxiv_url": "https://arxiv.org/abs/2512.24880",
-    "arxiv_id": "2512.24880"
+    "arxiv_id": "2512.24880",
+    "source": "arxiv",
+    "source_record_id": "2512.24880",
+    "landing_url": "https://arxiv.org/abs/2512.24880",
+    "pdf_url": "https://arxiv.org/pdf/2512.24880.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2512.24880"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "1706.03762",
+    "id": "arxiv:1706.03762",
     "title": "Attention Is All You Need",
     "authors": [
       "Vaswani et al."
@@ -880,10 +1378,20 @@
       "metadata": "cache\\1706.03762\\metadata.json",
       "markdown": "cache\\1706.03762\\markdown.md",
       "analysis": "cache\\1706.03762\\analysis.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "1706.03762",
+    "landing_url": "https://arxiv.org/abs/1706.03762",
+    "pdf_url": "https://arxiv.org/pdf/1706.03762.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "1706.03762"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2303.08774",
+    "id": "arxiv:2303.08774",
     "title": "GPT-4 Technical Report",
     "authors": [
       "OpenAI"
@@ -897,60 +1405,130 @@
       },
       "markdown": "cache\\2303.08774\\markdown.md",
       "metadata": "cache\\2303.08774\\metadata.json"
-    }
+    },
+    "source": "arxiv",
+    "source_record_id": "2303.08774",
+    "landing_url": "https://arxiv.org/abs/2303.08774",
+    "pdf_url": "https://arxiv.org/pdf/2303.08774.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2303.08774"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2307.09288",
+    "id": "arxiv:2307.09288",
     "title": "Llama 2: Open Foundation and Fine-Tuned Chat Models",
     "authors": [
       "Touvron et al."
     ],
     "arxiv_url": "https://arxiv.org/abs/2307.09288",
-    "arxiv_id": "2307.09288"
+    "arxiv_id": "2307.09288",
+    "source": "arxiv",
+    "source_record_id": "2307.09288",
+    "landing_url": "https://arxiv.org/abs/2307.09288",
+    "pdf_url": "https://arxiv.org/pdf/2307.09288.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2307.09288"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2005.14165",
+    "id": "arxiv:2005.14165",
     "title": "Language Models are Few-Shot Learners (GPT-3)",
     "authors": [
       "Brown et al."
     ],
     "arxiv_url": "https://arxiv.org/abs/2005.14165",
-    "arxiv_id": "2005.14165"
+    "arxiv_id": "2005.14165",
+    "source": "arxiv",
+    "source_record_id": "2005.14165",
+    "landing_url": "https://arxiv.org/abs/2005.14165",
+    "pdf_url": "https://arxiv.org/pdf/2005.14165.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2005.14165"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2103.00020",
+    "id": "arxiv:2103.00020",
     "title": "Learning Transferable Visual Models From Natural Language Supervision (CLIP)",
     "authors": [
       "Radford et al."
     ],
     "arxiv_url": "https://arxiv.org/abs/2103.00020",
-    "arxiv_id": "2103.00020"
+    "arxiv_id": "2103.00020",
+    "source": "arxiv",
+    "source_record_id": "2103.00020",
+    "landing_url": "https://arxiv.org/abs/2103.00020",
+    "pdf_url": "https://arxiv.org/pdf/2103.00020.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2103.00020"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2010.11929",
+    "id": "arxiv:2010.11929",
     "title": "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale (ViT)",
     "authors": [
       "Dosovitskiy et al."
     ],
     "arxiv_url": "https://arxiv.org/abs/2010.11929",
-    "arxiv_id": "2010.11929"
+    "arxiv_id": "2010.11929",
+    "source": "arxiv",
+    "source_record_id": "2010.11929",
+    "landing_url": "https://arxiv.org/abs/2010.11929",
+    "pdf_url": "https://arxiv.org/pdf/2010.11929.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2010.11929"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "1810.04805",
+    "id": "arxiv:1810.04805",
     "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
     "authors": [
       "Devlin et al."
     ],
     "arxiv_url": "https://arxiv.org/abs/1810.04805",
-    "arxiv_id": "1810.04805"
+    "arxiv_id": "1810.04805",
+    "source": "arxiv",
+    "source_record_id": "1810.04805",
+    "landing_url": "https://arxiv.org/abs/1810.04805",
+    "pdf_url": "https://arxiv.org/pdf/1810.04805.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "1810.04805"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   },
   {
-    "id": "2106.09685",
+    "id": "arxiv:2106.09685",
     "title": "LoRA: Low-Rank Adaptation of Large Language Models",
     "authors": [
       "Hu et al."
     ],
     "arxiv_url": "https://arxiv.org/abs/2106.09685",
-    "arxiv_id": "2106.09685"
+    "arxiv_id": "2106.09685",
+    "source": "arxiv",
+    "source_record_id": "2106.09685",
+    "landing_url": "https://arxiv.org/abs/2106.09685",
+    "pdf_url": "https://arxiv.org/pdf/2106.09685.pdf",
+    "is_open_access": true,
+    "external_ids": {
+      "arxiv": "2106.09685"
+    },
+    "source_metadata": {},
+    "oa_status": "open"
   }
 ]
