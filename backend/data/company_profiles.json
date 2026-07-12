@@ -23,6 +23,198 @@
       ],
       "created_at": "2026-07-12T08:34:45.542935",
       "updated_at": "2026-07-12T08:34:45.542935"
+    },
+    {
+      "id": "orlen",
+      "name": "Orlen S.A.",
+      "industry": "Energy, oil & gas, petrochemicals (WIG20 mega-cap)",
+      "description": "Central Europe's largest multi-energy group: refining, petrochemicals, fuel retail, power generation and upstream. Executing an energy-transition strategy that includes offshore wind, small modular reactors (SMR), hydrogen, biofuels and CCS while defending profitable legacy refining and petrochemical assets.",
+      "tech_stack": [
+        "refining and petrochemical process engineering",
+        "SCADA / industrial control systems",
+        "offshore wind development",
+        "SMR nuclear (BWRX-300 program)",
+        "hydrogen production and distribution pilots"
+      ],
+      "strategic_questions": [
+        "Which energy-storage or hydrogen breakthroughs could change the economics of our transition portfolio?",
+        "How fast will synthetic fuels and advanced biofuels become cost-competitive with fossil refining?",
+        "Can direct air capture or CCS advances extend the life of petrochemical assets under EU ETS pressure?"
+      ],
+      "watch_topics": [
+        "green hydrogen electrolysis efficiency",
+        "small modular reactor safety economics",
+        "grid scale energy storage",
+        "carbon capture utilization storage",
+        "synthetic fuels power-to-liquid"
+      ],
+      "assumptions": [
+        "Liquid fuels demand in Central Europe declines slowly enough to fund the transition",
+        "SMR technology will be deployable in Poland in the 2030s",
+        "Petrochemical margins remain structurally attractive versus fuels"
+      ],
+      "created_at": "2026-07-12T11:55:00.000000",
+      "updated_at": "2026-07-12T11:55:00.000000"
+    },
+    {
+      "id": "allegro",
+      "name": "Allegro",
+      "industry": "E-commerce marketplace (WIG20 large-cap tech)",
+      "description": "The dominant online marketplace in Poland, expanding into Central Europe. Revenue driven by marketplace take-rate, advertising, consumer fintech (Allegro Pay) and its own delivery network (One Box, One Kurier). Competes with Amazon, Temu and local players on price, delivery speed and product discovery.",
+      "tech_stack": [
+        "large-scale search and ranking",
+        "recommendation systems",
+        "microservices on Kubernetes",
+        "ML for pricing, ads and fraud detection",
+        "logistics optimization"
+      ],
+      "strategic_questions": [
+        "Will LLM-based shopping agents disintermediate marketplace search and ads?",
+        "Which advances in recommender systems materially lift conversion at our scale?",
+        "How will generative AI change product-listing quality, moderation and counterfeit detection?"
+      ],
+      "watch_topics": [
+        "large language model agents e-commerce",
+        "conversational product search",
+        "recommender systems transformers",
+        "last mile delivery optimization",
+        "fraud detection graph neural networks"
+      ],
+      "assumptions": [
+        "Shoppers will keep starting their product search on our marketplace rather than in an AI assistant",
+        "Advertising remains a high-margin growth engine",
+        "Our own logistics network is a durable moat against global entrants"
+      ],
+      "created_at": "2026-07-12T11:55:00.000000",
+      "updated_at": "2026-07-12T11:55:00.000000"
+    },
+    {
+      "id": "kghm-polska-miedz",
+      "name": "KGHM Polska Miedź",
+      "industry": "Copper & silver mining, metallurgy (WIG20 industrial large-cap)",
+      "description": "One of the world's largest copper and silver producers, operating deep underground mines in Lower Silesia plus international assets (Sierra Gorda in Chile). Deep-mining conditions (heat, seismicity, depth beyond 1200 m) make automation and safety technology strategic; copper demand is coupled to electrification trends.",
+      "tech_stack": [
+        "underground mining automation",
+        "ore processing and flotation",
+        "smelting and electrorefining",
+        "seismic monitoring",
+        "heavy mining machinery fleets"
+      ],
+      "strategic_questions": [
+        "Which autonomous-mining and robotics advances work in deep, hot, seismically active underground mines?",
+        "Could copper substitution (aluminum, graphene conductors) or better recycling weaken long-term demand?",
+        "What breakthroughs in ore-body exploration or low-grade processing change our reserve economics?"
+      ],
+      "watch_topics": [
+        "autonomous underground mining robotics",
+        "copper ore flotation optimization machine learning",
+        "mining seismic hazard prediction",
+        "metal recycling urban mining",
+        "mineral exploration machine learning"
+      ],
+      "assumptions": [
+        "Electrification keeps copper demand growing for decades",
+        "Deep-mine automation will mature fast enough to offset rising extraction costs",
+        "No substitute material erodes copper's role in power infrastructure"
+      ],
+      "created_at": "2026-07-12T11:55:00.000000",
+      "updated_at": "2026-07-12T11:55:00.000000"
+    },
+    {
+      "id": "text-sa-livechat",
+      "name": "Text S.A. (LiveChat)",
+      "industry": "Customer-service SaaS (mWIG40 mid-cap)",
+      "description": "Wroclaw-based SaaS company behind LiveChat, ChatBot, HelpDesk and OpenWidget \u2014 subscription products for online customer service sold globally. The canonical example of the disruption this platform is designed to catch: a company building conversation bots that had to reinvent its roadmap when LLMs matured. Now racing to embed AI agents before pure-AI startups and platform vendors commoditize live chat.",
+      "tech_stack": [
+        "SaaS web products",
+        "chat infrastructure and widgets",
+        "intent-based chatbot builder",
+        "LLM API integrations",
+        "product-led-growth distribution"
+      ],
+      "strategic_questions": [
+        "Will autonomous AI support agents make seat-based live-chat pricing obsolete?",
+        "Which agent architectures (tool use, memory, handoff) are becoming reliable enough for unsupervised customer service?",
+        "Can we defend distribution when CRM and commerce platforms bundle AI support for free?"
+      ],
+      "watch_topics": [
+        "large language model customer service agents",
+        "task-oriented dialogue systems",
+        "LLM agent tool use reliability",
+        "human-AI handoff contact center",
+        "hallucination detection production LLM"
+      ],
+      "assumptions": [
+        "Businesses will keep paying per human agent seat",
+        "Human agents remain in the loop for most support conversations",
+        "Our brand and integrations protect us from AI-native challengers"
+      ],
+      "created_at": "2026-07-12T11:55:00.000000",
+      "updated_at": "2026-07-12T11:55:00.000000"
+    },
+    {
+      "id": "selvita",
+      "name": "Selvita",
+      "industry": "Drug-discovery CRO / biotech services (sWIG80 small-cap)",
+      "description": "Krakow-based contract research organization providing integrated drug-discovery services (medicinal chemistry, biology, ADME, toxicology) to pharma and biotech clients worldwide. Revenue depends on outsourced wet-lab discovery work \u2014 exactly the kind of work AI-first drug-discovery platforms claim they can compress or replace.",
+      "tech_stack": [
+        "medicinal chemistry labs",
+        "high-throughput screening",
+        "in vitro ADME-Tox",
+        "computational chemistry",
+        "laboratory information management systems"
+      ],
+      "strategic_questions": [
+        "Which AI structure-prediction and generative-chemistry advances actually reduce demand for wet-lab discovery services?",
+        "Should we build AI-augmented discovery as a service line before clients expect it for free?",
+        "Do lab-automation and self-driving-lab advances change the cost structure of CRO work?"
+      ],
+      "watch_topics": [
+        "generative models de novo drug design",
+        "protein structure prediction drug discovery",
+        "active learning molecular property prediction",
+        "self-driving laboratory automation",
+        "ADMET prediction machine learning"
+      ],
+      "assumptions": [
+        "Pharma clients will keep outsourcing early discovery to human-run labs",
+        "AI-designed molecules still require extensive traditional wet-lab validation",
+        "Skilled chemistry talent remains our key differentiator"
+      ],
+      "created_at": "2026-07-12T11:55:00.000000",
+      "updated_at": "2026-07-12T11:55:00.000000"
+    },
+    {
+      "id": "ten-square-games",
+      "name": "Ten Square Games",
+      "industry": "Free-to-play mobile gaming (small-cap)",
+      "description": "Wroclaw-based mobile game developer known for Fishing Clash and Hunting Clash \u2014 free-to-play simulation games monetized through in-app purchases and live-ops events. Growth depends on user-acquisition efficiency after Apple's privacy changes and on keeping long-tail titles fresh with limited content budgets.",
+      "tech_stack": [
+        "Unity",
+        "live-ops event pipelines",
+        "player analytics and LTV modeling",
+        "user-acquisition optimization",
+        "server-side game economies"
+      ],
+      "strategic_questions": [
+        "Can generative AI cut the cost of producing 3D assets and live-ops content for our titles?",
+        "Which advances in player-behavior modeling improve retention and monetization without dark patterns?",
+        "Will AI-generated games or UGC platforms compress the market for niche simulation titles?"
+      ],
+      "watch_topics": [
+        "generative AI 3D asset creation games",
+        "player churn prediction deep learning",
+        "procedural content generation games",
+        "reinforcement learning game balancing",
+        "mobile advertising attribution privacy"
+      ],
+      "assumptions": [
+        "Content production costs stay high enough that our live-ops expertise is a moat",
+        "Niche simulation audiences keep spending on in-app purchases",
+        "App-store distribution remains the dominant channel for our genre"
+      ],
+      "created_at": "2026-07-12T11:55:00.000000",
+      "updated_at": "2026-07-12T11:55:00.000000"
     }
   ]
 }
