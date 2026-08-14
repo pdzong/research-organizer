@@ -551,6 +551,74 @@ export const discoverForProfile = async (params: {
   return response.data;
 };
 
+export interface AppImproveDiscoverResponse {
+  success: boolean;
+  run_id?: string | null;
+  created_at?: string | null;
+  topics_searched: string[];
+  topics_rationale?: string | null;
+  papers: SourcePaperResult[];
+  count: number;
+  error?: string | null;
+}
+
+export interface AppImproveRunSummary {
+  id: string;
+  created_at: string;
+  app_description: string;
+  improvement_direction: string;
+  count: number;
+  topics_searched: string[];
+  top_fit_score?: number | null;
+}
+
+export interface AppImproveRun extends AppImproveRunSummary {
+  since?: string | null;
+  limit_per_topic: number;
+  score_top: number;
+  topics_rationale?: string | null;
+  papers: SourcePaperResult[];
+  error?: string | null;
+}
+
+export const discoverForApp = async (params: {
+  appDescription: string;
+  improvementDirection: string;
+  limitPerTopic?: number;
+  since?: string;
+  scoreTop?: number;
+}): Promise<AppImproveDiscoverResponse> => {
+  const response = await apiClient.post<AppImproveDiscoverResponse>('/app-improve/discover', {
+    app_description: params.appDescription,
+    improvement_direction: params.improvementDirection,
+    limit_per_topic: params.limitPerTopic ?? 5,
+    since: params.since || undefined,
+    score_top: params.scoreTop ?? 5,
+  });
+  return response.data;
+};
+
+export const fetchAppImproveRuns = async (): Promise<AppImproveRunSummary[]> => {
+  const response = await apiClient.get<{ success: boolean; runs: AppImproveRunSummary[] }>(
+    '/app-improve/runs'
+  );
+  return response.data.runs || [];
+};
+
+export const getAppImproveRun = async (runId: string): Promise<AppImproveRun> => {
+  const response = await apiClient.get<{ success: boolean; run: AppImproveRun }>(
+    `/app-improve/runs/${encodeURIComponent(runId)}`
+  );
+  return response.data.run;
+};
+
+export const deleteAppImproveRun = async (runId: string): Promise<void> => {
+  await apiClient.delete(`/app-improve/runs/${encodeURIComponent(runId)}`);
+};
+
+export const appImproveRunMarkdownUrl = (runId: string): string =>
+  `${API_BASE_URL}/app-improve/runs/${encodeURIComponent(runId)}/markdown`;
+
 // ─── Auto-research control plane ──────────────────────────────────────────
 
 export interface AutoResearchLogEntry {

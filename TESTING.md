@@ -287,6 +287,7 @@ cd backend
 .\venv\Scripts\python.exe test_pdf_url_parse.py
 .\venv\Scripts\python.exe test_add_paper_generalized.py
 .\venv\Scripts\python.exe test_company_profiles.py
+.\venv\Scripts\python.exe test_app_improve.py
 ```
 
 Each script prints an "all tests passed" line on success. (LLM calls are mocked; no keys or network needed except your local venv.)
@@ -296,8 +297,9 @@ Each script prints an "all tests passed" line on success. (LLM calls are mocked;
 1. **Discover tab → keyword search.** Type e.g. `retrieval augmented generation`, click **Search OpenAlex**. You should see results with `openalex` / `open access` badges. Click **Add** on one — it lands in the Papers tab with source badges.
 2. **Create a company profile.** Discover tab → **New profile**. Give it a name, and at minimum a couple of *watch topics* (one per line), e.g. `retrieval augmented generation` and `small language models on-device`. Optionally fill in description, tech stack, strategic questions, and assumptions (assumptions are used to flag "surprise-risk" papers).
 3. **Company-profiled discovery.** With the profile selected, keep "Score results for strategic fit" on (Score top N = 3) and click **Discover for company**. Each watch topic is searched on OpenAlex; the top results get an LLM strategic-fit verdict — a colored badge like `analyze · 80/100` plus a summary of opportunities/threats and any challenged assumptions. *(Requires a valid LLM key for the `strategic_fit` role — configure via the gear icon.)*
-4. **Add + parse a discovered paper.** Add a result to the library, open it in Papers, click "Load Paper Content" — the open-access PDF is downloaded from its `pdf_url` and parsed (no arXiv involved).
-5. **Generalized add.** Papers tab → Add Paper: paste a DOI (e.g. `10.7717/peerj.4375`), a doi.org URL, an OpenAlex URL, or a direct `.pdf` link.
+4. **App-improvement discovery.** Discover tab → **App improvement**. Paste an app description and an intended improvement (no company profile needed). Click **Find fitting papers**. The backend derives academic search topics, searches OpenAlex, ranks scored papers by fit, and **saves the run** under `backend/data/app_improve/{run_id}/` (`run.json` + `report.md`). Reopen, download markdown, or delete from the **Saved reports** dropdown. *(Uses `app_improve_topics` + `strategic_fit` LLM roles.)*
+5. **Add + parse a discovered paper.** Add a result to the library, open it in Papers, click "Load Paper Content" — the open-access PDF is downloaded from its `pdf_url` and parsed (no arXiv involved).
+6. **Generalized add.** Papers tab → Add Paper: paste a DOI (e.g. `10.7717/peerj.4375`), a doi.org URL, an OpenAlex URL, or a direct `.pdf` link.
 
 ### From the API (http://localhost:8000/docs)
 
@@ -309,12 +311,25 @@ Invoke-RestMethod -Method Post http://localhost:8000/api/profiles -ContentType "
 # Discover for the profile (score top 2 results; costs LLM calls)
 Invoke-RestMethod "http://localhost:8000/api/profiles/acme-ai/discover?limit_per_topic=3&score_top=2"
 
+# Find papers for an app + improvement direction (costs LLM calls)
+$appBody = @{
+  app_description = "Voice notes app for clinicians that drafts SOAP notes"
+  improvement_direction = "Reduce hallucination in generated clinical summaries"
+  score_top = 3
+} | ConvertTo-Json
+Invoke-RestMethod -Method Post http://localhost:8000/api/app-improve/discover -ContentType "application/json" -Body $appBody
+
+# List and fetch saved app-improvement reports
+Invoke-RestMethod http://localhost:8000/api/app-improve/runs
+Invoke-RestMethod http://localhost:8000/api/app-improve/runs/<run_id>
+Invoke-RestMethod http://localhost:8000/api/app-improve/runs/<run_id>/markdown
+
 # Add a paper by DOI, then score it against the profile
 Invoke-RestMethod -Method Post http://localhost:8000/api/papers/add -ContentType "application/json" -Body (@{ doi = "10.7717/peerj.4375" } | ConvertTo-Json)
 Invoke-RestMethod -Method Post "http://localhost:8000/api/profiles/acme-ai/score/openalex:W2741809807"
 ```
 
-Expected: profile create returns the profile with a slug id; discover returns deduped papers grouped by watch topic (scored ones include `strategic_fit`); scoring returns `fit_score`, `recommended_action`, opportunities, threats, and challenged assumptions — and `from_cache: true` on the second call.
+Expected: profile create returns the profile with a slug id; discover returns deduped papers grouped by watch topic (scored ones include `strategic_fit`); scoring returns `fit_score`, `recommended_action`, opportunities, threats, and challenged assumptions — and `from_cache: true` on the second call. App-improve discover returns derived `topics_searched` plus papers ranked by `strategic_fit.fit_score`, and persists the run (`run_id`) for later list/get/markdown.
 
 ## Reporting Issues
 

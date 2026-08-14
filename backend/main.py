@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import papers, solutions, auto_research, config, sources, profiles
+from routers import papers, solutions, auto_research, config, sources, profiles, app_improve
 import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
@@ -84,6 +84,7 @@ app.add_middleware(
 # Include routers
 app.include_router(sources.router, prefix="/api", tags=["sources"])
 app.include_router(profiles.router, prefix="/api", tags=["profiles"])
+app.include_router(app_improve.router, prefix="/api", tags=["app-improve"])
 app.include_router(papers.router, prefix="/api", tags=["papers"])
 app.include_router(solutions.router, prefix="/api", tags=["solutions"])
 app.include_router(auto_research.router, prefix="/api", tags=["auto-research"])
