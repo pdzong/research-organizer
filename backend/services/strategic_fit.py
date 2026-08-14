@@ -35,19 +35,19 @@ class StrategicFitAssessment(BaseModel):
     reasoning: str = Field(..., description="Short justification for the score and action.")
 
 
-SYSTEM_PROMPT = """You are a research strategist working for a specific company.
-Given a company profile and a research paper, assess the paper's strategic
-relevance TO THIS COMPANY ONLY — not its general scientific merit.
+SYSTEM_PROMPT = """You are a research strategist working for a specific company or product.
+Given a company/product profile and a research paper, assess the paper's
+strategic relevance TO THIS COMPANY OR PRODUCT ONLY — not its general scientific merit.
 
 Consider:
-- Does it enable a product/feature the company could ship? (opportunity)
-- Could it disrupt the company's market or make its approach obsolete? (threat)
-- Does it challenge any of the company's stated strategic assumptions?
-- Is it close enough to the company's tech stack to act on?
+- Does it enable a product/feature they could ship? (opportunity)
+- Could it disrupt their market or make their approach obsolete? (threat)
+- Does it challenge any of their stated strategic assumptions or improvement goals?
+- Is it close enough to their tech stack / product to act on?
 
 Be conservative: most papers deserve "ignore" or "watch". Reserve "analyze"
 for papers with clear, direct relevance and "prototype" for papers whose
-results the company should act on immediately."""
+results they should act on immediately."""
 
 
 def _profile_block(profile: CompanyProfile) -> str:

@@ -12,6 +12,7 @@ import {
   Select,
   Stack,
   Switch,
+  Tabs,
   Text,
   TextInput,
   Textarea,
@@ -22,6 +23,7 @@ import {
   IconBuildingSkyscraper,
   IconExternalLink,
   IconPlus,
+  IconRocket,
   IconSearch,
   IconTargetArrow,
 } from '@tabler/icons-react';
@@ -34,10 +36,16 @@ import {
   activateProfile,
   addPaperFromSource,
   addPaper,
+  appImproveRunMarkdownUrl,
   createProfile,
+  deleteAppImproveRun,
+  discoverForApp,
   discoverForProfile,
+  fetchAppImproveRuns,
   fetchProfiles,
+  getAppImproveRun,
   searchSource,
+  AppImproveRunSummary,
 } from '../services/api';
 
 const ACTION_COLORS: Record<string, string> = {
@@ -52,6 +60,16 @@ function splitLines(value: string): string[] {
     .split('\n')
     .map((s) => s.trim())
     .filter(Boolean);
+}
+
+function runLabel(run: AppImproveRunSummary): string {
+  const date = run.created_at.slice(0, 16).replace('T', ' ');
+  const direction =
+    run.improvement_direction.length > 48
+      ? `${run.improvement_direction.slice(0, 45)}…`
+      : run.improvement_direction;
+  const score = run.top_fit_score != null ? ` · ${run.top_fit_score}/100` : '';
+  return `${date} — ${direction}${score}`;
 }
 
 function FitBadge({ fit }: { fit: StrategicFitAssessment }) {
@@ -277,7 +295,13 @@ export function DiscoverView() {
   const [query, setQuery] = useState('');
   const [since, setSince] = useState('');
   const [scoreResults, setScoreResults] = useState(true);
-  const [scoreTop, setScoreTop] = useState<number | string>(3);
+  const [scoreTop, setScoreTop] = useState<number | string>(5);
+  const [appDescription, setAppDescription] = useState('');
+  const [improvementDirection, setImprovementDirection] = useState('');
+  const [topicsRationale, setTopicsRationale] = useState<string | null>(null);
+  const [savedRuns, setSavedRuns] = useState<AppImproveRunSummary[]>([]);
+  const [activeRunId, setActiveRunId] = useState<string | null>(null);
+  const [loadingRun, setLoadingRun] = useState(false);
 
   const [results, setResults] = useState<SourcePaperResult[]>([]);
   const [topicsSearched, setTopicsSearched] = useState<string[]>([]);
@@ -295,8 +319,18 @@ export function DiscoverView() {
     }
   };
 
+  const loadSavedRuns = async () => {
+    try {
+      const runs = await fetchAppImproveRuns();
+      setSavedRuns(runs);
+    } catch (err) {
+      console.error('Error loading app-improve runs:', err);
+    }
+  };
+
   useEffect(() => {
     loadProfiles();
+    loadSavedRuns();
   }, []);
 
   const handleProfileChange = async (id: string | null) => {
@@ -316,6 +350,8 @@ export function DiscoverView() {
       setSearching(true);
       setError(null);
       setTopicsSearched([]);
+      setTopicsRationale(null);
+      setActiveRunId(null);
       const data = await searchSource({ query: query.trim(), since: since || undefined });
       setResults(data.papers);
       if (!data.success) setError(data.error || 'Search failed');
@@ -338,12 +374,85 @@ export function DiscoverView() {
       });
       setResults(data.papers);
       setTopicsSearched(data.topics_searched);
+      setTopicsRationale(null);
+      setActiveRunId(null);
       if (!data.success) setError(data.error || 'Discovery failed');
       else if (data.error) setError(`Partial results — ${data.error}`);
     } catch (err: any) {
       setError(err?.message || 'Discovery failed');
     } finally {
       setSearching(false);
+    }
+  };
+
+  const handleAppDiscover = async () => {
+    if (!appDescription.trim() || !improvementDirection.trim()) return;
+    try {
+      setSearching(true);
+      setError(null);
+      const data = await discoverForApp({
+        appDescription: appDescription.trim(),
+        improvementDirection: improvementDirection.trim(),
+        since: since || undefined,
+        scoreTop: scoreResults ? Number(scoreTop) || 0 : 0,
+      });
+      setResults(data.papers);
+      setTopicsSearched(data.topics_searched);
+      setTopicsRationale(data.topics_rationale || null);
+      if (data.run_id) {
+        setActiveRunId(data.run_id);
+        await loadSavedRuns();
+        notifications.show({
+          title: 'Report saved',
+          message: `Stored as ${data.run_id}`,
+          color: 'teal',
+        });
+      }
+      if (!data.success) setError(data.error || 'App discovery failed');
+      else if (data.error) setError(`Partial results — ${data.error}`);
+    } catch (err: any) {
+      setError(err?.message || 'App discovery failed');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleLoadRun = async (runId: string | null) => {
+    if (!runId) {
+      setActiveRunId(null);
+      return;
+    }
+    try {
+      setLoadingRun(true);
+      setError(null);
+      const run = await getAppImproveRun(runId);
+      setActiveRunId(run.id);
+      setAppDescription(run.app_description);
+      setImprovementDirection(run.improvement_direction);
+      setSince(run.since || '');
+      setResults(run.papers);
+      setTopicsSearched(run.topics_searched);
+      setTopicsRationale(run.topics_rationale || null);
+    } catch (err: any) {
+      setError(err?.message || 'Could not load saved report');
+    } finally {
+      setLoadingRun(false);
+    }
+  };
+
+  const handleDeleteRun = async () => {
+    if (!activeRunId) return;
+    try {
+      await deleteAppImproveRun(activeRunId);
+      notifications.show({ title: 'Report deleted', message: activeRunId, color: 'gray' });
+      setActiveRunId(null);
+      await loadSavedRuns();
+    } catch (err: any) {
+      notifications.show({
+        title: 'Could not delete report',
+        message: err?.message || 'Unknown error',
+        color: 'red',
+      });
     }
   };
 
@@ -384,82 +493,172 @@ export function DiscoverView() {
         <div>
           <Title order={3}>Discover research</Title>
           <Text size="sm" c="dimmed">
-            Search OpenAlex directly, or run company-profiled discovery with strategic-fit scoring.
+            Search OpenAlex, run company-profiled discovery, or find papers that fit an app you want to improve.
           </Text>
         </div>
       </Group>
 
       <Card withBorder radius="md" padding="md">
-        <Stack gap="sm">
-          <Group align="flex-end" gap="sm">
-            <Select
-              label="Company profile"
-              placeholder={profiles.length ? 'Select profile' : 'No profiles yet'}
-              data={profiles.map((p) => ({ value: p.id, label: p.name }))}
-              value={activeProfileId}
-              onChange={handleProfileChange}
-              leftSection={<IconBuildingSkyscraper size={16} />}
-              w={280}
-              clearable
-            />
-            <Button variant="light" leftSection={<IconPlus size={16} />} onClick={() => setProfileModalOpen(true)}>
-              New profile
-            </Button>
-            <TextInput
-              label="Published since (optional)"
-              placeholder="2026-01-01"
-              value={since}
-              onChange={(e) => setSince(e.target.value)}
-              w={180}
-            />
-            <Switch
-              label="Score results for strategic fit"
-              checked={scoreResults}
-              onChange={(e) => setScoreResults(e.currentTarget.checked)}
-              mb={6}
-            />
-            {scoreResults && (
-              <NumberInput label="Score top N" value={scoreTop} onChange={setScoreTop} min={1} max={10} w={110} />
-            )}
-          </Group>
+        <Tabs defaultValue="company">
+          <Tabs.List>
+            <Tabs.Tab value="company" leftSection={<IconBuildingSkyscraper size={14} />}>
+              Company
+            </Tabs.Tab>
+            <Tabs.Tab value="app" leftSection={<IconRocket size={14} />}>
+              App improvement
+            </Tabs.Tab>
+          </Tabs.List>
 
-          {activeProfile && (
-            <Group gap={6}>
-              <Text size="xs" c="dimmed">
-                Watch topics:
+          <Tabs.Panel value="company" pt="md">
+            <Stack gap="sm">
+              <Group align="flex-end" gap="sm">
+                <Select
+                  label="Company profile"
+                  placeholder={profiles.length ? 'Select profile' : 'No profiles yet'}
+                  data={profiles.map((p) => ({ value: p.id, label: p.name }))}
+                  value={activeProfileId}
+                  onChange={handleProfileChange}
+                  leftSection={<IconBuildingSkyscraper size={16} />}
+                  w={280}
+                  clearable
+                />
+                <Button variant="light" leftSection={<IconPlus size={16} />} onClick={() => setProfileModalOpen(true)}>
+                  New profile
+                </Button>
+                <TextInput
+                  label="Published since (optional)"
+                  placeholder="2026-01-01"
+                  value={since}
+                  onChange={(e) => setSince(e.target.value)}
+                  w={180}
+                />
+                <Switch
+                  label="Score results for strategic fit"
+                  checked={scoreResults}
+                  onChange={(e) => setScoreResults(e.currentTarget.checked)}
+                  mb={6}
+                />
+                {scoreResults && (
+                  <NumberInput label="Score top N" value={scoreTop} onChange={setScoreTop} min={1} max={10} w={110} />
+                )}
+              </Group>
+
+              {activeProfile && (
+                <Group gap={6}>
+                  <Text size="xs" c="dimmed">
+                    Watch topics:
+                  </Text>
+                  {activeProfile.watch_topics.map((t) => (
+                    <Badge key={t} size="sm" variant="dot" color="blue">
+                      {t}
+                    </Badge>
+                  ))}
+                </Group>
+              )}
+
+              <Group align="flex-end" gap="sm">
+                <TextInput
+                  label="Keyword search"
+                  placeholder="e.g. retrieval augmented generation"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleKeywordSearch()}
+                  style={{ flex: 1 }}
+                  leftSection={<IconSearch size={16} />}
+                />
+                <Button onClick={handleKeywordSearch} loading={searching} disabled={!query.trim()}>
+                  Search OpenAlex
+                </Button>
+                <Button
+                  color="grape"
+                  leftSection={<IconTargetArrow size={16} />}
+                  onClick={handleProfileDiscover}
+                  loading={searching}
+                  disabled={!activeProfileId}
+                >
+                  Discover for company
+                </Button>
+              </Group>
+            </Stack>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="app" pt="md">
+            <Stack gap="sm">
+              <Text size="sm" c="dimmed">
+                Describe the product and where you want to take it. Each search is saved as a report you can reopen later.
               </Text>
-              {activeProfile.watch_topics.map((t) => (
-                <Badge key={t} size="sm" variant="dot" color="blue">
-                  {t}
-                </Badge>
-              ))}
-            </Group>
-          )}
-
-          <Group align="flex-end" gap="sm">
-            <TextInput
-              label="Keyword search"
-              placeholder="e.g. retrieval augmented generation"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleKeywordSearch()}
-              style={{ flex: 1 }}
-              leftSection={<IconSearch size={16} />}
-            />
-            <Button onClick={handleKeywordSearch} loading={searching} disabled={!query.trim()}>
-              Search OpenAlex
-            </Button>
-            <Button
-              color="grape"
-              leftSection={<IconTargetArrow size={16} />}
-              onClick={handleProfileDiscover}
-              loading={searching}
-              disabled={!activeProfileId}
-            >
-              Discover for company
-            </Button>
-          </Group>
-        </Stack>
+              {savedRuns.length > 0 && (
+                <Group align="flex-end" gap="sm">
+                  <Select
+                    label="Saved reports"
+                    placeholder="Open a previous run"
+                    data={savedRuns.map((run) => ({ value: run.id, label: runLabel(run) }))}
+                    value={activeRunId}
+                    onChange={handleLoadRun}
+                    searchable
+                    clearable
+                    style={{ flex: 1 }}
+                    disabled={loadingRun}
+                  />
+                  <Button
+                    variant="light"
+                    component="a"
+                    href={activeRunId ? appImproveRunMarkdownUrl(activeRunId) : undefined}
+                    disabled={!activeRunId}
+                  >
+                    Download .md
+                  </Button>
+                  <Button variant="subtle" color="red" onClick={handleDeleteRun} disabled={!activeRunId}>
+                    Delete
+                  </Button>
+                </Group>
+              )}
+              <Textarea
+                label="App description"
+                placeholder="Voice notes app for clinicians. Records visits and drafts SOAP notes from the transcript."
+                autosize
+                minRows={3}
+                value={appDescription}
+                onChange={(e) => setAppDescription(e.target.value)}
+              />
+              <Textarea
+                label="Intended improvement"
+                placeholder="Reduce hallucination in generated clinical summaries and cite source utterances."
+                autosize
+                minRows={2}
+                value={improvementDirection}
+                onChange={(e) => setImprovementDirection(e.target.value)}
+              />
+              <Group align="flex-end" gap="sm">
+                <TextInput
+                  label="Published since (optional)"
+                  placeholder="2026-01-01"
+                  value={since}
+                  onChange={(e) => setSince(e.target.value)}
+                  w={180}
+                />
+                <Switch
+                  label="Score results for fit"
+                  checked={scoreResults}
+                  onChange={(e) => setScoreResults(e.currentTarget.checked)}
+                  mb={6}
+                />
+                {scoreResults && (
+                  <NumberInput label="Score top N" value={scoreTop} onChange={setScoreTop} min={1} max={10} w={110} />
+                )}
+                <Button
+                  color="teal"
+                  leftSection={<IconTargetArrow size={16} />}
+                  onClick={handleAppDiscover}
+                  loading={searching}
+                  disabled={!appDescription.trim() || !improvementDirection.trim()}
+                >
+                  Find fitting papers
+                </Button>
+              </Group>
+            </Stack>
+          </Tabs.Panel>
+        </Tabs>
       </Card>
 
       {error && (
@@ -469,9 +668,21 @@ export function DiscoverView() {
       )}
 
       {topicsSearched.length > 0 && !searching && (
-        <Text size="sm" c="dimmed">
-          Searched {topicsSearched.length} watch topic{topicsSearched.length > 1 ? 's' : ''}: {topicsSearched.join(', ')}
-        </Text>
+        <Stack gap={4}>
+          <Text size="sm" c="dimmed">
+            Searched {topicsSearched.length} topic{topicsSearched.length > 1 ? 's' : ''}: {topicsSearched.join(', ')}
+          </Text>
+          {topicsRationale && (
+            <Text size="xs" c="dimmed">
+              {topicsRationale}
+            </Text>
+          )}
+          {activeRunId && (
+            <Text size="xs" c="dimmed">
+              Saved report: {activeRunId}
+            </Text>
+          )}
+        </Stack>
       )}
 
       {searching ? (
@@ -479,7 +690,7 @@ export function DiscoverView() {
           <Stack align="center">
             <Loader />
             <Text c="dimmed" size="sm">
-              Searching{scoreResults && activeProfileId ? ' and scoring strategic fit (LLM)…' : '…'}
+              Searching{scoreResults ? ' and scoring fit (LLM)…' : '…'}
             </Text>
           </Stack>
         </Center>
@@ -493,7 +704,7 @@ export function DiscoverView() {
       ) : (
         <Center h={120}>
           <Text c="dimmed" size="sm">
-            No results yet — run a keyword search or company discovery.
+            No results yet — run a keyword search, company discovery, or app-improvement search.
           </Text>
         </Center>
       )}

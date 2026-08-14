@@ -42,6 +42,7 @@ ROLES: Dict[str, str] = {
     "plan_synthesis": "Structured SolutionPlan synthesis.",
     "plan_worthy": "Gate that decides whether an auto-derived application is worth turning into a full plan.",
     "strategic_fit": "Scores a paper against a company research profile (opportunities, threats, fit).",
+    "app_improve_topics": "Derives academic search queries from an app description and improvement direction.",
 }
 
 
@@ -104,6 +105,7 @@ DEFAULTS: Dict[str, Dict[str, str]] = {
     "plan_synthesis": {"provider": "openai", "model": "gpt-5.4"},
     "plan_worthy":    {"provider": "openai", "model": "gpt-5.4-nano"},
     "strategic_fit":  {"provider": "openai", "model": "gpt-5-mini"},
+    "app_improve_topics": {"provider": "openai", "model": "gpt-5.4-nano"},
 }
 
 

@@ -12,3 +12,5 @@ data/cache/*
 !data/cache/.gitkeep
 data/phoenix/*
 !data/phoenix/.gitkeep
+data/app_improve/*
+!data/app_improve/.gitkeep
