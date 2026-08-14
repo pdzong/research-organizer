@@ -128,7 +128,9 @@ export function LlmConfigModal({ opened, onClose }: Props) {
       ) : config ? (
         <Stack gap="md">
           <Text size="sm" c="dimmed">
-            Choose which provider + model handles each role. Changes are persisted to{' '}
+            Choose which provider + model handles each role. The model dropdown is filled from each
+            provider&apos;s live catalog when an API key is present, and falls back to a static list otherwise.
+            Custom model ids are still allowed. Changes are persisted to{' '}
             <code>backend/data/llm_config.json</code> and take effect immediately for new calls.
           </Text>
 
@@ -140,17 +142,33 @@ export function LlmConfigModal({ opened, onClose }: Props) {
                   key={id}
                   label={
                     info.key_present
-                      ? `${info.active_env} is set`
+                      ? `${info.active_env} is set${
+                          info.models_source === 'live'
+                            ? ' · live model catalog'
+                            : info.models_error
+                              ? ` · static list (${info.models_error})`
+                              : ' · static model list'
+                        }`
                       : `Missing API key. Set one of: ${info.env_keys.join(' / ')}`
                   }
                   withArrow
                 >
-                  <Badge
-                    color={info.key_present ? 'teal' : 'gray'}
-                    variant={info.key_present ? 'filled' : 'light'}
-                  >
-                    {info.label} {info.key_present ? '✓' : '✗'}
-                  </Badge>
+                  <Group gap={4} wrap="nowrap">
+                    <Badge
+                      color={info.key_present ? 'teal' : 'gray'}
+                      variant={info.key_present ? 'filled' : 'light'}
+                    >
+                      {info.label} {info.key_present ? '✓' : '✗'}
+                    </Badge>
+                    {info.key_present && (
+                      <Badge
+                        color={info.models_source === 'live' ? 'blue' : 'yellow'}
+                        variant="light"
+                      >
+                        {info.models_source === 'live' ? 'live' : 'static'}
+                      </Badge>
+                    )}
+                  </Group>
                 </Tooltip>
               ))}
             </Group>
@@ -164,8 +182,11 @@ export function LlmConfigModal({ opened, onClose }: Props) {
                 value: pid,
                 label: `${info.label}${info.key_present ? '' : ' (no key)'}`,
               }));
-              const suggestions =
-                config.providers[binding.provider]?.suggested_models || [];
+              const suggestions = Array.from(
+                new Set(
+                  [binding.model, ...(config.providers[binding.provider]?.suggested_models || [])].filter(Boolean)
+                )
+              );
               const defaultBinding = config.defaults[role];
               const isDefault =
                 binding.provider === defaultBinding?.provider &&
