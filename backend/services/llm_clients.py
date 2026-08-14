@@ -31,6 +31,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import time
 from typing import Any, Dict, List, Optional, Type, TypeVar
 
 from pydantic import BaseModel
@@ -493,7 +494,7 @@ async def generate_text(
     return await asyncio.to_thread(_call)
 
 
-# ─── Live model catalogs ──────────────────────────────────────────────────
+# ─── Live model catalogs & Caching ────────────────────────────────────────
 
 _OPENAI_SKIP_SUBSTR = (
     "whisper",
@@ -525,6 +526,36 @@ _GEMINI_SKIP_SUBSTR = (
 )
 
 
+def _model_sort_key(model_id: str) -> tuple[int, str]:
+    low = model_id.lower()
+    score = 0
+    # Tier bonuses for modern 2026 / recent models
+    if "5.6" in low or "4.6" in low or "3.7" in low:
+        score += 1000
+    elif "5.5" in low or "4.5" in low:
+        score += 800
+    elif "5.4" in low or "2.5" in low or "3.5" in low:
+        score += 600
+    elif "gpt-5" in low or "o3" in low or "2.0" in low:
+        score += 400
+    elif "o1" in low or "o4" in low:
+        score += 300
+    elif "gpt-4" in low or "1.5" in low:
+        score += 200
+    elif "qwen3.6" in low or "llama-3.3" in low or "deepseek-r1" in low:
+        score += 500
+
+    # Variant bonuses
+    if "turbo" in low or "sonnet" in low or "pro" in low:
+        score += 50
+    elif "sol" in low or "opus" in low:
+        score += 60
+    elif "mini" in low or "nano" in low or "haiku" in low or "flash" in low:
+        score += 20
+
+    return (score, low)
+
+
 def _unique_sorted(ids: List[str]) -> List[str]:
     seen = set()
     out: List[str] = []
@@ -533,7 +564,7 @@ def _unique_sorted(ids: List[str]) -> List[str]:
             continue
         seen.add(mid)
         out.append(mid)
-    out.sort(reverse=True)
+    out.sort(key=_model_sort_key, reverse=True)
     return out[:50]
 
 
@@ -541,7 +572,13 @@ def _keep_openai_chat_model(model_id: str) -> bool:
     low = model_id.lower()
     if any(part in low for part in _OPENAI_SKIP_SUBSTR):
         return False
-    return low.startswith("gpt-") or low.startswith("o1") or low.startswith("o3") or low.startswith("o4")
+    return (
+        low.startswith("gpt-")
+        or low.startswith("o1")
+        or low.startswith("o3")
+        or low.startswith("o4")
+        or low.startswith("chatgpt-")
+    )
 
 
 def _keep_gemini_chat_model(model_id: str) -> bool:
@@ -568,13 +605,30 @@ def _iter_model_ids(listing: Any) -> List[str]:
 
 
 def _list_openai_models() -> List[str]:
-    client = _openai_client()
+    from openai import OpenAI
+
+    key = os.getenv("OPENAI_API_KEY")
+    if not key:
+        raise RuntimeError("OPENAI_API_KEY is not set.")
+    client = OpenAI(api_key=key, timeout=3.0)
     raw = _iter_model_ids(client.models.list())
     return _unique_sorted([m for m in raw if _keep_openai_chat_model(m)])
 
 
 def _list_anthropic_models() -> List[str]:
-    client = _anthropic_client()
+    try:
+        from anthropic import Anthropic  # noqa: F401
+    except ImportError as e:
+        raise RuntimeError(
+            "anthropic SDK not installed. Run `pip install anthropic` or remove "
+            "Anthropic from llm_config."
+        ) from e
+    from anthropic import Anthropic
+
+    key = os.getenv("ANTHROPIC_API_KEY")
+    if not key:
+        raise RuntimeError("ANTHROPIC_API_KEY is not set.")
+    client = Anthropic(api_key=key, timeout=3.0)
     listing = client.models.list()
     raw = _iter_model_ids(listing)
     return _unique_sorted([m for m in raw if m.lower().startswith("claude-")])
@@ -593,7 +647,15 @@ def _list_gemini_models() -> List[str]:
 
 
 def _list_vllm_models() -> List[str]:
-    client = _vllm_client()
+    try:
+        from openai import OpenAI  # noqa: F401
+    except ImportError as e:
+        raise RuntimeError("openai SDK not installed.") from e
+    from openai import OpenAI
+
+    base_url = os.getenv("LOCAL_VLLM_BASE_URL", "http://localhost:9001/v1")
+    api_key = os.getenv("LOCAL_VLLM_API_KEY", "EMPTY")
+    client = OpenAI(base_url=base_url, api_key=api_key, timeout=2.0)
     raw = _iter_model_ids(client.models.list())
     return _unique_sorted(raw)
 
@@ -611,17 +673,52 @@ def list_provider_models(provider: str) -> List[str]:
     raise RuntimeError(f"unsupported provider: {provider!r}")
 
 
+# ─── In-memory cache for live catalogs ─────────────────────────────────────
+
+_LIVE_CATALOG_CACHE: Dict[str, Any] = {
+    "catalog": {},
+    "timestamp": 0.0,
+}
+CACHE_TTL_SECONDS: float = 600.0  # 10 minutes
+
+
+def get_cached_live_catalog() -> Optional[Dict[str, Dict[str, Any]]]:
+    """Return in-memory live catalog if still within TTL."""
+    now = time.time()
+    if _LIVE_CATALOG_CACHE["catalog"] and (now - _LIVE_CATALOG_CACHE["timestamp"] < CACHE_TTL_SECONDS):
+        return _LIVE_CATALOG_CACHE["catalog"]
+    return None
+
+
+def set_cached_live_catalog(catalog: Dict[str, Dict[str, Any]]) -> None:
+    _LIVE_CATALOG_CACHE["catalog"] = catalog
+    _LIVE_CATALOG_CACHE["timestamp"] = time.time()
+
+
+def clear_live_catalog_cache() -> None:
+    _LIVE_CATALOG_CACHE["catalog"] = {}
+    _LIVE_CATALOG_CACHE["timestamp"] = 0.0
+
+
 async def list_all_provider_models(
     providers: Optional[List[str]] = None,
-    timeout_s: float = 4.0,
+    timeout_s: float = 3.0,
+    force_refresh: bool = False,
 ) -> Dict[str, Dict[str, Any]]:
     """
-    List models for each provider in parallel.
+    List models for each provider in parallel with in-memory caching.
 
-    Returns ``{provider: {models, source, error}}``. Failures become
-    ``source=fallback`` with an empty models list — callers should keep
-    their static suggestions.
+    If ``force_refresh=False`` and a recent cache exists, returns cached results
+    immediately (<1ms). Otherwise polls active providers in parallel with a strict
+    timeout.
     """
+    if not force_refresh:
+        cached = get_cached_live_catalog()
+        if cached is not None:
+            if providers:
+                return {p: cached[p] for p in providers if p in cached}
+            return cached
+
     targets = providers or ["openai", "anthropic", "gemini", "local_vllm"]
 
     async def _one(pid: str) -> tuple[str, Dict[str, Any]]:
@@ -641,4 +738,11 @@ async def list_all_provider_models(
             return pid, {"models": [], "source": "fallback", "error": str(exc)}
 
     pairs = await asyncio.gather(*(_one(pid) for pid in targets))
-    return dict(pairs)
+    result = dict(pairs)
+
+    # Merge into cache
+    current_cached = dict(_LIVE_CATALOG_CACHE.get("catalog") or {})
+    current_cached.update(result)
+    set_cached_live_catalog(current_cached)
+
+    return result

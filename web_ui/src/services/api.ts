@@ -703,13 +703,26 @@ export interface LlmRoleBinding {
   model: string;
 }
 
+export interface LlmModelMetadata {
+  id: string;
+  name: string;
+  input_price_per_1m?: number | null;
+  output_price_per_1m?: number | null;
+  context_window?: string | null;
+  tier?: 'flagship' | 'balanced' | 'fast' | 'reasoning' | 'local' | 'custom' | string;
+  description?: string | null;
+  recommended_for?: string[];
+  source?: 'curated' | 'live' | 'fallback' | string;
+}
+
 export interface LlmProviderInfo {
   label: string;
   suggested_models: string[];
+  models?: LlmModelMetadata[];
   env_keys: string[];
   key_present: boolean;
   active_env?: string | null;
-  models_source?: 'live' | 'fallback';
+  models_source?: 'live' | 'curated' | 'cached' | 'fallback';
   models_error?: string | null;
 }
 
@@ -726,8 +739,15 @@ export interface LlmConfigResponse {
   providers: Record<string, LlmProviderInfo>;
 }
 
-export const getLlmConfig = async (): Promise<LlmConfigResponse> => {
-  const response = await apiClient.get<LlmConfigResponse>('/config/llm');
+export const getLlmConfig = async (forceRefresh: boolean = false): Promise<LlmConfigResponse> => {
+  const response = await apiClient.get<LlmConfigResponse>('/config/llm', {
+    params: { force_refresh: forceRefresh },
+  });
+  return response.data;
+};
+
+export const refreshLlmModels = async (): Promise<LlmConfigResponse> => {
+  const response = await apiClient.post<LlmConfigResponse>('/config/llm/refresh-models');
   return response.data;
 };
 

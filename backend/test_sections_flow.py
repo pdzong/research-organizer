@@ -21,22 +21,22 @@ async def test_sections_flow():
     print(f"   Cache status: {status}")
     
     if not status['markdown']:
-        print(f"\n⚠️  Paper {test_arxiv_id} not in cache.")
+        print(f"\n[!] Paper {test_arxiv_id} not in cache.")
         print("   Please load the paper first via the frontend or API.")
         return
     
     print(f"\n2. Loading markdown from cache...")
     markdown = cache_service.load_markdown(test_arxiv_id)
     if markdown:
-        print(f"   ✅ Loaded markdown ({len(markdown)} chars)")
+        print(f"   [OK] Loaded markdown ({len(markdown)} chars)")
     else:
-        print("   ❌ Failed to load markdown")
+        print("   [FAIL] Failed to load markdown")
         return
     
     print(f"\n3. Testing section extraction...")
     try:
         sections: PaperSections = await extract_paper_sections(markdown)
-        print(f"   ✅ Extracted sections:")
+        print(f"   [OK] Extracted sections:")
         print(f"      Title: {sections.title}")
         print(f"      GitHub: {sections.github_url or 'Not found'}")
         print(f"      Abstract: {len(sections.abstract_text)} chars")
@@ -48,16 +48,16 @@ async def test_sections_flow():
         # Save to cache
         sections_dict = sections.model_dump()
         cache_service.save_sections(test_arxiv_id, sections_dict)
-        print(f"\n   ✅ Saved sections to cache")
+        print(f"\n   [OK] Saved sections to cache")
         
     except Exception as e:
-        print(f"   ❌ Section extraction failed: {e}")
+        print(f"   [FAIL] Section extraction failed: {e}")
         return
     
     print(f"\n4. Testing clean markdown generation...")
     clean_markdown = sections.to_clean_markdown()
-    print(f"   ✅ Generated clean markdown ({len(clean_markdown)} chars)")
-    print(f"   Token reduction: {len(markdown)} → {len(clean_markdown)} chars")
+    print(f"   [OK] Generated clean markdown ({len(clean_markdown)} chars)")
+    print(f"   Token reduction: {len(markdown)} -> {len(clean_markdown)} chars")
     print(f"   Savings: {((len(markdown) - len(clean_markdown)) / len(markdown) * 100):.1f}%")
     
     print(f"\n5. Preview of clean markdown (first 500 chars):")
@@ -70,31 +70,31 @@ async def test_sections_flow():
     
     if response == 'y':
         try:
-            print("   🤖 Running analysis...")
+            print("   Running analysis...")
             result = await summarize_paper(clean_markdown)
             
             if result.get('success'):
-                print(f"   ✅ Analysis successful!")
+                print(f"   [OK] Analysis successful!")
                 print(f"      Model: {result['usage']['model']}")
                 print(f"      Input tokens: {result['usage']['input_tokens']}")
                 print(f"      Output tokens: {result['usage']['output_tokens']}")
                 
                 data = result['data']
-                print(f"\n   📊 Analysis Preview:")
+                print(f"\n   Analysis Preview:")
                 print(f"      Title: {data['paper_title']}")
                 print(f"      Main Contribution: {data['summary']['main_contribution'][:100]}...")
                 print(f"      Benchmarks found: {len(data['benchmarks'])}")
                 print(f"      Applications found: {len(data['summary']['applications'])}")
             else:
-                print(f"   ❌ Analysis failed: {result.get('error')}")
+                print(f"   [FAIL] Analysis failed: {result.get('error')}")
                 
         except Exception as e:
-            print(f"   ❌ Analysis error: {e}")
+            print(f"   [FAIL] Analysis error: {e}")
     else:
-        print("   ⏭️  Skipped analysis")
+        print("   Skipped analysis")
     
     print("\n" + "=" * 60)
-    print("✅ Test Complete!")
+    print("[OK] Test Complete!")
     print("=" * 60)
 
 if __name__ == "__main__":
