@@ -31,7 +31,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 from pydantic import BaseModel
 
@@ -491,3 +491,154 @@ async def generate_text(
         raise RuntimeError(f"unsupported provider: {prov!r}")
 
     return await asyncio.to_thread(_call)
+
+
+# ─── Live model catalogs ──────────────────────────────────────────────────
+
+_OPENAI_SKIP_SUBSTR = (
+    "whisper",
+    "tts",
+    "audio",
+    "transcribe",
+    "realtime",
+    "image",
+    "dall-e",
+    "davinci",
+    "babbage",
+    "embedding",
+    "moderation",
+    "sora",
+    "omni-moderation",
+    "computer-use",
+    "codex-mini",
+)
+
+_GEMINI_SKIP_SUBSTR = (
+    "embed",
+    "imagen",
+    "veo",
+    "tts",
+    "image",
+    "robotics",
+    "aqa",
+    "gecko",
+)
+
+
+def _unique_sorted(ids: List[str]) -> List[str]:
+    seen = set()
+    out: List[str] = []
+    for mid in ids:
+        if not mid or mid in seen:
+            continue
+        seen.add(mid)
+        out.append(mid)
+    out.sort(reverse=True)
+    return out[:50]
+
+
+def _keep_openai_chat_model(model_id: str) -> bool:
+    low = model_id.lower()
+    if any(part in low for part in _OPENAI_SKIP_SUBSTR):
+        return False
+    return low.startswith("gpt-") or low.startswith("o1") or low.startswith("o3") or low.startswith("o4")
+
+
+def _keep_gemini_chat_model(model_id: str) -> bool:
+    low = model_id.lower()
+    if not low.startswith("gemini-"):
+        return False
+    return not any(part in low for part in _GEMINI_SKIP_SUBSTR)
+
+
+def _iter_model_ids(listing: Any) -> List[str]:
+    ids: List[str] = []
+    data = getattr(listing, "data", None)
+    iterable = data if data is not None else listing
+    try:
+        for item in iterable:
+            mid = getattr(item, "id", None) or getattr(item, "name", None)
+            if not mid and isinstance(item, dict):
+                mid = item.get("id") or item.get("name")
+            if mid:
+                ids.append(str(mid))
+    except TypeError:
+        pass
+    return ids
+
+
+def _list_openai_models() -> List[str]:
+    client = _openai_client()
+    raw = _iter_model_ids(client.models.list())
+    return _unique_sorted([m for m in raw if _keep_openai_chat_model(m)])
+
+
+def _list_anthropic_models() -> List[str]:
+    client = _anthropic_client()
+    listing = client.models.list()
+    raw = _iter_model_ids(listing)
+    return _unique_sorted([m for m in raw if m.lower().startswith("claude-")])
+
+
+def _list_gemini_models() -> List[str]:
+    client = _gemini_client()
+    raw: List[str] = []
+    for item in client.models.list():
+        name = getattr(item, "name", None) or getattr(item, "id", None) or ""
+        name = str(name)
+        if name.startswith("models/"):
+            name = name[len("models/") :]
+        raw.append(name)
+    return _unique_sorted([m for m in raw if _keep_gemini_chat_model(m)])
+
+
+def _list_vllm_models() -> List[str]:
+    client = _vllm_client()
+    raw = _iter_model_ids(client.models.list())
+    return _unique_sorted(raw)
+
+
+def list_provider_models(provider: str) -> List[str]:
+    """Fetch chat-capable model ids from a provider. Raises on missing key/SDK."""
+    if provider == "openai":
+        return _list_openai_models()
+    if provider == "anthropic":
+        return _list_anthropic_models()
+    if provider == "gemini":
+        return _list_gemini_models()
+    if provider == "local_vllm":
+        return _list_vllm_models()
+    raise RuntimeError(f"unsupported provider: {provider!r}")
+
+
+async def list_all_provider_models(
+    providers: Optional[List[str]] = None,
+    timeout_s: float = 4.0,
+) -> Dict[str, Dict[str, Any]]:
+    """
+    List models for each provider in parallel.
+
+    Returns ``{provider: {models, source, error}}``. Failures become
+    ``source=fallback`` with an empty models list — callers should keep
+    their static suggestions.
+    """
+    targets = providers or ["openai", "anthropic", "gemini", "local_vllm"]
+
+    async def _one(pid: str) -> tuple[str, Dict[str, Any]]:
+        try:
+            models = await asyncio.wait_for(
+                asyncio.to_thread(list_provider_models, pid),
+                timeout=timeout_s,
+            )
+            if not models:
+                return pid, {
+                    "models": [],
+                    "source": "fallback",
+                    "error": "Provider returned no chat models.",
+                }
+            return pid, {"models": models, "source": "live", "error": None}
+        except Exception as exc:
+            return pid, {"models": [], "source": "fallback", "error": str(exc)}
+
+    pairs = await asyncio.gather(*(_one(pid) for pid in targets))
+    return dict(pairs)

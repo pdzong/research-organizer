@@ -201,8 +201,15 @@ def reset_config() -> Dict[str, Dict[str, str]]:
     return deepcopy(_config_cache)
 
 
-def provider_health() -> Dict[str, Dict[str, Any]]:
-    """Return per-provider availability info for the UI (API key present?)."""
+def provider_health(live_catalog: Optional[Dict[str, Dict[str, Any]]] = None) -> Dict[str, Dict[str, Any]]:
+    """Return per-provider availability info for the UI (API key present?).
+
+    ``live_catalog`` is ``{provider: {models, source, error}}`` from
+    :func:`services.llm_clients.list_all_provider_models`. Live ids replace
+    the static suggested list when present; otherwise the hardcoded fallback
+    is kept.
+    """
+    catalog = live_catalog or {}
     out: Dict[str, Dict[str, Any]] = {}
     for pid, meta in PROVIDERS.items():
         key_env: Optional[str] = None
@@ -210,12 +217,24 @@ def provider_health() -> Dict[str, Dict[str, Any]]:
             if os.getenv(env_key):
                 key_env = env_key
                 break
+        live = catalog.get(pid) or {}
+        live_models = live.get("models") or []
+        if live_models:
+            suggested = list(live_models)
+            source = live.get("source") or "live"
+            error = live.get("error")
+        else:
+            suggested = list(meta["suggested_models"])
+            source = "fallback"
+            error = live.get("error")
         out[pid] = {
             "label": meta["label"],
-            "suggested_models": meta["suggested_models"],
+            "suggested_models": suggested,
             "env_keys": meta["env_keys"],
             "key_present": key_env is not None,
             "active_env": key_env,
+            "models_source": source,
+            "models_error": error,
         }
     return out
 

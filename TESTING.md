@@ -288,6 +288,7 @@ cd backend
 .\venv\Scripts\python.exe test_add_paper_generalized.py
 .\venv\Scripts\python.exe test_company_profiles.py
 .\venv\Scripts\python.exe test_app_improve.py
+.\venv\Scripts\python.exe test_llm_models.py
 ```
 
 Each script prints an "all tests passed" line on success. (LLM calls are mocked; no keys or network needed except your local venv.)

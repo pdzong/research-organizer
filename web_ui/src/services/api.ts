@@ -709,6 +709,8 @@ export interface LlmProviderInfo {
   env_keys: string[];
   key_present: boolean;
   active_env?: string | null;
+  models_source?: 'live' | 'fallback';
+  models_error?: string | null;
 }
 
 export interface LlmRoleDescription {
