@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch",
+      "mcp__alphaxiv__discover_papers",
+      "mcp__alphaxiv__get_paper_content",
+      "mcp__alphaxiv__answer_pdf_queries",
+      "mcp__alphaxiv__read_files_from_github_repository",
+      "mcp__huggingface__paper_search",
+      "mcp__huggingface__hub_repo_details",
+      "mcp__asta",
+      "mcp__arxiv"
+    ]
+  }
+}
