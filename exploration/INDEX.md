@@ -8,6 +8,8 @@
 | [What limits associative memory capacity?](cards/associative-memory.md) | stub | Attention and Hopfield networks as memories; capacity from statistical physics. |
 | [State space models and control theory](cards/state-space-models.md) | stub | Fixed-state sequence models inherited from linear systems; diagonal ones track only commutative structure. |
 | [Learning at test time](cards/test-time-training.md) | stub | Recurrent state as a small model trained online. |
+| [Does a multimodal model need a separate, pretrained vision encoder?](cards/vision-encoder.md) | draft | Pretrained prior optional, dedicated vision parameters essential, and they can sit in the first backbone layers. |
+| [When should parameters be reserved for some tokens?](cards/mixture-of-experts.md) | stub | Mixture of experts and modality-specific parameters. |
 
 ## Open questions (collected from cards)
 
@@ -39,6 +41,17 @@ The `/radar` skill checks new papers against this list.
   state.
 - [test-time-training] Why are production recurrent states low-rank: unused
   capacity or no need for more?
+- [vision-encoder] Does the ~3x encoder-free penalty hold at native
+  resolution, on text-rich data, and beyond 6.4B parameters?
+- [vision-encoder] Under one compute accounting, do Chen et al.'s extrapolated
+  crossover and Brown–Hoang's constant gap still disagree?
+- [vision-encoder] On downstream VQA, does modality-aware vision capacity beat
+  modality-agnostic MoE routing?
+- [vision-encoder] How small can dedicated vision capacity be before VQA drops?
+- [vision-encoder] Do encoders pretrained on much more data (SigLIP 2, DINOv3)
+  beat a scratch encoder at matched lifetime compute?
+- [mixture-of-experts] Do learned routers match hand-reserved vision
+  parameters on downstream VQA?
 
 ## Radar reports
 
