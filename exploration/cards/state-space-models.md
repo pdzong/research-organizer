@@ -50,6 +50,11 @@ limit.
       (2026-W47): Hankel singular values and balanced truncation (model-order
       reduction) give a retrieval lower bound for time-invariant filters.
       Still open for selective SSMs.
+- [ ] Where do delta-rule transitions (Householder-like, not diagonal) sit in
+      the representation-theory picture? Gated DeltaProduct scores near chance
+      on S5 with 32 generators (1.23% against 0.83% chance; baseline copied
+      from prior work in arXiv:2611.17162). That suggests being non-diagonal
+      is not enough on its own.
 
 ## Log
 
@@ -57,3 +62,4 @@ limit.
 - 2026-11-18: added boundary notes from the
   [2026-W47 radar](../radar/2026-W47.md): group-tracking limits of diagonal
   SSMs and the Hankel retrieval bound.
+- 2026-11-18: added open questions raised by the 2026-W47 radar.

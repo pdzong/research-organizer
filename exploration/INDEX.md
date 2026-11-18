@@ -21,8 +21,11 @@ The `/radar` skill checks new papers against this list.
   Based recall-throughput frontier? (Bilateral log-linear attention: more
   recall at about 2x state, not settled.)
 - [attention-efficiency] Failure modes of sparse attention selectors. Partly
-  answered: block pooling misranks needles in a few heads; open for
-  token-level selectors.
+  answered: block pooling misranks needles in a few heads.
+- [attention-efficiency] Do token-level selectors (DeepSeek Sparse Attention)
+  have their own blind spots on harder multi-key tasks?
+- [attention-efficiency] Does bf16 round-to-nearest recurrent state also hurt
+  associative recall, not only reasoning length?
 - [attention-efficiency] Do test-time-training layers change the capacity
   picture?
 - [associative-memory] Capacity of delta-rule versus Hebbian matrix memory.
@@ -30,8 +33,12 @@ The `/radar` skill checks new papers against this list.
 - [state-space-models] Useful control-theory analogues for SSM training or
   capacity. (Partly answered: Hankel singular values, for time-invariant
   filters only.)
+- [state-space-models] Where do delta-rule (Householder-like) transitions sit
+  in the group-tracking picture?
 - [test-time-training] Recall capacity per byte of state for MLP versus matrix
   state.
+- [test-time-training] Why are production recurrent states low-rank: unused
+  capacity or no need for more?
 
 ## Radar reports
 

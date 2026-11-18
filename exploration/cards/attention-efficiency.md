@@ -252,7 +252,15 @@ means cited from memory and must be checked before being relied on.
       needed tokens? Partly answered (2026-W47): block-pooled selectors
       misrank a needle block among look-alike competitors on multi-key tasks.
       The loss sits in a few heads and is fixable cheaply (arXiv:2611.21917).
-      Still open for token-level selectors such as DeepSeek Sparse Attention.
+      For token-level selectors, see the next question.
+- [ ] Do token-level selectors (such as DeepSeek Sparse Attention) have their
+      own blind spots in harder multi-key settings, or is block pooling the
+      whole story? Their only evidence so far is one near-ceiling multi-key
+      task per model (arXiv:2611.21917).
+- [ ] Does storing recurrent state in bf16 with round-to-nearest also hurt
+      associative recall (MQAR, RULER), not only reasoning length? It makes 5
+      of 6 hybrid reasoning models think 7–27% longer (arXiv:2611.12127), so
+      the state dtype is a hidden variable in hybrid comparisons.
 - [ ] Do test-time-training layers (state as a small online model) change the
       capacity picture compared with matrix-valued state?
 
@@ -267,3 +275,4 @@ means cited from memory and must be checked before being relied on.
   - Combination: the verified log-linear citation and bilateral log-linear
     attention.
   - L4 sources 17–20 and notes on two open questions.
+- 2026-11-18: added open questions raised by the 2026-W47 radar.

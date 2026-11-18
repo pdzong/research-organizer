@@ -53,9 +53,15 @@ one such gradient step, which ties linear attention to online learning.
 
 - [ ] Does a more expressive state model (an MLP instead of a matrix) raise
       recall capacity per byte of state?
+- [ ] Why are production recurrent states effectively low-rank
+      (arXiv:2611.14246)? Is capacity left unused because of training, or do
+      the tasks simply not need more? A test would be to train a model so it
+      fills its state, then check whether recall improves at the same state
+      size.
 
 ## Log
 
 - 2026-11-17: stub created from the attention-efficiency card.
 - 2026-11-18: added the SinkState low-rank evidence and the naming caution
   from the [2026-W47 radar](../radar/2026-W47.md).
+- 2026-11-18: added open questions raised by the 2026-W47 radar.
