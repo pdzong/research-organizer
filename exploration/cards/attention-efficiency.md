@@ -1,7 +1,7 @@
 # How far can attention be cut without losing quality?
 
 Status: draft
-Last updated: 2026-11-17
+Last updated: 2026-11-18
 Related: [associative memory](associative-memory.md) ·
 [state space models](state-space-models.md) ·
 [test-time training](test-time-training.md)
@@ -72,6 +72,20 @@ frontier, or only pick a different point on it?
   its state can hold, while a two-layer transformer can copy strings of length
   exponential in its size (Jelassi et al. 2024). Copying and lookup are where
   the cheap layers fail.
+- `[proven, for linear time-invariant filters]` Retrieving one specific token
+  is incompressible. For an `n`-state time-invariant filter, the best
+  approximation error is at least the `(n+1)`-th Hankel singular value. A pure
+  `W`-step delay has all `W` singular values equal to 1, so it needs all `W`
+  states, while a window average needs only about `1/(2ε)` states (Pei 2026,
+  Zenodo doi:10.5281/zenodo.24191078, a single-author note with no
+  experiments). This does not cover data-dependent layers such as Gated
+  DeltaNet or Mamba-2.
+- `[proven, if logits follow the paper's two-block model]` Sparse selectors
+  that score blocks by pooled (averaged) keys have a "blind window". When a
+  block holds one decisive needle key and a competitor block is uniformly a
+  little stronger, exact attention mass ranks the needle block first, but any
+  mean-pooled score ranks the competitor first (Zhang & Chen 2026,
+  arXiv:2611.21917, Proposition 1).
 - `[empirical]` Most of the quality gap between attention and efficient
   architectures on language modeling is explained by associative recall
   (Zoology, Arora et al. 2023).
@@ -114,6 +128,11 @@ frontier, or only pick a different point on it?
   the fixed-state limit most directly.
 - Long-context retrieval: needle-in-a-haystack and RULER (Hsieh et al. 2024),
   which adds multi-hop tracing and aggregation.
+- Sparse-selector probe: RULER MK3 (multi-key needle in a haystack of
+  look-alike UUIDs). It exposes block-selection failure that single-needle
+  tests miss: a single needle among filler flags no failing head (Zhang & Chen
+  2026, arXiv:2611.21917). On MiniCPM4.1-8B at 64K, the shipped sparse
+  selector scores 54.1 against 97.1 dense `[empirical]`.
 - Real tasks: long-document QA, repository-scale code, long agent traces with
   many tool calls.
 - Falsifier: a model with no exact-access layers (no full and no sparse
@@ -143,9 +162,21 @@ frontier, or only pick a different point on it?
 - Conditional exact access: run expensive attention only when the model
   detects that it needs a lookup (related to routing ideas such as mixture of
   depths). `[speculation]`
-- State that grows slowly with context, between constant and linear (for
-  example log-linear attention, Guo et al. 2025 (unverified)), could move the
-  frontier instead of picking a point on it.
+- State that grows slowly with context, between constant and linear, could
+  move the frontier instead of picking a point on it. Log-linear attention
+  keeps a Fenwick-tree hierarchy of `O(log T)` state matrices (Guo et al.
+  2025, arXiv:2506.04761, ICLR 2026).
+- Newest data point: bilateral log-linear attention adds a second,
+  origin-anchored hierarchy, so early context is also kept at fine resolution
+  (Islam & Cong 2026, arXiv:2611.18974). `[empirical]`, about 365M-parameter
+  models with one training seed:
+  - MQAR (512 tokens): 96.1, against 76.4 for log-linear Mamba-2 and 99.5 for
+    a Transformer.
+  - RULER-NIAH average at 6144 tokens: 50.0, against 27.0 and 58.7.
+
+  Caveat: it holds about twice as many state matrices as forward log-linear
+  attention, so the comparison is not at matched state. It has no Gated
+  DeltaNet baseline and no runs past 8K tokens.
 
 ## L2 Mechanism
 
@@ -202,6 +233,10 @@ means cited from memory and must be checked before being relied on.
 | 14 | Yuan et al. 2025, "Native Sparse Attention", arXiv:2502.11089 | Trainable sparse attention | no |
 | 15 | Sun et al. 2024, "Learning to (Learn at Test Time)", arXiv:2407.04620; Behrouz et al. 2025, "Titans", arXiv:2501.00663 | State as an online-trained model | no |
 | 16 | Hsieh et al. 2024, "RULER", arXiv:2404.06654 | Long-context benchmark | no |
+| 17 | Guo, Yang, Goel, Xing, Dao & Kim 2025, "Log-Linear Attention", arXiv:2506.04761 (ICLR 2026) | State that grows as `log T` | yes (metadata) |
+| 18 | Islam & Cong 2026, "Bilateral Log-Linear Attention", arXiv:2611.18974 | Recall gain from a second hierarchy, at about 2x state | yes |
+| 19 | Zhang & Chen 2026, "Lost in a Few Heads: Diagnosing and Repairing Block Selection in Sparse Attention", arXiv:2611.21917 ([code](https://github.com/zhangwenhe1007/blind-attention-heads)) | How sparse selectors fail, and cheap fixes | yes |
+| 20 | Pei 2026, "Kernel, Transport, Support: A Unified Prescription for Attention, State-Space and Delta-Rule Sequence Mixers", Zenodo doi:10.5281/zenodo.24191078 | One formula for all mixers; Hankel bound on retrieval | yes (read via alphaXiv; not on arXiv) |
 
 ## Open questions
 
@@ -210,9 +245,14 @@ means cited from memory and must be checked before being relied on.
 - [ ] At 1M tokens, do models with no full attention keep their recall only
       because of sparse attention, or do pure fixed-state models also hold up?
 - [ ] Does any architecture with sub-linear memory beat the recall-throughput
-      frontier from the Based paper, rather than sit on it?
+      frontier from the Based paper, rather than sit on it? (2026-W47:
+      bilateral log-linear attention gains a lot of recall, but with about 2x
+      state, so it does not settle this.)
 - [ ] How does sparse attention fail: which tasks make the selector skip the
-      needed tokens?
+      needed tokens? Partly answered (2026-W47): block-pooled selectors
+      misrank a needle block among look-alike competitors on multi-key tasks.
+      The loss sits in a few heads and is fixable cheaply (arXiv:2611.21917).
+      Still open for token-level selectors such as DeepSeek Sparse Attention.
 - [ ] Do test-time-training layers (state as a small online model) change the
       capacity picture compared with matrix-valued state?
 
@@ -221,3 +261,9 @@ means cited from memory and must be checked before being relied on.
 - 2026-11-17: created as a seed card. Adoption claims verified against
   Raschka's posts; paper citations are from memory and need verification
   (run `/investigate attention-efficiency` to verify and extend).
+- 2026-11-18: applied the [2026-W47 radar](../radar/2026-W47.md) updates:
+  - Boundary: pooled-selector blind window and the Hankel retrieval bound.
+  - Measurement: the RULER MK3 selector probe.
+  - Combination: the verified log-linear citation and bilateral log-linear
+    attention.
+  - L4 sources 17–20 and notes on two open questions.
