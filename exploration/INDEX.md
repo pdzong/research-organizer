@@ -10,6 +10,8 @@
 | [Learning at test time](cards/test-time-training.md) | stub | Recurrent state as a small model trained online. |
 | [Does a multimodal model need a separate, pretrained vision encoder?](cards/vision-encoder.md) | draft | Pretrained prior optional, dedicated vision parameters essential, and they can sit in the first backbone layers. |
 | [When should parameters be reserved for some tokens?](cards/mixture-of-experts.md) | stub | Mixture of experts and modality-specific parameters. |
+| [Do LLM agents reason better together, and does latent talk help?](cards/multi-agent-communication.md) | draft | Voting explains most debate gains; latent beliefs cut tokens but do not yet beat text debate. |
+| [Can a model reason in continuous vectors instead of words?](cards/latent-reasoning.md) | stub | Coconut and Soft Thinking: chain of thought without tokens. |
 
 ## Open questions (collected from cards)
 
@@ -58,6 +60,16 @@ The `/radar` skill checks new papers against this list.
   beat a scratch encoder at matched lifetime compute?
 - [mixture-of-experts] Do learned routers match hand-reserved vision
   parameters on downstream VQA?
+- [multi-agent-communication] Does Stream of Belief beat an `N × K`-sample
+  self-consistency vote at equal total compute?
+- [multi-agent-communication] Under a message-replacement audit, how much of
+  the gain comes from example-specific belief content?
+- [multi-agent-communication] Can latent belief exchange work across model
+  families without a trained bridge?
+- [multi-agent-communication] Does latent exchange avoid the interaction tax
+  (diversity collapse) better than text?
+- [latent-reasoning] Do latent chains of thought beat text chains of thought
+  at equal compute beyond small logic benchmarks?
 
 ## Radar reports
 
