@@ -5,7 +5,7 @@
 | Card | Status | One line |
 |---|---|---|
 | [How far can attention be cut without losing quality?](cards/attention-efficiency.md) | draft | Cheap layers trade exact recall for cost; hybrids keep a few exact-access layers. |
-| [What limits associative memory capacity?](cards/associative-memory.md) | stub | Attention and Hopfield networks as memories; capacity from statistical physics. |
+| [What limits associative memory capacity?](cards/associative-memory.md) | draft | One fixed matrix holds about as many clean associations as its dimension; exact recall needs memory that grows with what is stored. |
 | [State space models and control theory](cards/state-space-models.md) | stub | Fixed-state sequence models inherited from linear systems; diagonal ones track only commutative structure. |
 | [Learning at test time](cards/test-time-training.md) | stub | Recurrent state as a small model trained online. |
 | [Does a multimodal model need a separate, pretrained vision encoder?](cards/vision-encoder.md) | draft | Pretrained prior optional, dedicated vision parameters essential, and they can sit in the first backbone layers. |
@@ -32,6 +32,12 @@ The `/radar` skill checks new papers against this list.
   picture?
 - [associative-memory] Capacity of delta-rule versus Hebbian matrix memory.
   (Hebbian side bounded under correlated keys; delta-rule side open.)
+- [associative-memory] Does delta-rule writing recover the capacity lost to
+  semantically correlated keys?
+- [associative-memory] Do sparse-addressed memories (SDM, FwPKM) beat dense
+  matrix state at equal state bytes, not only equal FLOPs?
+- [associative-memory] In hybrids where KV layers carry recall, how small can
+  the recurrent state get?
 - [state-space-models] Useful control-theory analogues for SSM training or
   capacity. (Partly answered: Hankel singular values, for time-invariant
   filters only.)
