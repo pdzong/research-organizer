@@ -76,3 +76,7 @@ The `/radar` skill checks new papers against this list.
 - [2026-W47](radar/2026-W47.md): sparse-attention selectors fail in a few
   pooled heads (fixable); proofs that diagonal SSMs track only commutative
   structure; bilateral log-linear attention boosts recall at about 2x state.
+  Update 20 Nov: least-squares and MLP-state memory writes win only with a
+  bigger state; multi-agent systems trail matched baselines by about 4
+  points; zero-temperature attention keeps retrieval exact as item counts
+  grow.
