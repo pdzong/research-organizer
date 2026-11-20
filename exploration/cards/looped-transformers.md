@@ -1,0 +1,50 @@
+# What do looped (recurrent-depth) transformers buy?
+
+Status: stub
+Last updated: 2026-11-20
+Related: [latent reasoning](latent-reasoning.md) ·
+[test-time training](test-time-training.md) ·
+[state space models](state-space-models.md)
+
+## L0 Headline
+
+A looped transformer reruns the same block of layers several times for each
+token, so it can spend more compute at test time without more parameters or
+more written tokens. The open question is whether that extra depth beats
+spending the same compute on a wider model or on a written chain of thought.
+
+## Seed notes (to expand with `/investigate looped-transformers`)
+
+- Huginn: a 3.5B model trained on 800B tokens that loops a 4-layer core
+  block. Iteration counts are sampled during training.
+  `[empirical, self-reported]`
+  - On GSM8k with a chain of thought, it goes from 0% at one iteration to
+    34.8% strict match at 32. The authors equate that compute to a 50B fixed
+    model.
+  - Its non-recurrent twin is not matched on FLOPs, so this does not show a
+    better trade-off.
+
+  Source: Geiping et al. 2025, arXiv:2502.05171, NeurIPS (verified, full
+  text).
+- Loopback Transformer (Ouyang et al. 2026, arXiv:2611.07226, abstract
+  only).
+- Late Entry in Looped Language Models (Jin et al. 2026, arXiv:2611.24576,
+  abstract only).
+- From Chain-of-Thought to Loops: Non-Autoregressive Latent Reasoning via
+  Looped Transformers (arXiv:2610.11472; title from alphaXiv search, not
+  read).
+- The cost difference with latent feedback across tokens
+  (arXiv:2611.20404): a looped model pays its extra compute at every
+  decoding step, while latent feedback pays it only in training and prefill.
+  See [latent reasoning](latent-reasoning.md).
+
+## Open questions
+
+- [ ] At matched training and inference FLOPs, does a looped transformer beat
+      a wider fixed-depth model on reasoning benchmarks?
+- [ ] Do looped models need adaptive halting for the same reason latent
+      chains do (arXiv:2611.24001)?
+
+## Log
+
+- 2026-11-20: stub created from the latent-reasoning card.
