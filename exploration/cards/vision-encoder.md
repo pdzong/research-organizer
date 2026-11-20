@@ -1,7 +1,7 @@
 # Does a multimodal model need a separate, pretrained vision encoder?
 
 Status: draft
-Last updated: 2026-11-18
+Last updated: 2026-11-20
 Related: [mixture of experts](mixture-of-experts.md) ·
 [attention efficiency](attention-efficiency.md)
 
@@ -215,6 +215,16 @@ No theorem is known. The evidence is empirical, and the studies disagree.
 - **Smaller implicit encoders.** Distillation results suggest dedicated
   vision capacity could be much smaller than today's 0.4B encoders.
   `[speculation]`, the evidence is for audio.
+- **The type of visual prior decides what can be read.** V-JEPA-LM (Kim, Kim
+  & Choi 2026, arXiv:2611.17831, abstract only) `[empirical]`:
+  - A linear probe reads object speed from frozen V-JEPA features at 87%.
+  - Yet the video-language model built on those features answers speed
+    questions at chance.
+  - Dynamics sit in a shared subspace for predictive encoders, but not for
+    SigLIP-style ones.
+  - `[interpretation]` The encoder's pretraining decides what can be read,
+    and the language-side supervision decides what is read. This bears on the
+    open question about encoders pretrained on much more or different data.
 
 ## L2 Mechanism
 
@@ -266,6 +276,7 @@ To fill on request (`/deepen vision-encoder L3`). Planned content:
 | 7 | Liu et al. 2023, "Visual Instruction Tuning" (LLaVA), arXiv:2304.08485; Radford et al. 2021, CLIP, arXiv:2103.00020 | The default encoder recipe | yes (metadata) |
 | 8 | Raschka 2024, [Understanding Multimodal LLMs](https://magazine.sebastianraschka.com/p/understanding-multimodal-llms) | Explainer of the two main architecture families | yes (found by search; content not re-read) |
 | 9 | Liew, Suzuki & Tokui 2026, "Scaling Laws for Vision-Language Fusion", arXiv:2611.22351 | When to add vision (fusion timing), always with a pretrained encoder | yes (full text) |
+| 10 | Kim, Kim & Choi 2026, V-JEPA-LM, arXiv:2611.17831 | Predictive versus contrastive priors: what a VLM can read | yes (metadata; abstract only) |
 
 ## Open questions
 
@@ -280,7 +291,9 @@ To fill on request (`/deepen vision-encoder L3`). Planned content:
       implicit encoders, narrower in-fusion branches)?
 - [ ] Do encoders pretrained on much more or different data (SigLIP 2,
       DINOv3) beat a scratch encoder at matched lifetime compute, which
-      Brown–Hoang did not test?
+      Brown–Hoang did not test? (2026-W47 update: V-JEPA-LM suggests that
+      the kind of prior, predictive or contrastive, matters as well as its
+      size.)
 
 ## Log
 
@@ -288,3 +301,6 @@ To fill on request (`/deepen vision-encoder L3`). Planned content:
   in full. Four related scaling and analysis papers were read: two in full and
   two through alphaXiv summaries, which are flagged. Metadata for 18 sources
   checked with Semantic Scholar (Asta) and alphaXiv.
+- 2026-11-20: added V-JEPA-LM to Combination, from the
+  [2026-W47 radar update](../radar/2026-W47.md). It is from the abstract
+  only.

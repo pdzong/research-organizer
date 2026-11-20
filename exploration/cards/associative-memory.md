@@ -1,7 +1,7 @@
 # What limits how much an associative memory can store and retrieve?
 
 Status: draft
-Last updated: 2026-11-19
+Last updated: 2026-11-20
 Related: [attention efficiency](attention-efficiency.md) ·
 [test-time training](test-time-training.md) ·
 [state space models](state-space-models.md) ·
@@ -74,6 +74,14 @@ Where the analogy breaks:
   - Ramsauer et al. 2020 (arXiv:2008.02217) report that transformer heads in
     early layers mostly average, and heads in later layers mostly sit in
     metastable states `[empirical]`.
+  - A `β` that is tuned at one size fails as the number of items grows
+    (Mohsenvand 2026, "Attention at Absolute Zero", arXiv:2611.11937, on the
+    card game SET) `[empirical, self-reported, one task family]`:
+    - with weights set by hand, a temperature tuned for 8 cards fails from 48
+      cards;
+    - trained scores multiplied by 1, 2, 4 and 8 (that is, a larger `β`) give
+      72.0, 83.1, 98.7 and 99.7% at 364 cards;
+    - the zero-temperature read gives 99.8%.
 - **Recent work mostly changes the cost of a big state, not the frontier
   itself:**
   - Delta-rule writes use the same state better: they correct an old entry
@@ -87,6 +95,21 @@ Where the analogy breaks:
     arXiv:2607.17419) enlarge the effective state without adding parameters.
     The authors report 0.985 MQAR at 16x the training length, with about a
     quarter of the KV-cache entries `[empirical, self-reported]`.
+  - **Richer write rules win mainly through a bigger state.**
+    `[empirical, self-reported]`
+    - Kernel Ridge Attention (KRA; Chen, Wang & Xu 2026, arXiv:2611.23896)
+      replaces the delta rule with recursive least squares.
+      - At about 31M parameters, rare-repeat top-1 is 25.41%, against 6.69%
+        for Gated DeltaNet.
+      - Caveats: KRA uses about 1.9x the state (1.165 against 0.615 MiB at
+        8K), the result is from one seed, and there is no MQAR test.
+    - Toaster (Li et al. 2026, Google Research, arXiv:2611.23648) stores a
+      two-layer MLP as its state. It beats KDA at all five sizes from 0.2B
+      to 1.6B, with 8x KDA's state.
+      - Its own state-matched control: KDA given 8x state reaches 15.79,
+        against 15.69 for Toaster and 16.00 for default KDA (C4 perplexity,
+        145M, single runs).
+      - So about two-thirds of the gain comes from the larger state.
 - `[interpretation]` These methods move the compute-per-state-byte curve.
   None of them escapes the bytes-per-association limit in the Boundary
   section.
@@ -145,6 +168,15 @@ Where the analogy breaks:
   - In hybrid models, recall shifts mainly to the full-attention KV cache.
   - Source: Lee et al. 2026, arXiv:2609.33093. The evidence comes from a few
     models and controlled interventions.
+- `[proven]` **Zero-temperature limit of softmax.**
+  - As `β → ∞`, `β⁻¹ log Σ exp(β s_w)` tends to the best score `s*`.
+  - The sum divided by `exp(β s*)` tends to the number of items tied at
+    `s*`.
+  - So a hard read that keeps the best score and its tie count keeps
+    everything a cold enough softmax can see. This is the large-`β` end of the
+    modern Hopfield trade-off.
+  - Source: Mohsenvand 2026, arXiv:2611.11937, Proposition 1. The proof is
+    short and elementary; the paper notes that it is not machine-checked.
 
 ### 4. Lineage
 
@@ -175,6 +207,18 @@ Where the analogy breaks:
   - The framework also explains why linear attention misses correlations
     between tokens.
   - This links the card to [test-time training](test-time-training.md).
+- **Kalman filtering and Gaussian processes.**
+  - KRA's write is recursive least squares, and with a learned decay it is a
+    Kalman filter.
+  - Its output equals kernel ridge regression over the prefix, with a content
+    kernel times an exponential time kernel. `[proven]` (arXiv:2611.23896,
+    Proposition 2.)
+  - Intuition that transfers: a running covariance tells the memory which key
+    directions are already pinned down.
+- **Tropical (max-plus) algebra.** The zero-temperature limit of log-sum-exp
+  is Maslov's dequantisation: sums become maxima and products become sums
+  (arXiv:2611.11937). This is the algebra of hard attention and of counting
+  shortest paths.
 
 ### 5. Measurement
 
@@ -189,6 +233,11 @@ Where the analogy breaks:
   delta rule can.
 - **Load versus length.** Hold the number of facts fixed and add filler, then
   do the reverse. Lee et al. 2026 find that load matters more.
+- **State-matched control.** Compare any richer write rule at equal state
+  bytes, not only at equal parameters.
+  - Toaster gives the template: widen the baseline's state, by trading heads
+    for wider heads at a fixed backbone, until it matches the new method.
+  - Then report both gaps: at matched parameters and at matched state.
 - **Falsifiers.**
   - If a delta-rule model's capacity curve matched a Hebbian model's at the
     same state size, the delta rule's claimed advantage would fail.
@@ -234,7 +283,11 @@ Where the analogy breaks:
   - Least squares compensates for correlated keys, roughly what mean-centring
     does in TANSAR.
   - So delta-rule writing may recover part of the capacity that semantic keys
-    lose. Not tested anywhere the vault knows of.
+    lose.
+  - KRA (arXiv:2611.23896) now builds the exact version as a layer. It keeps
+    a covariance `P` of past keys and writes along `P k` instead of `k`.
+  - It has not measured capacity at matched state, so the capacity claim stays
+    a speculation.
 - **Test-time regression as a design map.** Picking a richer regressor (an MLP
   state) or a better optimiser is how [test-time training](test-time-training.md)
   layers try to raise capacity per byte of state.
@@ -367,6 +420,9 @@ Planned outline (fill with `/deepen associative-memory L3`):
 | 15 | Ghriss & Chakraborty 2026, "Kernelized Linear Attention (KATA)", arXiv:2607.17419 | Feature geometry and capacity; Welch floor | yes (abstract only) |
 | 16 | Geva, Schuster, Berant & Levy, "Transformer Feed-Forward Layers Are Key-Value Memories", arXiv:2012.14913, EMNLP | Parametric associative memory | yes |
 | 17 | Jelassi et al. 2024, "Repeat After Me", arXiv:2402.01032, ICML | Fixed-state copying limit | yes |
+| 18 | Chen, Wang & Xu 2026, "Kernel Ridge Attention", arXiv:2611.23896 | Recursive-least-squares writes; Kalman and kernel-ridge links | yes (full text) |
+| 19 | Li, Behrouz, Deng, Kacham, Al-Rfou, Razaviyayn & Mirrokni 2026, "Toaster", arXiv:2611.23648 | MLP-state memory, with a state-matched control | yes (full text) |
+| 20 | Mohsenvand 2026, "Attention at Absolute Zero", arXiv:2611.11937 | Zero-temperature limit of softmax; fixed `β` failing at scale | yes (full text) |
 
 ## Open questions
 
@@ -376,7 +432,13 @@ Planned outline (fill with `/deepen associative-memory L3`):
       still missing.)
 - [ ] Does delta-rule writing recover the capacity that semantically
       correlated keys lose under Hebbian writing (TANSAR: 58 against 257
-      pairs)?
+      pairs)? (2026-W47 update: KRA builds the least-squares write, but
+      tests it only at about 2x state.)
+- [ ] At matched state bytes, does a recursive-least-squares write beat the
+      delta rule on MQAR capacity, especially with correlated keys? Does
+      KRA's gain disappear at matched state, as most of Toaster's does?
+- [ ] Does a zero-temperature or adaptive-`β` read help associative recall
+      in language models, or only on exact algorithmic tasks?
 - [ ] Do sparse-addressed memories (SDM, FwPKM) still beat dense matrix state
       when compared at equal state bytes, not only at equal FLOPs?
 - [ ] In hybrids where the KV layers carry recall, how small can the
@@ -397,3 +459,14 @@ Planned outline (fill with `/deepen associative-memory L3`):
   - Verified Amit et al. 1985 and Demircigil et al. 2017 (previously
     unverified). Refined `0.14 N` to `0.138 N`, with the replica caveat.
   - Replaced the seed notes with L4.
+- 2026-11-20: applied the [2026-W47 radar update](../radar/2026-W47.md).
+  - Added to Trade-off: KRA and Toaster, and the fixed-`β` failure from
+    Attention at Absolute Zero.
+  - Added to Boundary: the zero-temperature limit of softmax.
+  - Added to Lineage: Kalman and Gaussian-process regression, and tropical
+    algebra.
+  - Added to Measurement: the state-matched control.
+  - Updated the Combination speculation on least-squares writes.
+  - Added L4 sources 18–20 and two open questions.
+  - Spot-checked the Toaster and Absolute Zero numbers against the papers
+    with alphaXiv.

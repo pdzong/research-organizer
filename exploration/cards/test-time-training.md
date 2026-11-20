@@ -1,7 +1,7 @@
 # What does it mean for a layer to learn at test time?
 
 Status: stub
-Last updated: 2026-11-18
+Last updated: 2026-11-20
 Related: [attention efficiency](attention-efficiency.md) ·
 [associative memory](associative-memory.md)
 
@@ -37,6 +37,41 @@ one such gradient step, which ties linear attention to online learning.
   This matters for "recall per byte of state": real matrix states seem to use
   far less than their nominal capacity. `[interpretation]`
 
+## Richer state or richer optimiser (from the 2026-W47 radar update)
+
+- **An MLP state at matched state size.** Toaster (Li et al. 2026, Google
+  Research, arXiv:2611.23648) does this:
+  - It chains two delta-rule memories with a GELU between them, and trains
+    the hidden one by target propagation.
+  - Each layer still runs on the existing KDA kernel.
+  - Results `[empirical, self-reported]`, single runs:
+    - C4 perplexity at 1.2B is 9.94, against 10.00 for KDA and 9.96 for
+      attention.
+    - The state is about 8x KDA's.
+    - Its state-matched control at 145M, in C4 perplexity:
+
+      | State (x default KDA) | 2x | 4x | 8x |
+      |---|---|---|---|
+      | KDA, wider heads | 15.96 | 15.84 | 15.79 |
+      | Toaster, wider hidden layer | 15.90 | 15.76 | 15.69 |
+
+      Default KDA scores 16.00. About two-thirds of Toaster's gain comes from
+      the larger state. The MLP shape adds the remaining 0.06–0.10 at every
+      matched size.
+  - This is the first partial answer to the open question below about recall
+    per byte. It measures perplexity, though, not recall capacity. On RULER
+    single-needle at 4K, Toaster scores 62.7 against KDA's 37.3 on S-NIAH-2,
+    and 27.3 against 28.0 on S-NIAH-3.
+- **A better optimiser on a matrix state.** Kernel Ridge Attention (Chen,
+  Wang & Xu 2026, arXiv:2611.23896) keeps a matrix state but writes with
+  recursive least squares, a second-order online step, instead of one
+  gradient step.
+  - It wins on rare-token recall at about 31M parameters, but with about 1.9x
+    Gated DeltaNet's state. `[empirical, self-reported]`
+  - See [associative memory](associative-memory.md).
+- **Template for this card.** Any claim that a richer state model helps
+  should come with a baseline given the same state bytes, as Toaster does.
+
 ## Naming caution
 
 "Test-time training" names two different things:
@@ -52,7 +87,9 @@ one such gradient step, which ties linear attention to online learning.
 ## Open questions
 
 - [ ] Does a more expressive state model (an MLP instead of a matrix) raise
-      recall capacity per byte of state?
+      recall capacity per byte of state? (2026-W47 update: for perplexity,
+      Toaster keeps a small edge at matched state; recall capacity is still
+      untested.)
 - [ ] Why are production recurrent states effectively low-rank
       (arXiv:2611.14246)? Is capacity left unused because of training, or do
       the tasks simply not need more? A test would be to train a model so it
@@ -65,3 +102,6 @@ one such gradient step, which ties linear attention to online learning.
 - 2026-11-18: added the SinkState low-rank evidence and the naming caution
   from the [2026-W47 radar](../radar/2026-W47.md).
 - 2026-11-18: added open questions raised by the 2026-W47 radar.
+- 2026-11-20: added Toaster's state-matched control and KRA, from the
+  [2026-W47 radar update](../radar/2026-W47.md). Spot-checked Toaster's
+  Table 16 against the paper with alphaXiv.

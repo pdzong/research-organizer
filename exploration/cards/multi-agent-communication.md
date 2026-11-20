@@ -1,7 +1,7 @@
 # Do LLM agents reason better together, and does talking in latent space help?
 
 Status: draft
-Last updated: 2026-11-19
+Last updated: 2026-11-20
 Related: [latent reasoning](latent-reasoning.md) ·
 [associative memory](associative-memory.md) ·
 [attention efficiency](attention-efficiency.md)
@@ -95,6 +95,39 @@ Where the analogy breaks:
   - and the final readout can recognise it.
 
   Source: Zhao et al. 2026, "When Debate Helps", arXiv:2610.04686.
+- `[proven, in the paper's stylized model where all agents see the same
+  evidence]` **Communication adds no information when evidence is shared.**
+  - Positive returns need one of three things: evidence split across agents,
+    an external verifier, or models that make different errors.
+  - The result says nothing about compute, so it does not rule out debate
+    beating voting at equal tokens.
+  - Source: Sajjadi Mohammadabadi 2026, arXiv:2611.17610, Proposition 3.1.
+- `[empirical]` **Pooled evidence supports the L0 headline.**
+  - The same paper pools nine studies, 516 multi-agent configurations in
+    all.
+  - Against baselines matched on sample count or budget, multi-agent systems
+    average −0.042 in accuracy. They equal or trail the baseline in 74% of
+    474 contrasts.
+  - A multilevel model gives −0.195 on the log-odds scale (95% CI −0.320 to
+    −0.070).
+  - Caveats: the author calls it exploratory; it is not a systematic search,
+    and heterogeneity is high (I² = 93%). All included methods talk in text,
+    so latent methods such as SoB are not covered.
+- `[proven, for binary decisions]` **Selectivity bar for revision.**
+  - Let `a` be the initial accuracy. Revising answers raises accuracy only if
+    the model reverses wrong answers more than `a/(1−a)` times as often as
+    right ones: nine times at 90%.
+  - This is an exact accounting identity, not a deep theorem.
+  - Source: Tang & Lin 2026, arXiv:2611.16694, NeurIPS.
+  - `[empirical]` Expert-attributed disagreement on 1,989 evidence-grounded
+    yes/no items:
+    - None of the five main models clears the bar, and accuracy falls by 1.9
+      to 16.1 points.
+    - In a smaller 250-item pool with a different protocol, Claude-Opus-4.8
+      is the only model above the bar (1.33 times break-even), and its
+      accuracy does not fall.
+  - Every debate round is a revision step, so the same bar applies per
+    round. `[interpretation]`
 - `[empirical]` **Accuracy does not prove that a latent message is used.** A
   causal audit of latent relay on Qwen3-4B and 8B found a large share of the
   "gain" persists even when the receiver gets a message generated for a
@@ -145,6 +178,14 @@ Where the analogy breaks:
   independent samples with a majority vote (self-consistency). Without it, a
   debate gain may be an ensemble gain. SoB reports no self-consistency
   baseline, and it also majority-votes its agents' final answers.
+  - The pooled synthesis (arXiv:2611.17610) shows why this matters. Swapping
+    a greedy baseline for a sampled one moves the multi-agent difference by
+    −0.038 on average, and it moves the same way in all five studies that
+    report both.
+  - A budget-matched sampled baseline is now the bar for SoB.
+- **Selectivity per round.** Track how often each round reverses wrong
+  answers (`b`) and right answers (`h`). Compare `b/h` with `a/(1−a)`
+  (arXiv:2611.16694).
 - **Message-replacement controls.** Swap a message for one generated for a
   different example, or for one from the agent itself (Zhang & Emu 2026).
   This tells whether the content of a message matters.
@@ -262,11 +303,16 @@ Planned outline:
 | 12 | Motger et al. 2026, "Multi-Agent Debate Strategies: Survey, Taxonomy, and Challenges", arXiv:2607.26212 | Survey of 141 studies | yes |
 | 13 | Wang et al. 2022, "Self-Consistency", arXiv:2203.11171, ICLR | The voting baseline | yes |
 | 14 | DeGroot 1974, "Reaching a Consensus", JASA | Opinion-dynamics origin | yes (metadata only) |
+| 15 | Sajjadi Mohammadabadi 2026, "More Agents, More Samples, or More Thinking?", arXiv:2611.17610 | Pooled evidence against matched baselines; no-new-information proposition | yes (full text) |
+| 16 | Tang & Lin 2026, "When Expert Disagreement Hurts", arXiv:2611.16694, NeurIPS | The `a/(1−a)` selectivity bar | yes (full text) |
 
 ## Open questions
 
 - [ ] Does Stream of Belief beat an `N × K`-sample self-consistency vote at
-      equal total compute?
+      equal total compute? (2026-W47 update: text methods trail such
+      baselines by about 4 points on average; latent methods are untested.)
+- [ ] Does any debate protocol, latent or text, clear the `a/(1−a)`
+      selectivity bar in each round?
 - [ ] Under a message-replacement audit, how much of SoB's gain comes from
       example-specific belief content?
 - [ ] Can latent belief exchange work across model families, where error
@@ -284,3 +330,10 @@ Planned outline:
   - Semantic Scholar lists the SoB authors as Yu-Sheng Yao, Jia-Kai Dong and
     Yi-Lun Du. The paper's title page gives Yu Yao, Jiayi Dong and Yilun Du;
     the card uses the paper's names.
+- 2026-11-20: applied the [2026-W47 radar update](../radar/2026-W47.md).
+  - Boundary: Proposition 3.1, the pooled −0.042 result and the selectivity
+    bar.
+  - Measurement: the sampled-baseline shift and per-round selectivity.
+  - Added L4 sources 15–16 and one open question.
+  - Spot-checked the numbers against both papers with alphaXiv. This added
+    the Claude-Opus-4.8 exception, which the radar did not mention.

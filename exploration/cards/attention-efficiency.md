@@ -1,7 +1,7 @@
 # How far can attention be cut without losing quality?
 
 Status: draft
-Last updated: 2026-11-18
+Last updated: 2026-11-20
 Related: [associative memory](associative-memory.md) ·
 [state space models](state-space-models.md) ·
 [test-time training](test-time-training.md)
@@ -154,6 +154,19 @@ frontier, or only pick a different point on it?
   ([LLM Architecture Gallery](https://sebastianraschka.com/blog/2026/llm-architecture-gallery.html)).
 - The motive is cheap long context for agents, large codebases and long
   documents.
+- **Converting pretrained models into hybrids is becoming a tool chain.**
+  FlashMorph2 (Lan et al. 2026, arXiv:2611.24809, abstract only) chooses
+  which layers of a pretrained Qwen3 keep full attention.
+  - It does so by evaluating sampled hybrids end to end.
+  - It reports +2.42 on RULER over FlashMorph `[empirical, self-reported]`.
+  - This is a practical handle on the open question about the minimum
+    fraction of exact-access layers.
+- **Token-level sparse attention is reported as shipping.** The abstract of
+  Twindex (arXiv:2611.25078) names Qwen3.8-Flash-Next, DeepSeek V4.1-Flash
+  and GLM-5.2 as shipped models with token-level sparse-attention indexers.
+  - (unverified) The paper is found only through alphaXiv metadata and is not
+    yet in Semantic Scholar.
+  - The model claims were not checked against model cards.
 
 ### 7. Combination
 
@@ -237,11 +250,15 @@ means cited from memory and must be checked before being relied on.
 | 18 | Islam & Cong 2026, "Bilateral Log-Linear Attention", arXiv:2611.18974 | Recall gain from a second hierarchy, at about 2x state | yes |
 | 19 | Zhang & Chen 2026, "Lost in a Few Heads: Diagnosing and Repairing Block Selection in Sparse Attention", arXiv:2611.21917 ([code](https://github.com/zhangwenhe1007/blind-attention-heads)) | How sparse selectors fail, and cheap fixes | yes |
 | 20 | Pei 2026, "Kernel, Transport, Support: A Unified Prescription for Attention, State-Space and Delta-Rule Sequence Mixers", Zenodo doi:10.5281/zenodo.24191078 | One formula for all mixers; Hankel bound on retrieval | yes (read via alphaXiv; not on arXiv) |
+| 21 | Lan et al. 2026, FlashMorph2, arXiv:2611.24809 | Choosing which layers keep full attention in a converted hybrid | yes (metadata; abstract only) |
+| 22 | Twindex, arXiv:2611.25078 | List of shipped token-level sparse-attention models | (unverified: alphaXiv metadata only) |
 
 ## Open questions
 
 - [ ] Is there a scaling law for the minimum fraction of exact-access layers
-      (full or sparse) as a function of a task's recall demand?
+      (full or sparse) as a function of a task's recall demand? (2026-W47
+      update: FlashMorph2 searches for which layers to keep, per model, but
+      gives no law.)
 - [ ] At 1M tokens, do models with no full attention keep their recall only
       because of sparse attention, or do pure fixed-state models also hold up?
 - [ ] Does any architecture with sub-linear memory beat the recall-throughput
@@ -276,3 +293,6 @@ means cited from memory and must be checked before being relied on.
     attention.
   - L4 sources 17–20 and notes on two open questions.
 - 2026-11-18: added open questions raised by the 2026-W47 radar.
+- 2026-11-20: added FlashMorph2 and Twindex to Adoption, from the
+  [2026-W47 radar update](../radar/2026-W47.md). Both are from abstracts
+  only, and Twindex is marked unverified.
