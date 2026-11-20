@@ -11,7 +11,8 @@
 | [Does a multimodal model need a separate, pretrained vision encoder?](cards/vision-encoder.md) | draft | Pretrained prior optional, dedicated vision parameters essential, and they can sit in the first backbone layers. |
 | [When should parameters be reserved for some tokens?](cards/mixture-of-experts.md) | stub | Mixture of experts and modality-specific parameters. |
 | [Do LLM agents reason better together, and does latent talk help?](cards/multi-agent-communication.md) | draft | Voting explains most debate gains (pooled: about 4 points below matched baselines); latent beliefs cut tokens but do not yet beat text debate. |
-| [Can a model reason in continuous vectors instead of words?](cards/latent-reasoning.md) | stub | Coconut and Soft Thinking: chain of thought without tokens; hidden-state feedback already wins in pretraining at matched compute. |
+| [Can a model reason in continuous vectors instead of words?](cards/latent-reasoning.md) | draft | Continuous thoughts can search in parallel in theory, but pretrained models collapse them to one path; today they buy fewer tokens, not better reasoning. |
+| [What do looped (recurrent-depth) transformers buy?](cards/looped-transformers.md) | stub | Rerun the same layers per token for more test-time compute; not yet compared at matched FLOPs. |
 
 ## Open questions (collected from cards)
 
@@ -79,10 +80,23 @@ The `/radar` skill checks new papers against this list.
   families without a trained bridge?
 - [multi-agent-communication] Does latent exchange avoid the interaction tax
   (diversity collapse) better than text?
-- [latent-reasoning] Do latent chains of thought beat text chains of thought
-  at equal compute beyond small logic benchmarks?
+- [latent-reasoning] In a pretrained model of 1B+ parameters, does a latent
+  chain beat a text chain at matched decode steps on a search-heavy task, and
+  does deleting it hurt? (No source shows both yet.)
 - [latent-reasoning] Does hidden-state feedback that helps pretraining also
-  give Coconut-style reasoning gains without a separate latent stage?
+  give Coconut-style reasoning gains, and avoid superposition collapse?
+- [latent-reasoning] A lower bound that strictly separates discrete from
+  continuous chains of thought on graph reachability?
+- [latent-reasoning] Does superposition capacity per thought scale with
+  width like associative memory (about `d` items)?
+- [latent-reasoning] Do latent slots raise the 3–7-step latent planning depth
+  ceiling?
+- [latent-reasoning] Can probes read latent chains well enough to keep
+  chain-of-thought monitoring viable?
+- [looped-transformers] At matched FLOPs, does a looped transformer beat a
+  wider fixed-depth model on reasoning?
+- [looped-transformers] Do looped models need adaptive halting, as latent
+  chains do?
 
 ## Radar reports
 
