@@ -75,10 +75,10 @@ tool is missing, say so and fall back to web search.
 
 | Need | First choice | Fallback |
 |---|---|---|
-| Find AI/ML papers on a topic | `alphaxiv` `discover_papers` | `huggingface` `paper_search`, `arxiv` search |
-| Read a paper's content | `alphaxiv` `get_paper_content` | `arxiv` (reads LaTeX sections) |
+| Find AI/ML papers on a topic | `alphaxiv` `discover_papers` | `asta` `search_papers_by_relevance`, `undermind` `search_papers`, `huggingface` `paper_search` (if enabled) |
+| Read a paper's content | `alphaxiv` `get_paper_content` | `undermind` `read_pdfs`; for exact equations, fetch `https://arxiv.org/html/<id>` |
 | Ask a specific question of a PDF | `alphaxiv` `answer_pdf_queries` | read it yourself |
-| Citations, references, citation counts | `asta` (Semantic Scholar graph) | `arxiv` citation graph tools |
+| Citations, references, citation counts | `asta` (Semantic Scholar graph) | `undermind` `display_references` |
 | What is trending right now | Hugging Face daily papers (`https://huggingface.co/api/daily_papers?sort=trending`), Emergent Mind skill | alphaXiv trending via web |
 | Exhaustive search on a hard, precise question | `undermind` deep search | `alphaxiv` with high difficulty |
 | Compare many papers in one table | `elicit` (if connected) | build the table yourself |

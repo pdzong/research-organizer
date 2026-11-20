@@ -12,21 +12,25 @@ check its docs link first.
 | Hugging Face | Paper search, models and datasets linked to papers, HF docs | Free HF account (OAuth) | yes |
 | Asta (Ai2, Semantic Scholar graph) | Citations, references, citation counts, author search, full-text snippet search over about 12M papers | Works without a key; a free key raises rate limits | yes |
 | Undermind | Exhaustive deep search on a precise, hard question; topic monitoring | Free plan with limits; Pro $16/month (academic) | yes |
-| arXiv (`arxiv-mcp-server`, community) | Search arXiv, read LaTeX source one section at a time, BibTeX, topic watches | Free; needs `uv` installed | yes |
+| arXiv (`arxiv-mcp-server`, community) | Search arXiv, read LaTeX source one section at a time, BibTeX, topic watches | Free; needs `uv` installed | no, optional |
 | Elicit | Tables comparing many papers, reports, scheduled research routines | Requires Elicit Pro or higher | no, optional |
 | Emergent Mind skills | Trending arXiv papers by category, idea-based search, about 37K open problems from papers | Free account includes 50 API requests a month | no, installed as skills |
 | Built-in web search and fetch | Blogs (Raschka, Grootendorst, Epoch AI), Hugging Face daily papers API | Included in Claude | built in |
 
 ## Claude Code (recommended)
 
-The vault's `.mcp.json` registers the first five connectors for any Claude
+The vault's `.mcp.json` registers the first four connectors for any Claude
 Code session started inside `exploration/`. On first start, Claude Code asks
 you to approve these project servers. Then authenticate the OAuth ones:
 
 1. Start `claude` in `exploration/`, run `/mcp`.
 2. For `alphaxiv`, `huggingface` and `undermind`, select the server and choose
    **Authenticate**. A browser window opens for each sign-in.
-3. `asta` and `arxiv` need no sign-in.
+3. `asta` needs no sign-in.
+
+If Hugging Face `paper_search` does not appear in the tool list, enable it in
+your Hugging Face MCP settings. alphaXiv, Asta and Undermind cover paper
+search either way.
 
 `.claude/settings.json` pre-approves only read-only tools (alphaXiv search and
 read tools, Hugging Face paper search, Asta, arXiv, web search and fetch).
@@ -64,12 +68,24 @@ claude mcp add --transport http asta https://asta-tools.allen.ai/mcp/v1 --header
 
 Never commit the key. It belongs in your environment, not in this repository.
 
-### The arXiv server needs `uv`
+### Optional: arXiv server
 
-Install `uv` once (<https://docs.astral.sh/uv/getting-started/installation/>).
-`uvx arxiv-mcp-server` then downloads and runs the server from PyPI. Use the
-PyPI package; an unrelated npm package has the same name. Papers it downloads
-are stored in `~/.arxiv-mcp-server/papers`.
+Not needed for normal use: alphaXiv, Asta and Undermind cover search, reading
+and citations. Add it only if you want the LaTeX source of papers (exact
+equations for L3 cards) or BibTeX export.
+
+Install `uv` once (<https://docs.astral.sh/uv/getting-started/installation/>),
+then register the server for yourself:
+
+```bash
+claude mcp add arxiv -- uvx arxiv-mcp-server
+```
+
+`uvx` downloads and runs the server from PyPI. Use the PyPI package; an
+unrelated npm package has the same name. Papers it downloads are stored in
+`~/.arxiv-mcp-server/papers`. Its tools are already pre-approved in
+`.claude/settings.json`. Without `uv`, the server fails to start with
+`CONNECTION_CLOSED`.
 
 ## Claude Desktop and claude.ai
 
