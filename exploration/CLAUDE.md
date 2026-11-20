@@ -97,6 +97,12 @@ an Undermind deep search, and batch Emergent Mind calls.
   questions collected from the cards. Keep it updated whenever a card changes.
 - `radar/YYYY-Www.md`: weekly radar reports (ISO week, for example
   `2026-W47.md`).
+- `viewer/`: the reading view. `py viewer/build.py` parses the cards, INDEX
+  and radar into `viewer/site/` (generated, not committed). Publish
+  `viewer/site/index.html` with `vault-data.js` as a supporting file to the
+  existing artifact https://claude.ai/artifact/FZD3Hv15sBybVtn3V3d14D
+  (pass it as `url`). The cards stay the source of truth: never edit the
+  generated files.
 - Link cards to each other with relative Markdown links, for example
   `[associative memory](associative-memory.md)`. Create a stub card for a
   linked concept if it does not exist yet; mark it `Status: stub`.
