@@ -1,7 +1,7 @@
 # Can a model reason in continuous vectors instead of words?
 
 Status: draft
-Last updated: 2026-11-20
+Last updated: 2026-11-22
 Related: [multi-agent communication](multi-agent-communication.md) ·
 [looped transformers](looped-transformers.md) ·
 [associative memory](associative-memory.md) ·
@@ -104,9 +104,16 @@ The exchange is tokens and latency against accuracy and readability.
 - **Pretraining is the one place where hidden-state feedback wins at matched
   compute** (latent feedback, arXiv:2611.20404; see the radar evidence
   below). That result is about loss, not reasoning tasks.
+- **Small purpose-built reasoners: a cost frontier on ARC.** Pathway's
+  BDH-CQ is a 150M model that reasons with no written chain. It reaches
+  29.5% pass@2 on ARC-AGI-1 at about $0.0007 per task. That is a new point
+  on the cost-versus-accuracy plane, not higher accuracy. See the BDH-CQ
+  section below. `[empirical, self-reported, independently reproduced
+  score]`
 
-Verdict: latent reasoning moves the token-efficiency frontier on small tasks.
-It does not yet move the accuracy frontier for pretrained models at scale.
+Verdict: latent reasoning moves the token-efficiency frontier on small tasks,
+and in BDH-CQ the cost frontier on ARC. It does not yet move the accuracy
+frontier for pretrained language models at scale.
 
 ### 3. Boundary
 
@@ -195,6 +202,11 @@ It does not yet move the accuracy frontier for pretrained models at scale.
 - **Depth recurrence.** Universal and looped transformers rerun layers within
   one token instead of feeding states across tokens (see
   [looped transformers](looped-transformers.md)).
+- **Fast weights and Hebbian memory.** BDH-CQ writes demonstrations into a
+  recurrent memory that the authors relate to fast weights and linear
+  attention. In the underlying BDH architecture this memory is a Hebbian
+  synaptic state. Here in-context learning is a memory write, the same
+  operation as in [associative memory](associative-memory.md).
 - **Cognitive science.** Coconut cites findings that the human language
   network stays largely inactive during many reasoning tasks.
   `[interpretation]`: a motivation, not evidence about transformers.
@@ -219,6 +231,10 @@ It does not yet move the accuracy frontier for pretrained models at scale.
   its top-1 token (cosine similarity, KL divergence).
 - **Pass@k, not only pass@1.** It shows whether latent training preserves
   diversity.
+- **A dose-response test.** Train with variable latent depth, then vary it at
+  inference. If accuracy rises with more steps, the steps are doing work.
+  BDH-CQ reports 21%, then 27%, then 29.5% at low, medium and high effort.
+  This is weaker than a deletion test, but it is causal evidence of use.
 - **What would support the strong claim:** a pretrained model of at least
   1B parameters where a latent chain beats a text chain at matched decode
   steps on a search-heavy task, and where deleting the chain hurts. None of
@@ -238,9 +254,12 @@ It does not yet move the accuracy frontier for pretrained models at scale.
   - INTACT (arXiv:2610.19568);
   - latent reasoning with flow matching (arXiv:2610.06666);
   - several critiques.
-- **No shipped production model** in the sources read uses latent chains as
-  its main reasoning mode. Frontier reasoning models still write text chains
-  of thought. `[interpretation]`, based on these sources only.
+- **No shipped production language model** in the sources read uses latent
+  chains as its main reasoning mode. Frontier reasoning models still write
+  text chains of thought. `[interpretation]`, based on these sources only.
+- **A commercial latent reasoner outside language.** Pathway runs BDH-CQ as
+  an ARC reasoning service, and an independent black-box audit reproduced
+  its score. The exact architecture is proprietary.
 - **Safety pushback.** Korbak et al. 2025 (arXiv:2507.11473) argue that
   readable chains of thought are a "new and fragile opportunity" for
   oversight. Xu et al. frame latent-reasoning limits as what keeps that
@@ -340,6 +359,79 @@ directions as there are vertices, which is the width cost.
 - **Looped models** are now on their own card:
   [looped transformers](looped-transformers.md).
 
+## BDH-CQ: in-context learning plus recurrent latent reasoning (Pathway, 2026)
+
+Source: Engdahl, Kosowski, Chorowski, Stamirowska, Uznański, Jiang, Phadke,
+Kinas & Zhong 2026, "BDH-CQ: In-Context Learning with Recurrent Latent
+Reasoning", arXiv:2608.09888 (Pathway, Bielik AI, NYU). Read in full with
+alphaXiv. It builds on Pathway's Dragon Hatchling (BDH) architecture
+(Kosowski et al. 2025, arXiv:2509.26507, metadata verified).
+
+**What is new: two separate states, one for learning and one for thinking.**
+
+1. **Memory `S` learns the task from the context.** Each demonstration is
+   written into a recurrent memory, `S_t = U(S_{t-1}, D_t)`, with fixed
+   weights. There is no KV cache, and nothing is learned by gradient at test
+   time.
+2. **Workspace `H` does the reasoning.** After reading the demonstrations,
+   the model encodes the query, `H_0 = E(x*, S_K)`. It then iterates
+   `H_{r+1} = F(H_r, S_K)` for `R` steps and decodes only the answer,
+   `ŷ = G(H_R)`. No intermediate step is written out as tokens.
+
+Compared with the methods above:
+
+- **Coconut and CODI** feed one hidden state back as the next token, inside a
+  language model fine-tuned from a text chain. BDH-CQ iterates a separate,
+  structured multi-vector workspace, which is recurrence in depth. It is
+  trained from scratch for this purpose.
+- **HRM and TRM** (recursive latent solvers for ARC) learn each evaluation
+  task by optimization, with per-puzzle identity embeddings. BDH-CQ learns an
+  unseen task from its demonstrations alone, in one forward computation.
+  The paper cites ARC Prize costs of $1.48 per task for HRM and $1.76 for
+  TRM.
+
+**Results** `[empirical, self-reported]`:
+
+- **ARC-AGI-1 public evaluation (400 tasks).** 29.5% pass@2 with 150M
+  parameters, at about 0.85 H200 GPU-seconds, or $0.0007, per task.
+  - No system on the ARC Prize leaderboard of August 2026 reaches this
+    accuracy at this cost or less.
+  - For comparison, GPT 5.6 Luna (Low) scores 34.2% at $0.040 per task, by
+    the leaderboard's numbers.
+  - An independent black-box audit by the Bielik AI and NYU co-authors
+    reproduced the 29.5%.
+- **Reasoning effort scales accuracy.** Low, medium and high latent effort
+  give 21%, 27% and 29.5%. The paper reports the low setting as 22% cheaper
+  than high.
+- **The task is held in memory, not memorized.**
+  - Fresh color permutations given only in the demonstrations are applied
+    correctly on 96 of 96 held-out outputs.
+  - Propagation and copying extrapolate across all tested lengths.
+  - Ordering fails beyond 6 objects, and nesting fails at depth 5.
+  - Adding one demonstration at the target depth fixes nesting (from 19/24
+    to 24/24).
+- **ConceptARC:** 95 of 160 tasks at pass@2, ranging from 9/10 (filled or
+  not filled) to 2/10 (copy, order).
+
+**Caveats:**
+
+- **The update rules, dimensions and training recipe are proprietary**, so
+  the results cannot be reproduced from the paper. The evaluated system also
+  includes input transformations and candidate ranking, not only the model.
+- **The headline is cost, not accuracy.** 29.5% is far below the best ARC-AGI-1
+  systems. No comparison is made with a text chain of thought, or with a
+  same-size model without latent steps, at matched compute.
+- **It covers visual grids only.** Language and math are stated as future
+  work. The paper's claim of Transformer-like scaling from 1B to 600B
+  parameters is a one-line mention of early experiments, with no data.
+
+**How it fits this card.** `[interpretation]` BDH-CQ is trained from scratch
+for latent reasoning. That is the regime where Rizvi-Martel et al. found
+latents are actually used, and the effort-scaling result agrees. So it
+supports the reading that latent reasoning works when a model is built for
+it, and fails mainly when it is retrofitted onto a pretrained language model.
+Whether BDH-CQ's design carries over to language is open.
+
 ## L3 Math
 
 Planned outline (fill with `/deepen latent-reasoning L3`):
@@ -376,6 +468,8 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
 | 16 | Korbak et al. 2025, "Chain of Thought Monitorability: A New and Fragile Opportunity for AI Safety", arXiv:2507.11473 | Why readable chains matter for oversight. | yes (metadata) |
 | 17 | Zhu et al. 2025, "A Survey on Latent Reasoning", arXiv:2507.06203 | A broad map of the field; good for orientation. | yes (metadata) |
 | 18 | Chen et al. 2026, "Rethinking Fixed-Horizon Latent Reasoning", arXiv:2611.24001 | Overlong latent chains hurt; stop adaptively. | abstract only |
+| 19 | Engdahl, Kosowski, Chorowski et al. 2026, "BDH-CQ: In-Context Learning with Recurrent Latent Reasoning", arXiv:2608.09888 | Separate memory and workspace; the ARC cost frontier; dose-response from latent effort. | yes (full text) |
+| 20 | Kosowski, Uznański, Chorowski, Stamirowska & Bartoszkiewicz 2025, "The Dragon Hatchling", arXiv:2509.26507 | The BDH architecture: sparse positive activations and Hebbian synaptic state. | yes (abstract and metadata) |
 
 ## Open questions
 
@@ -395,6 +489,10 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
       ceiling (3 to 7 steps) seen within one forward pass?
 - [ ] Can probes read latent chains well enough to keep chain-of-thought
       monitoring viable if latent reasoning is adopted?
+- [ ] Does BDH-CQ-style in-context latent reasoning (separate memory and
+      workspace, trained from scratch) carry over to language or math tasks?
+      At matched compute, does it beat a same-size model that writes its
+      reasoning out?
 
 ## Log
 
@@ -416,3 +514,6 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
   - Corrected the seed note that Coconut "beats chain of thought on
     planning-heavy logic tasks". It does on ProsQA, but iCoT and pause-token
     controls match it, so the continuous thoughts are not what wins.
+- 2026-11-22: added Pathway's BDH-CQ (arXiv:2608.09888, read in full).
+  - New section, plus notes in Trade-off, Lineage, Measurement and Adoption.
+  - L4 sources 19–20 and one open question.

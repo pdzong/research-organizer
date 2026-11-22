@@ -11,7 +11,7 @@
 | [Does a multimodal model need a separate, pretrained vision encoder?](cards/vision-encoder.md) | draft | Pretrained prior optional, dedicated vision parameters essential, and they can sit in the first backbone layers. |
 | [When should parameters be reserved for some tokens?](cards/mixture-of-experts.md) | stub | Mixture of experts and modality-specific parameters. |
 | [Do LLM agents reason better together, and does latent talk help?](cards/multi-agent-communication.md) | draft | Voting explains most debate gains (pooled: about 4 points below matched baselines); latent beliefs cut tokens but do not yet beat text debate. |
-| [Can a model reason in continuous vectors instead of words?](cards/latent-reasoning.md) | draft | Continuous thoughts can search in parallel in theory, but pretrained models collapse them to one path; today they buy fewer tokens, not better reasoning. |
+| [Can a model reason in continuous vectors instead of words?](cards/latent-reasoning.md) | draft | Continuous thoughts can search in parallel in theory, but pretrained models collapse them to one path; models built for it from scratch (BDH-CQ) do use their latent steps. |
 | [What do looped (recurrent-depth) transformers buy?](cards/looped-transformers.md) | stub | Rerun the same layers per token for more test-time compute; not yet compared at matched FLOPs. |
 
 ## Open questions (collected from cards)
@@ -93,6 +93,9 @@ The `/radar` skill checks new papers against this list.
   ceiling?
 - [latent-reasoning] Can probes read latent chains well enough to keep
   chain-of-thought monitoring viable?
+- [latent-reasoning] Does BDH-CQ-style in-context latent reasoning carry to
+  language or math, and beat a same-size model that writes its reasoning out
+  at matched compute?
 - [looped-transformers] At matched FLOPs, does a looped transformer beat a
   wider fixed-depth model on reasoning?
 - [looped-transformers] Do looped models need adaptive halting, as latent

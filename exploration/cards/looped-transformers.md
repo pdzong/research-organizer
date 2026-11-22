@@ -1,7 +1,7 @@
 # What do looped (recurrent-depth) transformers buy?
 
 Status: stub
-Last updated: 2026-11-20
+Last updated: 2026-11-22
 Related: [latent reasoning](latent-reasoning.md) ·
 [test-time training](test-time-training.md) ·
 [state space models](state-space-models.md)
@@ -37,6 +37,10 @@ spending the same compute on a wider model or on a written chain of thought.
   (arXiv:2611.20404): a looped model pays its extra compute at every
   decoding step, while latent feedback pays it only in training and prefill.
   See [latent reasoning](latent-reasoning.md).
+- BDH-CQ from Pathway (arXiv:2608.09888) iterates a latent workspace over
+  depth after writing the demonstrations into a recurrent memory. Its latent
+  effort setting scales ARC-AGI-1 pass@2 from 21% to 29.5%. Details are in
+  [latent reasoning](latent-reasoning.md). `[empirical, self-reported]`
 
 ## Open questions
 
@@ -48,3 +52,4 @@ spending the same compute on a wider model or on a written chain of thought.
 ## Log
 
 - 2026-11-20: stub created from the latent-reasoning card.
+- 2026-11-22: added a pointer to BDH-CQ.
