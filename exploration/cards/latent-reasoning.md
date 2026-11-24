@@ -1,7 +1,7 @@
 # Can a model reason in continuous vectors instead of words?
 
 Status: draft
-Last updated: 2026-11-22
+Last updated: 2026-11-24
 Related: [multi-agent communication](multi-agent-communication.md) ·
 [looped transformers](looped-transformers.md) ·
 [associative memory](associative-memory.md) ·
@@ -10,13 +10,13 @@ Related: [multi-agent communication](multi-agent-communication.md) ·
 
 ## L0 Headline
 
-Latent reasoning replaces a written chain of thought with continuous vectors
-that the model feeds back into itself. In theory a continuous "thought" can
-hold several partial solutions at once, and this is proven for graph search.
-In practice, pretrained models mostly do not use that room: their latent
-chains collapse to one path, or only carry an answer they already computed
-while reading the question. Today latent reasoning buys fewer tokens and some
-sampling diversity, not better reasoning than text chains of thought at scale.
+Latent reasoning feeds continuous vectors, not written words, back into the
+model. In theory one such "thought" can hold several partial solutions at
+once (proven for graph search). In practice pretrained models collapse it to
+one path or skip it. Pretraining reads every input as one token, the
+feedback loop amplifies the leading option, and answer-only training rewards
+solving the problem while reading it. Today latent reasoning buys fewer
+tokens, not better reasoning than written chains of thought at scale.
 
 ## L1 Intuition
 
@@ -33,8 +33,9 @@ Analogy:
 Where the analogy breaks:
 
 - **Pretrained models rarely shade the map.** Given a blend of options, they
-  behave as if only the most likely one was there. They pick a corridor in
-  the first layers of the network, like the person who says "I'm keeping my
+  behave as if only the most likely one was there (why: see "Why pretrained
+  models collapse it" in L2). They pick a corridor in the first layers of the
+  network, like the person who says "I'm keeping my
   options open" and has already decided.
 - **Often there is no walk at all.** In many fine-tuned models the answer is
   already readable from the question before the latent chain starts. The
@@ -86,6 +87,11 @@ The exchange is tokens and latency against accuracy and readability.
   - CODI, trained by self-distillation, reaches 43.7% with GPT-2, about 99%
     of the text model, and 90% with LLaMA-3.2-1B. Self-reported.
     `[empirical]`
+  - Those results use short, formula-only training chains. With realistic
+    chains on MATH (about 350 tokens), CODI and a direct-supervision method
+    both collapse. With Qwen2.5-1.5B they score 12–15%, against 53% for
+    fine-tuning on the text chain. (Yerram, He & Choi 2026,
+    arXiv:2607.16972; one task, 1–1.5B models.) `[empirical]`
 - **Reinforcement learning with soft tokens: parity at pass@1, more
   diversity.** `[empirical, self-reported]`
   - Training continuous chains with RL on Llama and Qwen up to 8B matches
@@ -155,6 +161,15 @@ frontier for pretrained language models at scale.
   - Width, not depth, decides it. For graphs about 28 nodes wide, 2-layer
     models need `d` of about 256–384 before the latents matter (64.9% with
     against 62.3% without at `d = 64`; 96.7% against 32.0% at `d = 768`).
+- **The feedback loop is a ferromagnet.** `[proven, for two options with
+  logits carried linearly]` Feeding a softmax output back as input either
+  amplifies the leading option (coupling `L > 2`) or washes every blend out
+  to 50/50 (`L < 2`). Pretrained rollouts sit mostly at `L > 2` (Backour
+  2026, arXiv:2609.02049; single-author preprint, two model families). The
+  mechanism is in L2.
+- **Superposition survives training only while logits stay bounded.**
+  `[proven, in a simplified two-layer model]` (Zhu et al. 2026,
+  arXiv:2509.23365, ICLR). Details in L2.
 - **LLMs are single-threaded readers of soft tokens.** `[empirical]` Vanilla
   Soft Thinking behaves like greedy decoding, because the top-1 component
   dominates the next step (Wu et al. 2025, arXiv:2508.03440).
@@ -190,6 +205,16 @@ frontier for pretrained language models at scale.
 - **Breadth-first versus depth-first search.** Zhu et al. formalize the
   maze picture: a superposed frontier performs a BFS, while discrete
   sampling forces a DFS with backtracking.
+- **Mean-field ferromagnets (Curie–Weiss).** Backour shows that a blend fed
+  back through the softmax follows the Curie–Weiss self-consistency
+  equation. Above a critical coupling it polarizes to one option; below it,
+  blends wash out. This is the same statistical physics as Hopfield
+  retrieval (see [associative memory](associative-memory.md)). There,
+  falling into one pattern is the goal; here it is the failure.
+- **Gradient starvation.** Answer-only training sends almost all of the
+  gradient to the first latent step (Chen et al. 2026). This matches the
+  older finding that networks learn the easiest predictive features first
+  and stop learning the rest (Pezeshki et al. 2021, cited there).
 - **Quantum superposition and measurement.** Zhu et al. borrow the terms:
   the thought is a superposition, and the answer token "measures" it.
   `[interpretation]` Where it breaks: there is no interference, and
@@ -229,6 +254,12 @@ frontier for pretrained language models at scale.
   carrier.
 - **A collapse probe.** Compare the hidden states for a soft token and for
   its top-1 token (cosine similarity, KL divergence).
+- **A blend-preservation score.** Inject `w·A + (1−w)·B` and measure where
+  the hidden state lands between the two pure inputs. Report it for the
+  trained model and for a randomly initialised copy of it. Also measure the
+  feedback coupling `L_t`: values above 2 predict collapse (Backour 2026).
+- **Gradient per latent step.** If almost all of the gradient reaches the
+  first step, the later steps will not learn to do work (Chen et al. 2026).
 - **Pass@k, not only pass@1.** It shows whether latent training preserves
   diversity.
 - **A dose-response test.** Train with variable latent depth, then vary it at
@@ -326,6 +357,105 @@ within `c` steps.
 
 This is exactly one BFS expansion per thought. It needs as many orthogonal
 directions as there are vertices, which is the width cost.
+
+**Why pretrained models collapse it.** Superposition is possible, but in a
+pretrained language model three forces push toward one path. Each is enough
+on its own, and they stack.
+
+1. **Pretraining teaches the network to read every input as one token.**
+   `[empirical]` Every input a language model sees in pretraining is exactly
+   one token, and the loss rewards telling tokens apart. So the network
+   learns to map whatever it is given onto the nearest token.
+   - Backour 2026 (arXiv:2609.02049) puts "half *blood*, a quarter *grass*,
+     a quarter *sky*" into one slot and asks for its colour. The models
+     answer 99.5% red, not 50/25/25.
+   - Most blends of three words are read as one of the three, with sharp
+     boundaries between them (Qwen3.5-4B, Gemma-4-E4B).
+   - Randomly initialised copies of the same architectures keep blends far
+     better. So training, not the architecture, causes most of the collapse.
+   - It gets worse with scale. A preservation score (1 = blend kept exactly,
+     0 = hard switch at 50/50) falls from 0.63 at Qwen3.5-0.8B to 0.13 at
+     27B, against 0.82 to 0.61 for untrained copies.
+   - Rizvi-Martel et al. (arXiv:2604.06374) see the same in Pythia-1B. A
+     uniform blend of `k` tokens loses its entropy in the last layers, and
+     this loss grows steadily across pretraining checkpoints.
+2. **The feedback loop amplifies whichever option leads.**
+   `[proven, for two options with logits carried linearly]` (Backour 2026)
+   - Even a network that carried the blend perfectly would lose it at the
+     readout. A blend of logits becomes a *geometric* mix of probabilities
+     after the softmax, and that output is fed back in.
+   - For two options with weight `u ∈ [−1, 1]` (0 is an even blend), one
+     step is `u_{t+1} = tanh((b_t + L_t·u_t)/2)`. This is the mean-field
+     equation of a ferromagnet. The coupling `L_t` measures how differently
+     the two branches rank the next tokens.
+   - If `L > 2`, any lead grows until one option is almost pure. At
+     `L = 4` the winner holds 98% of the weight (`u ≈ 0.96`).
+   - If `L < 2`, every blend drifts back to 50/50. 70/30 and 30/70 become
+     indistinguishable, so the information is lost the other way.
+   - In measured rollouts of Qwen3.5-4B and Gemma-4-E4B, `L` sits mostly
+     above 2: the amplifying side. `[empirical]`
+   - Changing the temperature only moves the system from one failure to the
+     other. Keeping a blend of `K` options stable needs a correction that
+     depends on the context and has at least `K − 1` degrees of freedom.
+     `[proven, under a full-rank condition the paper does not measure]`
+3. **Training on the final answer alone rewards a shortcut.** `[empirical]`
+   - If the model can compute the answer while reading the question, that
+     is the cheapest way to lower the loss. The chain then only carries the
+     answer.
+   - In fine-tuned Coconut models (GPT-2, SmolLM2 up to 1.7B), the final
+     answer already dominates the probe at step 0. Deleting the chain costs
+     at most 1 point (Rizvi-Martel et al.).
+   - The training signal also fades along the chain. In outcome-supervised
+     latent chains on GPT-2 and GSM8k, almost all of the gradient reaches
+     the first latent step and later steps starve. The result is no better
+     than answering with no chain at all (Chen et al. 2026,
+     arXiv:2606.20075, ICML).
+   - Even models trained from scratch take the shortcut once they are deep
+     enough to solve the task in one pass. The accuracy lost by deleting the
+     chain falls from about 65 points with 2 layers to about 15 with 8 or 12
+     (Rizvi-Martel et al., 3 seeds).
+
+**When superposition does appear, and why.** `[proven, in a simplified
+two-layer model]` Zhu et al. 2026 (arXiv:2509.23365, ICLR) analyse
+training from scratch on graph reachability.
+
+- The attention logit that drives one-step search first grows, then stays
+  bounded. That leaves comparable weight on several plausible branches.
+- The logit stays bounded only because each training example shows one
+  path. If that path always went through the most-connected node, the logit
+  would grow without limit.
+- In ordinary discrete training such logits keep growing, and the model
+  commits to one branch on weak local evidence.
+
+So superposition is a balance: logits strong enough to use the graph's
+structure, but weak enough not to commit. Next-token pretraining sits at the
+committing end.
+
+**The analogy, and where it breaks.** `[interpretation]` A latent chain in a
+pretrained model behaves like a room of voters who each round move toward
+the current majority: a 55/45 split ends at 100/0. A Hopfield network does
+the same on purpose, which is how it retrieves a stored memory (see
+[associative memory](associative-memory.md)).
+
+- Where it breaks: the "majority" is the next-token preference, and the
+  coupling changes with the context at every step.
+- The second failure is the opposite of voting. When `L < 2` the room
+  converges to an even split and forgets which side was ahead.
+
+**What follows.** Each cause has its own fix, and current methods address
+one or two at a time:
+
+- Coconut and CODI skip the softmax readout, which removes cause 2.
+- Per-step supervision (SIM-CoT, curricula) counters cause 3.
+- Training from scratch, or pretraining with latent feedback, could counter
+  cause 1.
+
+The only systems that reliably use their latent steps are small models
+trained from scratch for one task, and BDH-CQ. Rizvi-Martel et al. also
+question the goal itself: Soft Thinking blends are already nearly one-hot
+(0.1–0.2 nats of mixing entropy) and often blend punctuation. Useful
+parallelism may need blends of strategies, not of tokens.
+`[interpretation]`
 
 ## Evidence from the 2026-W47 radar update
 
@@ -445,6 +575,11 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
   machine), and what a lower bound would need.
 - How many superposed items fit in dimension `d` (the Johnson–Lindenstrauss
   view), linked to the width results.
+- The collapse dynamics: deriving `u_{t+1} = tanh((b + L·u)/2)` from a
+  softmax readout, the bifurcation at `L = 2`, and the `K − 1` corrector
+  bound (Backour 2026).
+- Zhu et al.'s training dynamics: why the index-matching logit stays bounded
+  when the demonstrated node is not the one with the most incoming edges.
 
 ## L4 Sources (reading order)
 
@@ -455,6 +590,10 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
 | 3 | Merrill & Sabharwal 2023, "The Expressive Power of Transformers with Chain of Thought", arXiv:2310.07923 (ICLR 2024) | Why serial steps are the resource: TC0, L, regular languages, P. | yes (full text) |
 | 4 | Rizvi-Martel, Rabusseau & Mosbach 2026, "The Illusion of Superposition?", arXiv:2604.06374 (COLM 2026) | The main negative result: collapse in pretrained and fine-tuned models, and the width bottleneck. | yes (full text) |
 | 5 | Qiu et al. 2026, "Does Latent Chain-of-Thought Actually Reason?", arXiv:2610.21182 | Deletion and replacement tests, plus a taxonomy that reconciles the earlier reports. | yes (full text) |
+| 5a | Backour 2026, "The Dynamics of Continuous Mixture Collapse in Language Models", arXiv:2609.02049 | Why blends collapse: pretraining distorts them, and the softmax feedback loop acts as a ferromagnet. | yes (full text) |
+| 5b | Zhu, Hao, Hu, Jiao, Russell & Tian 2026, "Emergence of Superposition: Unveiling the Training Dynamics of Chain of Continuous Thought", arXiv:2509.23365 (ICLR 2026) | Why superposition does emerge from scratch: bounded attention logits. | yes (full text) |
+| 5c | Chen, Leong, Guo, Wang, Li & Shen 2026, "What Makes Effective Supervision in Latent Chain-of-Thought", arXiv:2606.20075 (ICML 2026) | Why answer-only training fails: gradient attenuation and drift. | yes (full text) |
+| 5d | Yerram, He & Choi 2026, "Training Continuous Chain of Thought Models: A Tale of Two Regimes", arXiv:2607.16972 | Latent chains collapse on realistic MATH reasoning traces. | yes (full text) |
 | 6 | Wu et al. 2025, "LLMs are Single-threaded Reasoners", arXiv:2508.03440 | Soft Thinking behaves greedily at 32B; noise helps. | yes (full text) |
 | 7 | Shen, Yan, Zhang, Hu, Du & He 2025, "CODI", arXiv:2502.21074 (EMNLP 2025) | The strongest distillation result: about 99% of the text chain at GPT-2 scale. | yes (full text) |
 | 8 | Butt, Kwiatkowski, Labiad, Kempe & Ollivier 2025, "Soft Tokens, Hard Truths", arXiv:2509.19170 | Scalable RL for continuous chains; train soft, decode hard. | yes (full text) |
@@ -479,7 +618,9 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
       ProsQA match iCoT and pause-token controls.)
 - [ ] Does hidden-state feedback that helps pretraining (arXiv:2611.20404)
       also give Coconut-style reasoning gains without a separate latent
-      training stage, and does it avoid superposition collapse?
+      training stage, and does it avoid superposition collapse? Concretely:
+      does such a model keep blends better than a next-token model of the
+      same size (the preservation score of arXiv:2609.02049)?
 - [ ] Is there a lower bound that strictly separates discrete from continuous
       chains of thought on graph reachability (more than `D` discrete steps
       needed)?
@@ -489,6 +630,9 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
       ceiling (3 to 7 steps) seen within one forward pass?
 - [ ] Can probes read latent chains well enough to keep chain-of-thought
       monitoring viable if latent reasoning is adopted?
+- [ ] Can a learned, context-conditioned corrector (which needs at least
+      `K − 1` degrees of freedom for `K` options) keep a blend alive in a
+      pretrained model, and does that help on a search-heavy task?
 - [ ] Does BDH-CQ-style in-context latent reasoning (separate memory and
       workspace, trained from scratch) carry over to language or math tasks?
       At matched compute, does it beat a same-size model that writes its
@@ -517,3 +661,15 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
 - 2026-11-22: added Pathway's BDH-CQ (arXiv:2608.09888, read in full).
   - New section, plus notes in Trade-off, Lineage, Measurement and Adoption.
   - L4 sources 19–20 and one open question.
+- 2026-11-24: `/investigate` on why latent chains collapse.
+  - Added "Why pretrained models collapse it" to L2. It names three causes:
+    pretraining reads every input as one token, the softmax feedback loop
+    acts as a ferromagnet, and answer-only training rewards a shortcut. It
+    also explains when superposition does emerge (bounded logits).
+  - Rewrote L0 to name the three causes. Added two Boundary results, two
+    Lineage links (Curie–Weiss, gradient starvation), two measurements, the
+    MATH collapse to Trade-off, two L3 outline items and one open question.
+  - Read in full with alphaXiv: Backour 2026 (arXiv:2609.02049), Zhu et al.
+    2026 (arXiv:2509.23365), Chen et al. 2026 (arXiv:2606.20075), Yerram et
+    al. 2026 (arXiv:2607.16972), and Rizvi-Martel et al. again for their
+    causal explanation.

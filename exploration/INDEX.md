@@ -11,7 +11,7 @@
 | [Does a multimodal model need a separate, pretrained vision encoder?](cards/vision-encoder.md) | draft | Pretrained prior optional, dedicated vision parameters essential, and they can sit in the first backbone layers. |
 | [When should parameters be reserved for some tokens?](cards/mixture-of-experts.md) | stub | Mixture of experts and modality-specific parameters. |
 | [Do LLM agents reason better together, and does latent talk help?](cards/multi-agent-communication.md) | draft | Voting explains most debate gains (pooled: about 4 points below matched baselines); latent beliefs cut tokens but do not yet beat text debate. |
-| [Can a model reason in continuous vectors instead of words?](cards/latent-reasoning.md) | draft | Continuous thoughts can search in parallel in theory, but pretrained models collapse them to one path; models built for it from scratch (BDH-CQ) do use their latent steps. |
+| [Can a model reason in continuous vectors instead of words?](cards/latent-reasoning.md) | draft | Continuous thoughts can search in parallel in theory, but pretrained models collapse them to one path: pretraining reads inputs as single tokens, the feedback loop amplifies the leader, and answer-only training rewards shortcuts. Models built for it from scratch (BDH-CQ) do use their latent steps. |
 | [What do looped (recurrent-depth) transformers buy?](cards/looped-transformers.md) | stub | Rerun the same layers per token for more test-time compute; not yet compared at matched FLOPs. |
 
 ## Open questions (collected from cards)
@@ -84,7 +84,11 @@ The `/radar` skill checks new papers against this list.
   chain beat a text chain at matched decode steps on a search-heavy task, and
   does deleting it hurt? (No source shows both yet.)
 - [latent-reasoning] Does hidden-state feedback that helps pretraining also
-  give Coconut-style reasoning gains, and avoid superposition collapse?
+  give Coconut-style reasoning gains, and avoid superposition collapse (does
+  it keep blends better than a next-token model)?
+- [latent-reasoning] Can a context-conditioned corrector (at least `K − 1`
+  degrees of freedom) keep a `K`-way blend alive in a pretrained model, and
+  does it help on search?
 - [latent-reasoning] A lower bound that strictly separates discrete from
   continuous chains of thought on graph reachability?
 - [latent-reasoning] Does superposition capacity per thought scale with

@@ -891,6 +891,22 @@
   "summary": "The use of continuous instead of discrete tokens during the Chain-of-Thought (CoT) phase of reasoning LLMs has garnered attention recently, based on the intuition that a continuous mixture of discrete tokens could simulate a superposition of several reasoning paths simultaneously. Theoretical results have formally proven that continuous tokens have much greater expressivity and can solve specific problems more efficiently.",
   "checked": "2026-11-24"
  },
+ "2509.23365": {
+  "found": true,
+  "title": "Emergence of Superposition: Unveiling the Training Dynamics of Chain of Continuous Thought",
+  "authors": [
+   "Hanlin Zhu",
+   "Shibo Hao",
+   "Zhiting Hu",
+   "Jiantao Jiao",
+   "Stuart Russell",
+   "Yuandong Tian"
+  ],
+  "year": "2025",
+  "category": "cs.LG",
+  "summary": "Previous work shows that the chain of continuous thought (continuous CoT) improves the reasoning capability of large language models (LLMs) by enabling implicit parallel thinking, and a subsequent work provided theoretical insight by showing that a two-layer transformer equipped with continuous CoT can efficiently solve directed graph reachability by maintaining a superposition of multiple reasoning traces in the continuous thought.",
+  "checked": "2026-11-24"
+ },
  "2509.26507": {
   "found": true,
   "title": "The Dragon Hatchling: The Missing Link between the Transformer and Models of the Brain",
@@ -1023,6 +1039,22 @@
   "year": "2026",
   "category": "cs.MA",
   "summary": "Language-model agents build internal representations of the information they observe and the reasoning they perform. Sharing these representations offers a way to communicate both source information and reasoning across agents. For agents built from different models, this requires aligning their representations while preserving information useful to the receiver.",
+  "checked": "2026-11-24"
+ },
+ "2606.20075": {
+  "found": true,
+  "title": "What Makes Effective Supervision in Latent Chain-of-Thought: An Information-Theoretic Analysis",
+  "authors": [
+   "Xinghao Chen",
+   "Chak Tou Leong",
+   "Wenjin Guo",
+   "Jian Wang",
+   "Wenjie Li",
+   "Xiaoyu Shen"
+  ],
+  "year": "2026",
+  "category": "cs.LG",
+  "summary": "Latent Chain-of-Thought (CoT) internalizes reasoning within continuous hidden states, offering a promising alternative to verbose discrete reasoning traces. However, robust latent reasoning remains difficult because outcome supervision provides weak learning signals and leaves latent trajectories prone to semantic drift.",
   "checked": "2026-11-24"
  },
  "2606.26560": {
@@ -1404,6 +1436,19 @@
   "year": "2026",
   "category": "cs.LG",
   "summary": "Linear attention models allow a fixed state size and a fixed amount of compute per token. However, due to their limited state size, linear attention models fall behind in long-context recall compared to softmax-attention-based transformer architectures. Increasing the state size of linear attention improves recall performance but at the cost of higher FLOPs.",
+  "checked": "2026-11-24"
+ },
+ "2607.16972": {
+  "found": true,
+  "title": "Training Continuous Chain of Thought Models: A Tale of Two Regimes",
+  "authors": [
+   "Varun Yerram",
+   "He He",
+   "Eunsol Choi"
+  ],
+  "year": "2026",
+  "category": "cs.AI",
+  "summary": "Continuous Chain-of-Thought methods replace verbose reasoning traces with a short sequence of dense latent representations. Earlier continuous CoT methods indirectly supervise the latent representations such that its final state match that of verbose reasoning traces, requiring autoregressive, slow generation during training.",
   "checked": "2026-11-24"
  },
  "2607.17419": {
@@ -1886,6 +1931,17 @@
   "year": "2026",
   "category": "cs.MA",
   "summary": "Does multi-agent LLM interaction help or hurt? Some work reports gains from debate (Du et al., 2024), critique loops (Chen et al., 2025), and mixture-of-agents synthesis (Wang et al., 2025), while other work finds that interaction adds cost without improving quality under equal budgets (Tran & Kiela, 2026; Xu et al., 2026; Jarrett et al., 2025), or that independent sampling already captures multi-agent gains (Li et al., 2024).",
+  "checked": "2026-11-24"
+ },
+ "2609.02049": {
+  "found": true,
+  "title": "The Dynamics of Continuous Mixture Collapse in Language Models",
+  "authors": [
+   "Ali Backour"
+  ],
+  "year": "2026",
+  "category": "cs.LG",
+  "summary": "LLMs latent-state reasoning methods replace discrete intermediate tokens with continuous states, such as weighted mixtures of token embeddings, to retain multiple possible reasoning directions rather than committing to one. Yet pretrained language models often fail to preserve these mixtures. We study why through a combination of theoretical analysis and controlled empirical investigations on a variety of models. We identify three independent, distinct sources of failure.",
   "checked": "2026-11-24"
  },
  "2609.07816": {
