@@ -39,6 +39,12 @@ Period: $ARGUMENTS (default: the last 7 days)
    - "Suggested card updates": concrete edits, not yet applied.
    - "New questions" that came up.
 6. **Do not edit cards automatically.** Ask the user which suggested updates to
-   apply, then apply them with `/investigate` or directly.
+   apply, then apply them with `/investigate` or directly. Fold each update
+   into the section it belongs to (the seven questions, L2 or L4), not into
+   a new "from the radar" section. If a new result contradicts a claim in a
+   card, propose moving the old claim to the card's `## Superseded` section
+   (see `curation-policy.md`) rather than deleting it.
 7. Add the report to the "Radar reports" section of `INDEX.md`, then commit
    and push files under `exploration/`.
+8. **Check budgets.** Run `py curation/measure.py`. For each card the update
+   touched that is now over budget, suggest `/curate <slug>` to the user.

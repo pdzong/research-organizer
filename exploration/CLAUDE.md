@@ -103,6 +103,11 @@ an Undermind deep search, and batch Emergent Mind calls.
   existing artifact https://claude.ai/artifact/FZD3Hv15sBybVtn3V3d14D
   (pass it as `url`). The cards stay the source of truth: never edit the
   generated files.
+- `curation-policy.md`: how cards are kept short and on topic: core ideas,
+  verdicts, budgets and approval tiers. `curation/measure.py` checks the
+  budgets; `curation/YYYY-MM-DD-<scope>.md` are curation reports. Curation
+  never deletes: contradicted claims go to a card's `## Superseded` section
+  and off-topic material to `## Archive`.
 - Link cards to each other with relative Markdown links, for example
   `[associative memory](associative-memory.md)`. Create a stub card for a
   linked concept if it does not exist yet; mark it `Status: stub`.
@@ -116,6 +121,8 @@ The skills in `.claude/skills/` implement these:
   section more deeply.
 - `/radar`: weekly check of new papers against every card's open questions.
 - `/connect <card A> <card B>`: look for real links between two concepts.
+- `/curate <card|all>`: propose a clean-up against the card's core ideas and
+  the strength of its evidence; apply only what the user approves.
 
 ## Git
 

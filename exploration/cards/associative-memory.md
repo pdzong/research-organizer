@@ -1,7 +1,7 @@
 # What limits how much an associative memory can store and retrieve?
 
 Status: draft
-Last updated: 2026-11-20
+Last updated: 2026-11-24
 Related: [attention efficiency](attention-efficiency.md) ·
 [test-time training](test-time-training.md) ·
 [state space models](state-space-models.md) ·
@@ -136,11 +136,7 @@ Where the analogy breaks:
     `0.138 N` patterns before retrieval collapses (Amit, Gutfreund &
     Sompolinsky 1985, PRL 55:1530, doi:10.1103/PhysRevLett.55.1530).
   - The replica method is a statistical-physics calculation, not a rigorous
-    proof; simulations agree with it.
-  - A later replica-symmetry-breaking analysis gives about `0.144`. The value
-    also depends on how many retrieval errors are tolerated. Both points come
-    from secondary sources found by web search; the PDFs were not read
-    (unverified).
+    proof; simulations agree with it. Refinements of the constant are in L3.
 - `[proven]` **Dense associative memories.**
   - With an exponential interaction function, the generalised Hopfield model
     of Krotov & Hopfield stores exponentially many patterns in `N`.
@@ -159,7 +155,8 @@ Where the analogy breaks:
     side of the trade-off.
 - `[proven, for unit keys and values]` **Hebbian crosstalk.** With orthonormal
   values, no key set keeps the mean squared crosstalk within `ε²` once
-  `n > d(1+ε²)` (Abdulla et al. 2026, TANSAR, arXiv:2611.12374). Details below.
+  `n > d(1+ε²)` (Abdulla et al. 2026, TANSAR, arXiv:2611.12374). The bound
+  holds for any key distribution; what it means for real keys is in L2.
 - `[empirical]` **How pretrained linear-attention models degrade.** In
   pretrained GLA and Gated DeltaNet models:
   - Recall and editability fall as **memory load** grows. The elapsed context
@@ -169,12 +166,9 @@ Where the analogy breaks:
   - Source: Lee et al. 2026, arXiv:2609.33093. The evidence comes from a few
     models and controlled interventions.
 - `[proven]` **Zero-temperature limit of softmax.**
-  - As `β → ∞`, `β⁻¹ log Σ exp(β s_w)` tends to the best score `s*`.
-  - The sum divided by `exp(β s*)` tends to the number of items tied at
-    `s*`.
-  - So a hard read that keeps the best score and its tie count keeps
+  - A hard read that keeps the best score and its tie count keeps
     everything a cold enough softmax can see. This is the large-`β` end of the
-    modern Hopfield trade-off.
+    modern Hopfield trade-off. The two limits behind it are in L3.
   - Source: Mohsenvand 2026, arXiv:2611.11937, Proposition 1. The proof is
     short and elementary; the paper notes that it is not machine-checked.
 
@@ -354,18 +348,13 @@ difference: the classic network uses `W = Σ ξ ξᵀ` (auto-association, where 
 key is the value), while linear attention stores `v kᵀ` (hetero-association,
 where the key and value differ).
 
-## Capacity under correlated keys (from the 2026-W47 radar)
-
-Source for this section: Abdulla et al. 2026, "TANSAR", arXiv:2611.12374
+**Capacity under correlated keys.** Source: Abdulla et al. 2026, "TANSAR",
+arXiv:2611.12374
 ([code](https://github.com/abdulhadyabas2/Topology-Aware-Neuro-Symbolic-Associative-Retrieval-for-Multi-Hop-Knowledge-Editing)).
 The paper studies a purely additive (Hebbian) matrix memory
-`C = Σ β_i k_i v_iᵀ`.
+`C = Σ β_i k_i v_iᵀ`. Its crosstalk bound, which needs no assumption on how
+the keys are distributed, is in the Boundary section.
 
-- `[proven, for unit keys and values]` Crosstalk limits capacity:
-  - Crosstalk is bounded by key coherence, with no distributional assumption
-    on the keys.
-  - With orthonormal values, no key set keeps the mean squared crosstalk at or
-    below `ε²` once the number of stored pairs `n` exceeds `d(1+ε²)`.
 - `[empirical]`, measured at `d = 1024`:
   - Realistic, semantically correlated keys hold far fewer pairs than random
     keys: 58 instead of 257 at `ε = 0.5`. Mean-centring the keys recovers part
@@ -398,6 +387,19 @@ Planned outline (fill with `/deepen associative-memory L3`):
   it does not reach the batch least-squares solution in one pass.
 - Ramsauer's energy function, and the separation condition behind
   exponential capacity.
+
+Details already moved here from the reading layer (curation, 2026-11-24):
+
+- **Refinements of the `0.138 N` constant.** A later
+  replica-symmetry-breaking analysis gives about `0.144`. The value also
+  depends on how many retrieval errors are tolerated. Both points come from
+  secondary sources found by web search; the PDFs were not read
+  (unverified).
+- **The two limits behind the zero-temperature read** (Mohsenvand 2026,
+  arXiv:2611.11937, Proposition 1):
+  - As `β → ∞`, `β⁻¹ log Σ exp(β s_w)` tends to the best score `s*`.
+  - The sum divided by `exp(β s*)` tends to the number of items tied at
+    `s*`.
 
 ## L4 Sources (reading order)
 
@@ -470,3 +472,10 @@ Planned outline (fill with `/deepen associative-memory L3`):
   - Added L4 sources 18–20 and two open questions.
   - Spot-checked the Toaster and Absolute Zero numbers against the papers
     with alphaXiv.
+- 2026-11-24: curated, automatic tier only (report
+  [curation/2026-11-24-associative-memory.md](../curation/2026-11-24-associative-memory.md)).
+  - Folded the 2026-W47 TANSAR section into L2; its crosstalk bound now
+    appears once, in Boundary.
+  - Moved the unverified `0.144` constant and the zero-temperature limits
+    from Boundary to L3.
+  - Nine proposals wait for approval.

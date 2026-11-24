@@ -8,6 +8,14 @@ Related: [other card](other-card.md)
 
 One or two sentences a busy reader can stop at.
 
+## Core ideas
+
+The three to six claims the rest of the card serves, each with its evidence
+label. `/curate` judges every other item against this list, so change it only
+with the user's approval.
+
+1. 
+
 ## L1 Intuition
 
 Analogy:
@@ -54,6 +62,26 @@ Questions the radar should watch. Each one should be answerable by a future
 paper or experiment.
 
 - [ ] 
+
+## Superseded
+
+Claims that later evidence contradicted or replaced. Kept because the old
+reasoning and its refutation are useful. One H3 entry per claim:
+
+### <the old claim, short> (superseded YYYY-MM-DD)
+
+- **Claimed:** what was believed, with its original label and source.
+- **Replaced by:** the newer result and its source.
+- **Why it still matters:** what the episode teaches, or what would revive it.
+
+## Archive
+
+Grounded material that no longer serves a core idea or open question. One H3
+entry per item:
+
+### <short title> (archived YYYY-MM-DD, from <section>)
+
+The text as it was, with its sources.
 
 ## Log
 

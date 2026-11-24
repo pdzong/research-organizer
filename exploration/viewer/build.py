@@ -39,10 +39,14 @@ FENCE = re.compile(r"^\s*(```|~~~)")
 QUESTION_H3 = re.compile(r"^###\s+(\d)\.\s+(.+?)\s*$")
 OQ_ITEM = re.compile(r"^- \[( |x|X)\]\s?(.*)$")
 LOG_ITEM = re.compile(r"^- (\d{4}-\d{2}-\d{2}):\s?(.*)$")
+CORE_ITEM = re.compile(r"^\d+\.\s+(.+(?:\n {3,}.+)*)", re.M)
 VIZ_FENCE = re.compile(r"^\s*```(mermaid|frontier|boundary|embed)\b", re.M)
 
 H2_KIND = [
     (re.compile(r"^L0\b"), "l0"),
+    (re.compile(r"^Core ideas", re.I), "core"),
+    (re.compile(r"^Superseded", re.I), "superseded"),
+    (re.compile(r"^Archive", re.I), "archive"),
     (re.compile(r"^L1\b"), "l1"),
     (re.compile(r"^The seven questions", re.I), "seven"),
     (re.compile(r"^L2\b"), "l2"),
@@ -132,6 +136,8 @@ def parse_card(path: Path) -> dict:
         "questions": {},
         "open": [],
         "log": [],
+        "core": [],
+        "shelf": [],  # superseded and archived entries, shown collapsed
         "viz": sorted(set(VIZ_FENCE.findall(text))),
         "links": sorted(set(CARD_LINK.findall(text)) - {path.stem}),
         "words": len(re.findall(r"\w+", text)),
@@ -154,6 +160,10 @@ def parse_card(path: Path) -> dict:
         elif kind == "open":
             for m, item in parse_items(body, OQ_ITEM):
                 card["open"].append({"done": m.group(1).lower() == "x", "md": item})
+        elif kind == "core":
+            card["core"] = [" ".join(m.group(1).split()) for m in CORE_ITEM.finditer(md)]
+        elif kind in ("superseded", "archive"):
+            card["shelf"] += [dict(e, kind=kind) for e in parse_shelf(body)]
         elif kind == "log":
             for m, item in parse_items(body, LOG_ITEM):
                 card["log"].append({"date": m.group(1), "md": item.strip()})
@@ -164,6 +174,23 @@ def parse_card(path: Path) -> dict:
                 card["sources"] = parse_sources(body)
     card["cites"] = cited_ids(text)
     return card
+
+
+def parse_shelf(lines: list[str]) -> list[dict]:
+    """H3 entries of a Superseded or Archive section; text before the first H3 is the intro."""
+    out: list[dict] = []
+    for line in lines:
+        m = re.match(r"^###\s+(.+?)\s*$", line)
+        if m:
+            title = m.group(1)
+            date = re.search(r"\((?:superseded|archived)\s+(\d{4}-\d{2}-\d{2})[^)]*\)\s*$", title)
+            if title.startswith("<"):  # template placeholder
+                out.append({"title": "", "date": "", "md": [], "skip": True}); continue
+            out.append({"title": title[:date.start()].strip() if date else title,
+                        "date": date.group(1) if date else "", "md": []})
+        elif out:
+            out[-1]["md"].append(line)
+    return [dict(e, md="\n".join(e["md"]).strip("\n")) for e in out if not e.get("skip")]
 
 
 def cited_ids(text: str) -> list[str]:
