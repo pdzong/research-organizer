@@ -18,12 +18,21 @@ from __future__ import annotations
 import json
 import re
 import subprocess
+import sys
+import time
+import urllib.parse
+import urllib.request
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
 
 VAULT = Path(__file__).resolve().parent.parent
 VIEWER = VAULT / "viewer"
 SITE = VIEWER / "site"
+PAPERS_CACHE = VIEWER / "papers.json"  # committed, so builds work offline
+
+# "arXiv:2412.06769" (any era), or a bare post-2015 id such as 2611.17610.
+ARXIV_ID = re.compile(r"arXiv:\s?(\d{4}\.\d{4,5})|\b(\d{2}(?:0[1-9]|1[0-2])\.\d{5})\b")
 
 CARD_LINK = re.compile(r"\]\((?:\.\./cards/|\./)?([a-z0-9-]+)\.md\)")
 FENCE = re.compile(r"^\s*(```|~~~)")
@@ -151,7 +160,85 @@ def parse_card(path: Path) -> dict:
         elif not is_empty(md):
             planned = bool(re.search(r"Planned outline|\(fill with", md))
             card["sections"].append({"kind": kind, "heading": heading, "md": md, "planned": planned})
+            if kind == "l4":
+                card["sources"] = parse_sources(body)
+    card["cites"] = cited_ids(text)
     return card
+
+
+def cited_ids(text: str) -> list[str]:
+    """arXiv ids in order of first appearance."""
+    seen: dict[str, None] = {}
+    for m in ARXIV_ID.finditer(text):
+        seen.setdefault(m.group(1) or m.group(2), None)
+    return list(seen)
+
+
+def parse_sources(lines: list[str]) -> list[dict]:
+    """Rows of the L4 table: which ids a row cites, why to read it, verification."""
+    out = []
+    for line in lines:
+        if not line.startswith("|") or set(line) <= set("|- "):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        ids = cited_ids(line)
+        if not ids or len(cells) < 3:
+            continue
+        for pid in ids:
+            out.append({"id": pid, "why": cells[2] if len(cells) > 3 else "",
+                        "verified": cells[-1]})
+    return out
+
+
+def load_cache() -> dict:
+    try:
+        return json.loads(PAPERS_CACHE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+def fetch_arxiv(ids: list[str], cache: dict) -> None:
+    """Fill the cache from the arXiv API (titles, authors, year, abstract)."""
+    ns = {"a": "http://www.w3.org/2005/Atom", "x": "http://arxiv.org/schemas/atom"}
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    for i in range(0, len(ids), 40):
+        batch = ids[i:i + 40]
+        url = ("https://export.arxiv.org/api/query?max_results=50&id_list="
+               + urllib.parse.quote(",".join(batch), safe=","))
+        req = urllib.request.Request(url, headers={"User-Agent": "exploration-vault-viewer/1.0"})
+        try:
+            with urllib.request.urlopen(req, timeout=40) as resp:
+                root = ET.fromstring(resp.read())
+        except Exception as err:  # network is optional
+            print(f"arXiv lookup skipped ({err}); cached titles only.")
+            return
+        found = set()
+        for entry in root.findall("a:entry", ns):
+            raw_id = (entry.findtext("a:id", "", ns) or "").rsplit("/", 1)[-1]
+            pid = re.sub(r"v\d+$", "", raw_id)
+            title = " ".join((entry.findtext("a:title", "", ns) or "").split())
+            if pid not in batch or not title or title == "Error":
+                continue
+            summary = " ".join((entry.findtext("a:summary", "", ns) or "").split())
+            if len(summary) > 480:
+                cut = summary[:480]
+                summary = cut[: cut.rfind(". ") + 1] if ". " in cut else cut.rsplit(" ", 1)[0] + "…"
+            prim = entry.find("x:primary_category", ns)
+            cache[pid] = {
+                "found": True,
+                "title": title,
+                "authors": [a.findtext("a:name", "", ns) for a in entry.findall("a:author", ns)],
+                "year": (entry.findtext("a:published", "", ns) or "")[:4],
+                "category": prim.get("term") if prim is not None else "",
+                "summary": summary,
+                "checked": today,
+            }
+            found.add(pid)
+        for pid in batch:
+            if pid not in found:
+                cache[pid] = {"found": False, "checked": today}
+        if i + 40 < len(ids):
+            time.sleep(3)  # arXiv asks for a pause between API calls
 
 
 def parse_index() -> tuple[dict, list]:
@@ -172,7 +259,7 @@ def parse_index() -> tuple[dict, list]:
 def parse_radar(path: Path) -> dict:
     text = path.read_text(encoding="utf-8")
     title = next((l[2:].strip() for l in text.splitlines() if l.startswith("# ")), path.stem)
-    return {"id": path.stem, "title": title, "md": text}
+    return {"id": path.stem, "title": title, "md": text, "cites": cited_ids(text)}
 
 
 def git_meta() -> dict:
@@ -196,11 +283,30 @@ def main() -> None:
     for r in radars:
         r["note"] = notes.get(r["id"], "")
 
+    all_ids = list(dict.fromkeys([i for c in cards for i in c["cites"]] +
+                                 [i for r in radars for i in r["cites"]]))
+    cache = load_cache()
+    missing = [i for i in all_ids if i not in cache]
+    if missing and "--offline" not in sys.argv:
+        print(f"Looking up {len(missing)} new arXiv ids...")
+        fetch_arxiv(missing, cache)
+        PAPERS_CACHE.write_text(json.dumps(dict(sorted(cache.items())), ensure_ascii=False, indent=1),
+                                encoding="utf-8")
+    papers = {}
+    for pid in all_ids:
+        entry = dict(cache.get(pid, {"found": None}))
+        entry["cards"] = [c["slug"] for c in cards if pid in c["cites"]]
+        entry["radars"] = [r["id"] for r in radars if pid in r["cites"]]
+        entry["checks"] = {c["slug"]: s["verified"] for c in cards
+                           for s in c.get("sources", []) if s["id"] == pid}
+        papers[pid] = entry
+
     data = {
         "built": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         **git_meta(),
         "cards": cards,
         "radars": radars,
+        "papers": papers,
     }
 
     SITE.mkdir(exist_ok=True)

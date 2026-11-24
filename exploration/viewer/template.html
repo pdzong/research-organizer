@@ -2,334 +2,400 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,400&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: a lab notebook. A reading column of serif prose, framed by a
-   plain sans UI; evidence labels are the one colour system that recurs
-   everywhere (badges, mix bars, tile footers). */
+/* Layout: a quiet reading room. A left index rail, a serif reading column
+   about 68 characters wide, and a contents rail on wide screens. Papers
+   appear as ink chips that open a card with the real title and abstract. */
 :root {
-  --bg: #f3f5f2;
-  --surface: #fcfcfb;
-  --sunken: #e9ece7;
-  --ink: #1b2220;
-  --ink-2: #3d4743;
-  --muted: #64706a;
-  --line: #d6dbd4;
+  --bg: #f4f5f7;
+  --rail: #eceef2;
+  --surface: #ffffff;
+  --sunken: #e6e9ee;
+  --ink: #14171c;
+  --ink-2: #3a404a;
+  --muted: #687080;
+  --line: #dde1e7;
   --accent: #2346c8;
-  --accent-soft: #dfe5fa;
+  --accent-soft: #e3e8fb;
   --ev-proven: #2346c8;
   --ev-emp: #00876a;
   --ev-int: #8a4cc4;
   --ev-spec: #b56a00;
-  --st-stub: #8a948e;
+  --st-stub: #8a919c;
   --st-draft: #2346c8;
   --st-solid: #00876a;
-  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --font-read: "Source Serif 4", Georgia, "Times New Roman", serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
-  --radius: 6px;
+  --font-ui: "Schibsted Grotesk", "Segoe UI", system-ui, sans-serif;
+  --font-read: "Literata", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --radius: 8px;
   --measure: 68ch;
+  --shadow: 0 1px 2px rgba(20, 23, 28, 0.06), 0 8px 28px rgba(20, 23, 28, 0.10);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #131715; --surface: #1a1f1d; --sunken: #222826; --ink: #e2e8e4; --ink-2: #c3ccc7;
-    --muted: #93a09a; --line: #2f3734; --accent: #8ea6ff; --accent-soft: #252d4a;
+    --bg: #101216; --rail: #14171c; --surface: #191c22; --sunken: #20242b; --ink: #e7eaef; --ink-2: #c2c8d1;
+    --muted: #8e96a3; --line: #2a2f37; --accent: #8ea6ff; --accent-soft: #232b47;
     --ev-proven: #6b86ec; --ev-emp: #1fa385; --ev-int: #a679dc; --ev-spec: #c2801e;
-    --st-stub: #7d8883; --st-draft: #6b86ec; --st-solid: #1fa385;
+    --st-stub: #7f8793; --st-draft: #6b86ec; --st-solid: #1fa385;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #131715; --surface: #1a1f1d; --sunken: #222826; --ink: #e2e8e4; --ink-2: #c3ccc7;
-  --muted: #93a09a; --line: #2f3734; --accent: #8ea6ff; --accent-soft: #252d4a;
+  --bg: #101216; --rail: #14171c; --surface: #191c22; --sunken: #20242b; --ink: #e7eaef; --ink-2: #c2c8d1;
+  --muted: #8e96a3; --line: #2a2f37; --accent: #8ea6ff; --accent-soft: #232b47;
   --ev-proven: #6b86ec; --ev-emp: #1fa385; --ev-int: #a679dc; --ev-spec: #c2801e;
-  --st-stub: #7d8883; --st-draft: #6b86ec; --st-solid: #1fa385;
+  --st-stub: #7f8793; --st-draft: #6b86ec; --st-solid: #1fa385;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.45);
   color-scheme: dark;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-body {
-  background: var(--bg); color: var(--ink); font-family: var(--font-ui);
-  font-size: 15px; line-height: 1.5; margin: 0;
-}
-a { color: var(--accent); text-underline-offset: 2px; }
-a:focus-visible, button:focus-visible, input:focus-visible, [tabindex]:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px;
-}
-h1, h2, h3, h4 { text-wrap: balance; line-height: 1.25; margin: 0; }
-code { font-family: var(--font-mono); font-size: 0.88em; background: var(--sunken); padding: 0.05em 0.3em; border-radius: 3px; }
-.wrap {
-  max-width: 1180px; margin: 0 auto;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-}
-.eyebrow { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-.muted { color: var(--muted); }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-ui); font-size: 15px; line-height: 1.5; }
+a { color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.2; text-wrap: balance; }
+button { font: inherit; color: inherit; }
+code { font-family: var(--font-mono); font-size: 0.84em; background: var(--sunken); padding: 0.1em 0.35em; border-radius: 4px; }
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
 
-/* Top bar */
-.top { border-bottom: 1px solid var(--line); background: var(--surface); }
-.top .wrap { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; padding-block: 12px; }
-.brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: var(--ink); }
-.brand b { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
-.brand span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
-.nav { display: flex; gap: 4px; }
-.nav a { text-decoration: none; color: var(--ink-2); padding: 6px 10px; border-radius: var(--radius); font-weight: 500; }
-.nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
-.nav a:hover { background: var(--sunken); }
-.search { margin-left: auto; flex: 1 1 220px; max-width: 320px; }
+/* ---------- shell ---------- */
+.shell { display: grid; grid-template-columns: 272px minmax(0, 1fr); min-height: 100vh; }
+.rail {
+  position: sticky; top: 0; height: 100vh; height: 100dvh; overflow-y: auto; background: var(--rail);
+  border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 22px;
+  padding: calc(22px + env(safe-area-inset-top, 0px)) 18px 24px max(18px, env(safe-area-inset-left, 0px));
+}
+.brand { display: grid; gap: 2px; text-decoration: none; color: var(--ink); }
+.brand b { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.brand span { font-size: 12.5px; color: var(--muted); }
 .search input {
-  width: 100%; font: inherit; color: var(--ink); background: var(--bg);
-  border: 1px solid var(--line); border-radius: var(--radius); padding: 7px 10px;
+  width: 100%; font: inherit; font-size: 14px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 11px;
+}
+.search input::placeholder { color: var(--muted); }
+.nav { display: grid; gap: 2px; }
+.nav a, .rail-cards a {
+  display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink-2);
+  padding: 7px 10px; border-radius: 6px; font-size: 14.5px; font-weight: 500;
+}
+.nav a:hover, .rail-cards a:hover { background: var(--sunken); color: var(--ink); }
+.nav a[aria-current="page"], .rail-cards a[aria-current="page"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.nav .count { margin-left: auto; font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); }
+.nav svg { flex: none; width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.rail-cards { display: grid; gap: 18px; }
+.rail-group { display: grid; gap: 2px; }
+.home-grid > .panel { align-self: start; }
+.rail-group h3 { font-size: 11.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0 10px 6px; }
+.rail-cards a { font-weight: 450; font-size: 14px; }
+.rail-cards a span.t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dot { flex: none; width: 8px; height: 8px; border-radius: 50%; }
+.dot.stub { box-shadow: inset 0 0 0 1.5px var(--st-stub); }
+.dot.draft { background: var(--st-draft); }
+.dot.solid { background: var(--st-solid); }
+.rail-foot { margin-top: auto; font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+.topbar { display: none; }
+.scrim { display: none; }
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .rail {
+    position: fixed; inset: 0 auto 0 0; width: min(300px, 86vw); z-index: 40; transform: translateX(-102%);
+    transition: transform 0.22s ease; box-shadow: var(--shadow);
+  }
+  .rail.open { transform: none; }
+  .scrim.open { display: block; position: fixed; inset: 0; z-index: 35; background: rgba(10, 12, 16, 0.35); }
+  .topbar {
+    display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 20; background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: calc(10px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+  }
+  .topbar b { font-weight: 700; letter-spacing: -0.02em; }
+  .menu-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 14px; }
 }
 
-main.wrap { padding-block: 28px 48px; display: grid; gap: 36px; }
-footer .wrap { padding-block: 20px 32px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; }
-
-/* Shared pieces */
-.chip {
-  display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
-  padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); white-space: nowrap;
+/* ---------- page grid ---------- */
+.page {
+  max-width: 1160px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 56px;
+  padding-block: 44px 96px;
+  padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px));
 }
-.chip i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.st-stub i { border: 1.5px dashed var(--st-stub); }
-.st-draft i { background: var(--st-draft); opacity: 0.55; }
-.st-solid i { background: var(--st-solid); }
-.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-.section-head h2 { font-size: 19px; font-weight: 600; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.page.single { grid-template-columns: minmax(0, 1fr); max-width: 1080px; }
+.content { min-width: 0; display: grid; gap: 44px; align-content: start; }
+.toc { position: sticky; top: 28px; align-self: start; display: grid; gap: 4px; font-size: 13px; max-height: calc(100vh - 56px); overflow-y: auto; }
+.toc .eyebrow { margin-bottom: 6px; }
+.toc button { all: unset; cursor: pointer; color: var(--muted); padding: 3px 0 3px 12px; border-left: 2px solid var(--line); line-height: 1.35; }
+.toc button:hover { color: var(--ink); }
+.toc button.on { color: var(--ink); border-left-color: var(--accent); }
+.toc button.deep { opacity: 0.55; }
+.toc button:focus-visible { outline: 2px solid var(--accent); }
+@media (max-width: 1240px) { .page { grid-template-columns: minmax(0, 1fr); } .toc { display: none; } }
+@media (max-width: 900px) { .page { padding-block: 28px 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); } }
 
-/* Evidence badges and mix bars */
-.ev {
-  display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-ui); font-size: 0.74em; font-weight: 600;
-  padding: 0 7px 0 6px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
-  color: var(--ink-2); white-space: nowrap; vertical-align: 0.08em; line-height: 1.6;
-}
+/* ---------- shared bits ---------- */
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 2px 9px 2px 8px; border-radius: 999px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink-2); white-space: nowrap; text-transform: capitalize; }
+.section-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.section-title h2 { font-size: 21px; font-weight: 650; letter-spacing: -0.01em; }
+.ev { display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-ui); font-size: 0.72em; font-weight: 600; letter-spacing: 0.01em; padding: 0.05em 0.6em 0.05em 0.5em; border-radius: 999px; background: var(--sunken); color: var(--ink-2); white-space: nowrap; vertical-align: 0.12em; line-height: 1.55; }
 .ev::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
-.ev-proven { --c: var(--ev-proven); }
-.ev-cond { --c: var(--ev-proven); }
-.ev-cond::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ev-proven); }
-.ev-emp { --c: var(--ev-emp); }
-.ev-int { --c: var(--ev-int); }
-.ev-spec { --c: var(--ev-spec); }
-.mix { display: flex; gap: 2px; height: 8px; min-width: 80px; border-radius: 4px; overflow: hidden; }
-.mix span { display: block; height: 100%; background: var(--c); }
+.ev-proven { --c: var(--ev-proven); } .ev-emp { --c: var(--ev-emp); } .ev-int { --c: var(--ev-int); } .ev-spec { --c: var(--ev-spec); }
+.ev-cond { --c: var(--ev-proven); } .ev-cond::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ev-proven); }
+.mix { display: flex; gap: 2px; height: 6px; width: 120px; border-radius: 3px; overflow: hidden; }
+.mix span { background: var(--c); }
 .mix span.cond { background: repeating-linear-gradient(135deg, var(--ev-proven) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1px var(--ev-proven); }
 .mix.empty { background: var(--sunken); }
-.mix-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
-.mix-legend span { display: inline-flex; align-items: center; gap: 5px; }
-.mix-legend i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); display: inline-block; }
-.mix-legend i.cond { background: repeating-linear-gradient(135deg, var(--ev-proven) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1px var(--ev-proven); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); display: inline-block; }
+.legend i.cond { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ev-proven); }
 
-/* Home */
-.home-hero { display: grid; gap: 6px; }
-.home-hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.015em; }
-.home-hero p { margin: 0; color: var(--ink-2); max-width: var(--measure); }
-.stats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 8px; font-size: 13.5px; color: var(--muted); }
-.stats b { color: var(--ink); font-family: var(--font-mono); font-weight: 500; }
-.home-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 20px; }
-@media (max-width: 860px) { .home-grid { grid-template-columns: minmax(0, 1fr); } }
-.map { padding: 14px; display: grid; gap: 10px; }
-.map svg { width: 100%; height: auto; display: block; }
-.map .node { cursor: pointer; }
-.map .node text { font-size: 12.5px; fill: var(--ink-2); font-family: var(--font-ui); paint-order: stroke; stroke: var(--surface); stroke-width: 4px; }
-.map .node:hover text, .map .node:focus text { fill: var(--accent); }
-.map .edge { stroke: var(--line); stroke-width: 1.5px; fill: none; }
-.map .edge.weak { stroke-dasharray: 3 4; }
-.map-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--muted); }
-.map-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.changes { padding: 14px 16px; display: grid; gap: 12px; align-content: start; }
-.change { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 10px; font-size: 13.5px; }
-.change .when { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding-top: 1px; }
-.change a.card-ref { font-weight: 600; text-decoration: none; }
-.change p { margin: 2px 0 0; color: var(--ink-2); }
-
-.card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
-.card-tile {
-  display: grid; gap: 10px; align-content: start; padding: 16px; text-decoration: none; color: var(--ink);
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  transition: border-color 0.15s;
+/* Citation chip */
+a.cite {
+  display: inline-flex; align-items: baseline; gap: 4px; font-family: var(--font-mono); font-size: 0.74em; font-weight: 500;
+  color: var(--accent); background: var(--accent-soft); padding: 0.08em 0.5em; border-radius: 5px; text-decoration: none;
+  white-space: nowrap; vertical-align: 0.06em; line-height: 1.5;
 }
-.card-tile:hover { border-color: var(--accent); }
-.card-tile .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.card-tile h3 { font-size: 16px; font-weight: 600; }
-.card-tile p { margin: 0; font-family: var(--font-read); font-size: 14.5px; color: var(--ink-2); }
-.coverage { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 10px; align-items: center; font-size: 11.5px; color: var(--muted); }
-.dots { display: flex; gap: 3px; }
-.dots i { width: 14px; height: 8px; border-radius: 2px; background: var(--sunken); box-shadow: inset 0 0 0 1px var(--line); }
-.dots i.full { background: var(--ink-2); box-shadow: none; }
-.dots i.part { background: repeating-linear-gradient(135deg, var(--ink-2) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1px var(--ink-2); }
+a.cite::before { content: "↗"; font-family: var(--font-ui); font-size: 0.95em; opacity: 0.8; }
+a.cite:hover { background: var(--accent); color: var(--surface); }
+a.paper-link { font-weight: 600; color: var(--ink); text-decoration-color: var(--line); }
+a.paper-link:hover { color: var(--accent); text-decoration-color: currentColor; }
 
-/* Card page */
+/* Paper popover */
+#pop {
+  position: fixed; z-index: 60; width: min(380px, calc(100vw - 24px)); background: var(--surface); color: var(--ink);
+  border-radius: 10px; box-shadow: var(--shadow), 0 0 0 1px var(--line); padding: 16px 18px; display: grid; gap: 8px;
+}
+#pop .meta { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; }
+#pop .title { font-family: var(--font-ui); font-size: 16px; font-weight: 650; line-height: 1.3; }
+#pop .authors { font-size: 13px; color: var(--ink-2); }
+#pop .abs { font-family: var(--font-read); font-size: 13.5px; line-height: 1.5; color: var(--ink-2); margin: 0; max-height: 9.5em; overflow: hidden; }
+#pop .links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+#pop .links a, .paper-row .links a { font-size: 12.5px; font-weight: 600; text-decoration: none; padding: 4px 10px; border-radius: 6px; background: var(--sunken); color: var(--ink); }
+#pop .links a:hover, .paper-row .links a:hover { background: var(--accent); color: var(--surface); }
+#pop .used { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; }
+
+/* ---------- prose ---------- */
+.prose { font-family: var(--font-read); font-size: 17px; line-height: 1.68; color: var(--ink); max-width: var(--measure); min-width: 0; }
+.prose.wide { max-width: none; }
+.prose > :first-child { margin-top: 0; } .prose > :last-child { margin-bottom: 0; }
+.prose p, .prose ul, .prose ol { margin: 0 0 0.85em; }
+.prose ul, .prose ol { padding-left: 1.25em; }
+.prose li { margin: 0.3em 0; padding-left: 0.2em; }
+.prose li::marker { color: var(--muted); }
+.prose li > ul, .prose li > ol { margin: 0.25em 0 0.35em; }
+.prose strong { font-weight: 600; }
+.prose h1, .prose h2, .prose h3, .prose h4 { font-family: var(--font-ui); letter-spacing: -0.01em; }
+.prose h1 { font-size: 26px; margin: 1.6em 0 0.6em; }
+.prose h2 { font-size: 21px; font-weight: 650; margin: 1.8em 0 0.6em; }
+.prose h3 { font-size: 17px; font-weight: 650; margin: 1.5em 0 0.45em; }
+.prose h4 { font-size: 15.5px; font-weight: 650; margin: 1.2em 0 0.4em; }
+.prose blockquote { margin: 0 0 0.9em; padding-left: 16px; border-left: 3px solid var(--line); color: var(--ink-2); }
+.prose hr { border: 0; border-top: 1px solid var(--line); margin: 2em 0; }
+.prose pre { background: var(--sunken); padding: 14px 16px; border-radius: var(--radius); overflow-x: auto; font-size: 13px; line-height: 1.5; }
+.prose pre code { background: none; padding: 0; }
+.table-wrap { overflow-x: auto; margin: 0 0 1.1em; max-width: 100%; border-radius: var(--radius); box-shadow: inset 0 0 0 1px var(--line); }
+.prose table { border-collapse: collapse; font-family: var(--font-ui); font-size: 14px; line-height: 1.45; min-width: 100%; }
+.prose th, .prose td { padding: 9px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+.prose tr:last-child td { border-bottom: 0; }
+.prose th { font-weight: 600; color: var(--muted); font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.05em; background: var(--sunken); }
+.prose td { font-variant-numeric: tabular-nums; }
+
+.callout { border-left: 3px solid var(--ev-proven); background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 16px; margin: 0 0 1em; }
+.embed-card { display: grid; gap: 4px; border-radius: var(--radius); padding: 14px 16px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); margin: 0 0 1em; text-decoration: none; font-family: var(--font-ui); }
+.embed-card b { color: var(--accent); } .embed-card span { color: var(--ink-2); font-size: 14px; }
+
+/* ---------- card page ---------- */
+.card-head { display: grid; gap: 16px; }
 .crumbs { font-size: 13px; color: var(--muted); }
 .crumbs a { color: var(--muted); }
-.card-head { display: grid; gap: 12px; max-width: 900px; }
-.card-head h1 { font-size: clamp(24px, 3.2vw, 32px); font-weight: 700; letter-spacing: -0.015em; }
-.meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 13px; color: var(--muted); }
-.meta .mix { width: 140px; }
-.lead {
-  font-family: var(--font-read); font-size: 19px; line-height: 1.55; color: var(--ink);
-  max-width: var(--measure); border-left: 3px solid var(--accent); padding-left: 16px; margin: 4px 0 0;
+.card-head h1 { font-size: clamp(28px, 3.6vw, 42px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.12; max-width: 22ch; }
+.deck { font-family: var(--font-read); font-size: 20px; line-height: 1.55; color: var(--ink-2); max-width: var(--measure); }
+.deck p { margin: 0 0 0.6em; } .deck p:last-child { margin: 0; }
+.meta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; font-size: 13.5px; color: var(--muted); }
+.meta-row .sep { width: 3px; height: 3px; border-radius: 50%; background: var(--line); }
+.depth { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding-top: 4px; }
+.seg { display: inline-flex; flex-wrap: wrap; background: var(--sunken); border-radius: 8px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 6px; font-size: 13.5px; font-weight: 500; color: var(--ink-2); cursor: pointer; }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12); }
+.seg .lv { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-right: 6px; }
+.depth-hint { font-size: 13px; color: var(--muted); }
+
+.glance { display: grid; border-top: 1px solid var(--line); }
+.glance-row {
+  all: unset; box-sizing: border-box; cursor: pointer; display: grid; grid-template-columns: 34px 150px minmax(0, 1fr) auto;
+  gap: 4px 16px; align-items: baseline; padding: 13px 4px; border-bottom: 1px solid var(--line);
 }
-.lead p { margin: 0 0 0.6em; } .lead p:last-child { margin: 0; }
-
-.compass-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
-.q-tile {
-  display: grid; grid-template-rows: auto 1fr auto; gap: 6px; text-align: left; font: inherit; color: var(--ink);
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; cursor: pointer;
+.glance-row:hover .gname { color: var(--accent); }
+.glance-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.glance-row .gnum { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); }
+.glance-row .gname { font-weight: 600; font-size: 15px; }
+.glance-row .gsum { font-family: var(--font-read); font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+.glance-row .gev { display: flex; gap: 4px; }
+.glance-row .gev i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.glance-row .gev i.cond { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ev-proven); }
+.glance-row.empty { cursor: default; }
+.glance-row.empty .gname, .glance-row.empty .gsum { color: var(--muted); }
+.glance-row.empty .gsum { font-family: var(--font-ui); font-size: 13.5px; }
+@media (max-width: 640px) {
+  .glance-row { grid-template-columns: 28px minmax(0, 1fr) auto; }
+  .glance-row .gsum { grid-column: 2 / -1; }
 }
-.q-tile:hover:not(:disabled) { border-color: var(--accent); }
-.q-tile[aria-expanded="true"] { border-color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); }
-.q-tile:disabled { cursor: default; background: transparent; border-style: dashed; color: var(--muted); }
-.q-tile .qn { display: flex; gap: 8px; align-items: baseline; font-weight: 600; font-size: 14px; }
-.q-tile .qn span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
-.q-tile .qs { font-family: var(--font-read); font-size: 14px; color: var(--ink-2); line-height: 1.45; }
-.q-tile:disabled .qs { font-family: var(--font-ui); font-size: 13px; color: var(--muted); }
-.q-tile .qf { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11.5px; color: var(--muted); }
-.q-tile .qf span { display: inline-flex; align-items: center; gap: 4px; }
-.q-tile .qf i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); display: inline-block; }
-.q-tile .qf i.cond { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ev-proven); }
-.q-panel { margin-top: 10px; padding: 18px 22px; }
-.q-panel h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-.stub-note { font-size: 13.5px; color: var(--muted); margin: 10px 0 0; }
+.note { font-size: 14px; color: var(--muted); margin: 12px 0 0; }
 
-.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-.slot { border: 1px dashed var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); background: transparent; text-align: left; font-family: inherit; }
-.slot b { color: var(--ink-2); font-size: 13.5px; font-weight: 600; }
-.slot.filled { border-style: solid; background: var(--surface); cursor: pointer; color: var(--ink-2); }
-.slot.filled:hover { border-color: var(--accent); }
+.figs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.fig { all: unset; box-sizing: border-box; display: grid; gap: 3px; padding: 12px 14px; border-radius: var(--radius); border: 1px dashed var(--line); font-size: 13px; color: var(--muted); }
+.fig b { color: var(--ink-2); font-weight: 600; font-size: 13.5px; }
+.fig.filled { border-style: solid; background: var(--surface); cursor: pointer; color: var(--ink-2); }
+.fig.filled:hover { border-color: var(--accent); }
 
-.depthbar {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
-  padding-block: 10px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
-}
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--surface); flex-wrap: wrap; }
-.seg button {
-  font: inherit; font-size: 13px; font-weight: 500; color: var(--ink-2); background: transparent; border: 0;
-  padding: 6px 12px; cursor: pointer; border-right: 1px solid var(--line);
-}
-.seg button:last-child { border-right: 0; }
-.seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
-.seg button .lv { font-family: var(--font-mono); font-size: 11px; opacity: 0.75; margin-right: 5px; }
-.depth-hint { font-size: 12.5px; color: var(--muted); }
+.doc { display: grid; gap: 12px; scroll-margin-top: 80px; }
+.doc > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.doc > header h2 { font-size: 24px; font-weight: 650; letter-spacing: -0.015em; }
+.doc > header .lvl { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); background: var(--sunken); border-radius: 4px; padding: 1px 6px; }
+.doc > header .planned { font-size: 12.5px; font-weight: 600; color: var(--ev-spec); }
+.q-doc > header h2 { font-size: 20px; }
+.q-doc > header .qnum { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+.q-doc .hint { font-size: 14px; color: var(--muted); margin-top: -6px; }
+.q-block { display: grid; gap: 34px; }
+.q-block > .eyebrow { margin-bottom: -18px; }
 
-.longform { display: grid; gap: 30px; }
-.doc-section { display: grid; gap: 10px; scroll-margin-top: 70px; }
-.doc-section > header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.doc-section > header h2 { font-size: 20px; font-weight: 600; }
-.lvl { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
-.planned { font-size: 12px; color: var(--ev-spec); font-weight: 600; }
+.paper-list { display: grid; border-top: 1px solid var(--line); }
+.paper-row { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 4px 12px; padding: 14px 2px; border-bottom: 1px solid var(--line); }
+.paper-row .n { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding-top: 3px; }
+.paper-row .body { display: grid; gap: 4px; min-width: 0; }
+.paper-row .t { font-size: 15.5px; line-height: 1.35; }
+.paper-row .a { font-size: 13.5px; color: var(--ink-2); }
+.paper-row .m { font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.paper-row .m .chk { color: var(--st-solid); font-weight: 600; }
+.paper-row .links { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.paper-row .why { font-family: var(--font-read); font-size: 14px; color: var(--ink-2); }
+.paper-row .used a { color: var(--ink-2); }
 
-/* Prose rendered from Markdown */
-.prose { font-family: var(--font-read); font-size: 16.5px; line-height: 1.6; max-width: var(--measure); color: var(--ink); min-width: 0; }
-.prose.wide { max-width: none; }
-.prose > :first-child { margin-top: 0; }
-.prose > :last-child { margin-bottom: 0; }
-.prose p, .prose ul, .prose ol { margin: 0 0 0.8em; }
-.prose ul, .prose ol { padding-left: 1.3em; }
-.prose li { margin: 0.25em 0; }
-.prose li > ul, .prose li > ol { margin: 0.2em 0 0.3em; }
-.prose h3 { font-family: var(--font-ui); font-size: 16px; font-weight: 600; margin: 1.4em 0 0.5em; }
-.prose h4 { font-family: var(--font-ui); font-size: 14.5px; font-weight: 600; margin: 1.2em 0 0.4em; }
-.prose h1 { font-family: var(--font-ui); font-size: 24px; margin: 1.4em 0 0.6em; }
-.prose h2 { font-family: var(--font-ui); font-size: 19px; font-weight: 600; margin: 1.6em 0 0.6em; }
-.prose strong { font-weight: 600; }
-.prose blockquote { margin: 0 0 0.8em; padding-left: 14px; border-left: 3px solid var(--line); color: var(--ink-2); }
-.prose hr { border: 0; border-top: 1px solid var(--line); margin: 1.6em 0; }
-.prose pre { background: var(--sunken); padding: 12px 14px; border-radius: var(--radius); overflow-x: auto; font-size: 13px; }
-.prose pre code { background: none; padding: 0; }
-.table-wrap { overflow-x: auto; margin: 0 0 1em; max-width: 100%; }
-.prose table { border-collapse: collapse; font-family: var(--font-ui); font-size: 13.5px; line-height: 1.45; min-width: 100%; }
-.prose th, .prose td { border-bottom: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
-.prose th { font-weight: 600; color: var(--ink-2); background: var(--sunken); }
-.prose td { font-variant-numeric: tabular-nums; }
-.prose a.arxiv { font-family: var(--font-mono); font-size: 0.86em; }
-
-.callout { border: 1px solid var(--ev-proven); border-left-width: 4px; border-radius: var(--radius); padding: 12px 16px; background: var(--surface); margin: 0 0 1em; }
-.callout .eyebrow { color: var(--ink-2); margin-bottom: 4px; }
-.embed-card { display: grid; gap: 4px; border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; background: var(--surface); margin: 0 0 1em; text-decoration: none; font-family: var(--font-ui); }
-.embed-card b { color: var(--accent); }
-.embed-card span { color: var(--ink-2); font-size: 14px; }
-
-/* Frontier chart */
-.chart { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 14px 16px; margin: 0 0 1em; font-family: var(--font-ui); display: grid; gap: 8px; }
-.chart h4 { font-size: 14.5px; font-weight: 600; margin: 0; }
-.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
-.chart .grid line { stroke: var(--line); stroke-width: 1; }
-.chart .axis text { fill: var(--muted); font-size: 11px; font-family: var(--font-mono); }
-.chart .axis-title { fill: var(--muted); font-size: 11.5px; font-family: var(--font-ui); }
-.chart .dlabel { fill: var(--ink-2); font-size: 11.5px; font-family: var(--font-ui); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
-.chart .note { font-size: 12.5px; color: var(--muted); margin: 0; }
-.chart details { font-size: 13px; }
-.chart summary { cursor: pointer; color: var(--muted); }
-.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--ink-2); }
-.legend span { display: inline-flex; align-items: center; gap: 6px; }
-.legend i { width: 14px; height: 3px; border-radius: 2px; background: var(--c); display: inline-block; }
-
-/* Open questions and log */
-.oq { display: grid; gap: 10px; max-width: 900px; }
-.oq-item { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 12px 14px; }
-.oq-box { width: 14px; height: 14px; border: 1.5px solid var(--muted); border-radius: 3px; margin-top: 4px; }
-.oq-item.done .oq-box { background: var(--st-solid); border-color: var(--st-solid); }
-.oq-text { font-family: var(--font-read); font-size: 15.5px; line-height: 1.5; }
-.oq-note { margin-top: 6px; font-family: var(--font-ui); font-size: 13px; color: var(--ink-2); display: flex; gap: 8px; align-items: baseline; }
-.oq-note .tag { flex: none; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 3px; padding: 0 4px; }
+.oq { display: grid; gap: 0; border-top: 1px solid var(--line); max-width: 860px; }
+.oq-item { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 12px; padding: 14px 2px; border-bottom: 1px solid var(--line); }
+.oq-box { width: 14px; height: 14px; border-radius: 4px; box-shadow: inset 0 0 0 1.5px var(--muted); margin-top: 6px; }
+.oq-item.done .oq-box { background: var(--st-solid); box-shadow: none; }
+.oq-text { font-family: var(--font-read); font-size: 16px; line-height: 1.55; }
+.oq-note { margin-top: 6px; font-size: 13.5px; color: var(--ink-2); display: flex; gap: 8px; align-items: baseline; }
+.oq-note .tag { flex: none; font-size: 10.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 4px; padding: 1px 6px; }
 .oq-card { font-size: 12.5px; font-weight: 600; text-decoration: none; }
 
-.timeline { display: grid; gap: 0; max-width: 900px; }
-.tl-item { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 10px 0; border-top: 1px solid var(--line); }
-.tl-item .when { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); padding-top: 2px; }
-.tl-item .prose { font-size: 14.5px; }
-details.more > summary { cursor: pointer; font-size: 13px; color: var(--accent); padding: 8px 0; }
-
-.link-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.link-row a { text-decoration: none; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); font-size: 13.5px; }
-.link-row a:hover { border-color: var(--accent); }
-.link-row small { color: var(--muted); margin-left: 4px; }
-
-.filters { display: flex; flex-wrap: wrap; gap: 6px; }
-.filters button { font: inherit; font-size: 13px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); cursor: pointer; }
-.filters button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-.q-group { display: grid; gap: 8px; }
-.q-group h3 { font-size: 15px; font-weight: 600; }
-.q-group h3 a { text-decoration: none; }
-
-.results { display: grid; gap: 10px; max-width: 900px; }
-.result { padding: 12px 14px; display: grid; gap: 4px; text-decoration: none; color: var(--ink); }
-.result:hover { border-color: var(--accent); }
-.result .where { font-size: 12px; color: var(--muted); }
-.result .snip { font-family: var(--font-read); font-size: 14.5px; color: var(--ink-2); }
-mark { background: var(--accent-soft); color: inherit; border-radius: 2px; padding: 0 1px; }
-
-#tip {
-  position: fixed; z-index: 20; pointer-events: none; max-width: 280px; padding: 8px 10px; font-size: 12.5px;
-  background: var(--ink); color: var(--bg); border-radius: var(--radius); line-height: 1.4;
-}
-.empty-state { padding: 24px; text-align: center; color: var(--muted); }
+.timeline { display: grid; max-width: 860px; }
+.tl { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.tl .when { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); padding-top: 4px; }
+.tl .prose { font-size: 15px; }
+details.more > summary { cursor: pointer; font-size: 13.5px; color: var(--accent); padding: 10px 0; list-style: none; }
+details.more > summary::-webkit-details-marker { display: none; }
+.links-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.links-row a { text-decoration: none; padding: 7px 12px; border-radius: var(--radius); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; color: var(--ink); }
+.links-row a:hover { box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent); }
+.links-row small { color: var(--muted); margin-left: 6px; }
 @media (max-width: 560px) {
-  .lead { font-size: 17px; }
-  .prose { font-size: 15.5px; }
-  .tl-item { grid-template-columns: minmax(0, 1fr); gap: 2px; }
-  .change { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .tl { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .deck { font-size: 18px; } .prose { font-size: 16px; }
 }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+
+/* ---------- home ---------- */
+.hero { display: grid; gap: 10px; }
+.hero h1 { font-size: clamp(30px, 4vw, 44px); font-weight: 700; letter-spacing: -0.03em; line-height: 1.08; max-width: 18ch; }
+.hero p { font-family: var(--font-read); font-size: 18px; line-height: 1.55; color: var(--ink-2); margin: 0; max-width: 60ch; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 10px; }
+.stat { display: grid; gap: 0; }
+.stat b { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12.5px; color: var(--muted); }
+.home-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 1000px) { .home-grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); padding: 18px 20px; min-width: 0; }
+.map svg { width: 100%; height: auto; display: block; }
+.map .node { cursor: pointer; }
+.map .node text { font-family: var(--font-ui); font-size: 13px; font-weight: 500; fill: var(--ink-2); paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+.map .edge { stroke: var(--line); stroke-width: 1.5px; transition: stroke 0.15s; }
+.map .edge.weak { stroke-dasharray: 3 4; }
+.map .edge.hot { stroke: var(--accent); }
+.map .node:hover text, .map .node:focus text { fill: var(--accent); }
+.map-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.map-legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.changes { display: grid; gap: 0; }
+.change { display: grid; gap: 2px; padding: 11px 0; border-top: 1px solid var(--line); }
+.change:first-of-type { border-top: 0; padding-top: 2px; }
+.change .top { display: flex; gap: 10px; align-items: baseline; }
+.change .when { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.change a { font-weight: 600; text-decoration: none; font-size: 14px; }
+.change p { margin: 0; font-size: 14px; color: var(--ink-2); line-height: 1.45; }
+.cards { display: grid; border-top: 1px solid var(--line); }
+.card-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 28px; align-items: center; padding: 18px 4px;
+  border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink);
+}
+.card-row:hover h3 { color: var(--accent); }
+.card-row .l { display: grid; gap: 5px; min-width: 0; }
+.card-row .top { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--muted); }
+.card-row h3 { font-size: 18px; font-weight: 650; letter-spacing: -0.01em; transition: color 0.12s; }
+.card-row p { margin: 0; font-family: var(--font-read); font-size: 15px; color: var(--ink-2); line-height: 1.5; }
+.cov { display: grid; grid-template-columns: auto auto; gap: 6px 10px; align-items: center; font-size: 11.5px; color: var(--muted); }
+.cells { display: flex; gap: 3px; }
+.cells i { width: 12px; height: 6px; border-radius: 2px; background: var(--sunken); }
+.cells i.full { background: var(--ink-2); }
+.cells i.part { background: repeating-linear-gradient(135deg, var(--ink-2) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1px var(--ink-2); }
+@media (max-width: 720px) { .card-row { grid-template-columns: minmax(0, 1fr); } }
+
+/* ---------- lists: papers, questions, search, radar ---------- */
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.toolbar input { font: inherit; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 12px; min-width: 0; flex: 1 1 240px; max-width: 420px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { border: 0; cursor: pointer; font-size: 13px; padding: 5px 11px; border-radius: 999px; background: var(--sunken); color: var(--ink-2); }
+.chips button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.group { display: grid; gap: 10px; }
+.group h3 { font-size: 16px; font-weight: 650; }
+.group h3 a { color: var(--ink); text-decoration: none; }
+.group h3 a:hover { color: var(--accent); }
+.results { display: grid; border-top: 1px solid var(--line); }
+.result { display: grid; gap: 4px; padding: 14px 2px; border-bottom: 1px solid var(--line); text-decoration: none; color: var(--ink); }
+.result:hover b, .result:hover .where { color: var(--accent); }
+.result .where { font-size: 12.5px; color: var(--muted); }
+.result .snip { font-family: var(--font-read); font-size: 15px; color: var(--ink-2); }
+mark { background: var(--accent-soft); color: inherit; border-radius: 3px; padding: 0 2px; }
+.empty-state { padding: 28px 4px; color: var(--muted); }
+
+/* Frontier chart */
+.chart { background: var(--surface); border-radius: var(--radius); box-shadow: inset 0 0 0 1px var(--line); padding: 14px 16px; margin: 0 0 1em; font-family: var(--font-ui); display: grid; gap: 8px; }
+.chart h4 { font-size: 14.5px; font-weight: 600; margin: 0; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart .grid line { stroke: var(--line); }
+.chart .axis text { fill: var(--muted); font-size: 11px; font-family: var(--font-mono); }
+.chart .axis-title { fill: var(--muted); font-size: 11.5px; }
+.chart .dlabel { fill: var(--ink-2); font-size: 11.5px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.chart .note { font-size: 12.5px; color: var(--muted); margin: 0; }
+.chart summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+
+#tip { position: fixed; z-index: 70; pointer-events: none; max-width: 280px; padding: 7px 10px; font-size: 12.5px; background: var(--ink); color: var(--bg); border-radius: 6px; line-height: 1.4; }
+footer.site { font-size: 12.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; border-top: 1px solid var(--line); padding-top: 18px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
 </style>
 
-<header class="top">
-  <div class="wrap">
-    <a class="brand" href="#home"><b>Exploration Vault</b><span id="brand-sub"></span></a>
+<div class="topbar"><button class="menu-btn" id="menu" type="button" aria-controls="rail" aria-expanded="false">Menu</button><b>Exploration Vault</b></div>
+<div class="scrim" id="scrim"></div>
+<div class="shell">
+  <aside class="rail" id="rail" aria-label="Vault index">
+    <a class="brand" href="#home"><b>Exploration Vault</b><span id="brand-sub">Research notebook</span></a>
+    <label class="search"><span hidden>Search the vault</span><input id="q" type="search" placeholder="Search cards, papers, radar" autocomplete="off"></label>
     <nav class="nav" aria-label="Views">
-      <a href="#home" data-nav="home">Map</a>
-      <a href="#questions" data-nav="questions">Open questions</a>
-      <a href="#radar" data-nav="radar">Radar</a>
+      <a href="#home" data-nav="home"><svg viewBox="0 0 16 16"><circle cx="4" cy="4" r="2"/><circle cx="12" cy="5" r="2"/><circle cx="7" cy="12" r="2"/><path d="M5.7 4.4l4.4.4M5 5.6l1.4 4.6M10.8 6.6l-2.6 3.8"/></svg>Overview</a>
+      <a href="#questions" data-nav="questions"><svg viewBox="0 0 16 16"><path d="M5.5 6a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.6-.8 1.1V10"/><circle cx="8" cy="12.6" r=".4"/></svg>Open questions<span class="count" id="n-q"></span></a>
+      <a href="#papers" data-nav="papers"><svg viewBox="0 0 16 16"><path d="M4 2h6l3 3v9H4z"/><path d="M10 2v3h3M6 8h5M6 10.5h5"/></svg>Papers<span class="count" id="n-p"></span></a>
+      <a href="#radar" data-nav="radar"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="3"/><path d="M8 8l4-4"/></svg>Radar</a>
     </nav>
-    <label class="search"><span hidden>Search the vault</span>
-      <input id="q" type="search" placeholder="Search cards and radar" autocomplete="off">
-    </label>
-  </div>
-</header>
-<main id="app" class="wrap"></main>
-<footer><div class="wrap" id="foot"></div></footer>
+    <div class="rail-cards" id="rail-cards"></div>
+    <div class="rail-foot" id="rail-foot"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div id="pop" hidden role="dialog" aria-label="Paper details"></div>
 <div id="tip" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
@@ -337,87 +403,60 @@ mark { background: var(--accent-soft); color: inherit; border-radius: 2px; paddi
 <script>
 (() => {
 "use strict";
-const V = window.VAULT || { cards: [], radars: [] };
-const app = document.getElementById("app");
+const V = window.VAULT || { cards: [], radars: [], papers: {} };
+const P = V.papers || {};
+const main = document.getElementById("main");
 const tip = document.getElementById("tip");
+const pop = document.getElementById("pop");
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const bySlug = Object.fromEntries(V.cards.map(c => [c.slug, c]));
-const shortName = slug => slug.replace(/-/g, " ");
+const shortName = slug => { const s = slug.replace(/-/g, " "); return s[0].toUpperCase() + s.slice(1); };
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const fmtDate = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ""); return m ? `${+m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}` : (d || ""); };
 
 const QUESTIONS = [
   ["Scarce resource", "What is expensive, and how does its cost scale?"],
-  ["Trade-off", "What is exchanged for what?"],
-  ["Boundary", "Known limits: theorem, bound or ceiling"],
+  ["Trade-off", "What is exchanged for what, and does the frontier move?"],
+  ["Boundary", "Known limits: theorem, bound or consistent ceiling"],
   ["Lineage", "Which older idea this is"],
   ["Measurement", "What would expose the cost or falsify the claim"],
   ["Adoption", "Who ships or uses it"],
   ["Combination", "What it enables next"],
 ];
-const DEPTHS = [
-  { lv: "L0", name: "Headline" }, { lv: "L1", name: "Intuition" }, { lv: "L2", name: "Mechanism" },
-  { lv: "L3", name: "Math" }, { lv: "L4", name: "Sources" },
-];
+const DEPTHS = [["L0", "Headline"], ["L1", "Intuition"], ["L2", "Mechanism"], ["L3", "Math"], ["L4", "Sources"]];
 const KIND_DEPTH = { l1: 1, extra: 2, l2: 2, l3: 3, l4: 4 };
-const KIND_LABEL = { l1: "L1", l2: "L2", l3: "L3", l4: "L4", extra: "L2" };
-const EV = [
-  { key: "proven", label: "proven" }, { key: "cond", label: "proven, if" },
-  { key: "emp", label: "empirical" }, { key: "int", label: "interpretation" }, { key: "spec", label: "speculation" },
-];
+const EV = [["proven", "proven"], ["cond", "proven, if"], ["emp", "empirical"], ["int", "interpretation"], ["spec", "speculation"]];
+const evVar = k => `var(--ev-${k === "cond" ? "proven" : k})`;
 const SLOTS = [
-  { kind: "mermaid", name: "Mechanism diagram", empty: "No diagram yet. Add a mermaid block to the card." },
-  { kind: "frontier", name: "Trade-off frontier", empty: "No frontier chart yet. Add a frontier block to the card." },
-  { kind: "embed", name: "Interactive explorer", empty: "No explorer linked yet. Add an embed block to the card." },
+  ["mermaid", "Mechanism diagram", "No diagram yet. Add a mermaid block to the card."],
+  ["frontier", "Trade-off frontier", "No frontier chart yet. Add a frontier block."],
+  ["embed", "Interactive explorer", "No explorer linked yet. Add an embed block."],
 ];
-
-/* ---------- storage (optional convenience) ---------- */
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* ignore */ } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* optional */ } },
 };
 
 /* ---------- evidence labels ---------- */
 const EV_RE = /`?\[(proven|empirical|interpretation|speculation)((?:[,;:][^\]`\n]*)?)\]`?/g;
-const evKind = (w, rest) => w === "proven" ? (/\bif\b/.test(rest || "") ? "cond" : "proven")
-  : ({ empirical: "emp", interpretation: "int", speculation: "spec" })[w];
-function evCount(md) {
-  const n = { proven: 0, cond: 0, emp: 0, int: 0, spec: 0 };
-  for (const m of String(md).matchAll(EV_RE)) n[evKind(m[1], m[2])]++;
-  return n;
+const evKind = (w, rest) => w === "proven" ? (/\bif\b/.test(rest || "") ? "cond" : "proven") : ({ empirical: "emp", interpretation: "int", speculation: "spec" })[w];
+function evCount(md) { const n = { proven: 0, cond: 0, emp: 0, int: 0, spec: 0 }; for (const m of String(md).matchAll(EV_RE)) n[evKind(m[1], m[2])]++; return n; }
+const cardText = c => [...c.sections.map(s => s.md), ...Object.values(c.questions), ...c.open.map(o => o.md)].join("\n");
+function mixBar(n) {
+  const parts = EV.filter(([k]) => n[k]);
+  if (!parts.length) return `<span class="mix empty" role="img" aria-label="No labelled claims yet"></span>`;
+  const label = parts.map(([k, l]) => `${n[k]} ${l}`).join(", ");
+  return `<span class="mix" role="img" aria-label="Evidence labels: ${esc(label)}" data-tip="${esc(label)}">` +
+    parts.map(([k]) => `<span class="${k === "cond" ? "cond" : ""}" style="flex:${n[k]};--c:${evVar(k)}"></span>`).join("") + `</span>`;
 }
-function addCounts(a, b) { for (const k in b) a[k] = (a[k] || 0) + b[k]; return a; }
-function cardText(c) {
-  return [...c.sections.map(s => s.md), ...Object.values(c.questions), ...c.open.map(o => o.md)].join("\n");
-}
-function mixBar(n, cls = "") {
-  const total = EV.reduce((s, e) => s + (n[e.key] || 0), 0);
-  if (!total) return `<div class="mix empty ${cls}" role="img" aria-label="No labelled claims yet"></div>`;
-  const label = EV.filter(e => n[e.key]).map(e => `${n[e.key]} ${e.label}`).join(", ");
-  return `<div class="mix ${cls}" role="img" aria-label="Evidence labels: ${esc(label)}" data-tip="${esc(label)}">` +
-    EV.filter(e => n[e.key]).map(e =>
-      `<span class="${e.key === "cond" ? "cond" : ""}" style="flex:${n[e.key]};--c:var(--ev-${e.key === "cond" ? "proven" : e.key})"></span>`).join("") +
-    `</div>`;
-}
-function mixLegend() {
-  return `<div class="mix-legend">` + EV.map(e =>
-    `<span><i class="${e.key === "cond" ? "cond" : ""}" style="--c:var(--ev-${e.key === "cond" ? "proven" : e.key})"></i>${e.label}</span>`).join("") + `</div>`;
-}
+const evLegend = () => `<div class="legend">` + EV.map(([k, l]) => `<span><i class="${k === "cond" ? "cond" : ""}" style="--c:${evVar(k)}"></i>${l}</span>`).join("") + `</div>`;
 
-/* ---------- Markdown ---------- */
-if (window.marked) marked.setOptions({ gfm: true, breaks: false });
-function preprocess(md) {
-  return String(md).replace(EV_RE, (m, w, rest) =>
-    `<span class="ev ev-${evKind(w, rest)}">${esc(w + (rest || ""))}</span>`);
-}
-function mdToHtml(md) {
-  if (!window.marked) return `<pre>${esc(md)}</pre>`;
-  return marked.parse(preprocess(md));
-}
-function mdInline(md) {
-  if (!window.marked) return esc(md);
-  return marked.parseInline(preprocess(md));
-}
+/* ---------- Markdown and enhancement ---------- */
+if (window.marked) marked.setOptions({ gfm: true });
+const pre = md => String(md).replace(EV_RE, (m, w, rest) => `<span class="ev ev-${evKind(w, rest)}">${esc(w + (rest || ""))}</span>`);
+const mdHtml = md => window.marked ? marked.parse(pre(md)) : `<pre>${esc(md)}</pre>`;
+const mdInline = md => window.marked ? marked.parseInline(pre(md)) : esc(md);
 function rewriteHref(href) {
-  if (!href) return null;
   let m = href.match(/(?:^|\/)radar\/([^/]+)\.md$/) || href.match(/^(\d{4}-W\d{2})\.md$/);
   if (m) return "#radar-" + m[1];
   m = href.match(/(?:^|\/)([a-z0-9-]+)\.md$/);
@@ -425,85 +464,64 @@ function rewriteHref(href) {
   if (/INDEX\.md$/.test(href)) return "#home";
   return null;
 }
-const ARXIV_RE = /(arXiv:\s?)(\d{4}\.\d{4,5})(v\d+)?|\b(2\d{3}\.\d{5})\b/g;
-const ARXIV_TEST = new RegExp(ARXIV_RE.source);
+// arXiv ids, DOIs and GitHub repos in plain text become links.
+const LINK_RE = /arXiv:\s?(\d{4}\.\d{4,5})(?:v\d+)?|\b(\d{2}(?:0[1-9]|1[0-2])\.\d{5})(?:v\d+)?\b|\bDOI:?\s?(10\.\d{4,9}\/[^\s),;]+[^\s),;.])|\b(github\.com\/[\w.-]+\/[\w.-]*\w)/g;
+const LINK_TEST = new RegExp(LINK_RE.source);
+const citeHtml = id => `<a class="cite" href="https://arxiv.org/abs/${id}" target="_blank" rel="noopener" data-paper="${id}">${id}</a>`;
 function enhance(root) {
   root.querySelectorAll("a[href]").forEach(a => {
-    const h = rewriteHref(a.getAttribute("href"));
-    if (h) a.setAttribute("href", h);
-    else if (/^https?:/.test(a.getAttribute("href"))) { a.target = "_blank"; a.rel = "noopener"; }
+    const href = a.getAttribute("href"), h = rewriteHref(href);
+    if (h) { a.setAttribute("href", h); return; }
+    if (/^https?:/.test(href)) { a.target = "_blank"; a.rel = "noopener"; }
+    const m = href.match(/arxiv\.org\/(?:abs|pdf)\/(\d{4}\.\d{4,5})/);
+    if (m) a.dataset.paper = m[1];
   });
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
-    acceptNode: n => n.parentElement.closest("a, code, pre, svg") ? NodeFilter.FILTER_REJECT
-      : (ARXIV_TEST.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP),
+    acceptNode: n => n.parentElement.closest("a, code, pre, svg, .ev") ? NodeFilter.FILTER_REJECT
+      : LINK_TEST.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP,
   });
-  const nodes = [];
-  while (walker.nextNode()) nodes.push(walker.currentNode);
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(n => {
-    ARXIV_RE.lastIndex = 0;
     const span = document.createElement("span");
-    span.innerHTML = esc(n.nodeValue).replace(ARXIV_RE, (m, pre, id, ver, bare) => {
-      const pid = id || bare;
-      return `<a class="arxiv" href="https://arxiv.org/abs/${pid}" target="_blank" rel="noopener">${m}</a>`;
+    span.innerHTML = esc(n.nodeValue).replace(LINK_RE, (m, a, b, doi, gh) => {
+      if (a || b) return citeHtml(a || b);
+      if (doi) return `<a href="https://doi.org/${doi}" target="_blank" rel="noopener">${m}</a>`;
+      return `<a href="https://${gh}" target="_blank" rel="noopener">${gh}</a>`;
     });
     n.replaceWith(...span.childNodes);
   });
-  ARXIV_RE.lastIndex = 0;
   root.querySelectorAll("table").forEach(t => {
     if (t.parentElement.classList.contains("table-wrap")) return;
-    const w = document.createElement("div"); w.className = "table-wrap";
-    t.replaceWith(w); w.appendChild(t);
+    const w = document.createElement("div"); w.className = "table-wrap"; t.replaceWith(w); w.appendChild(t);
   });
   root.querySelectorAll("pre > code[class^='language-']").forEach(code => {
-    const kind = code.className.replace("language-", "");
-    const pre = code.parentElement;
-    const src = code.textContent;
+    const kind = code.className.replace("language-", ""), src = code.textContent;
     let el = null;
     try {
       if (kind === "frontier") el = frontierChart(JSON.parse(src));
-      else if (kind === "embed") el = embedCard(JSON.parse(src));
-      else if (kind === "boundary") el = callout(src);
+      else if (kind === "embed") { const s = JSON.parse(src); el = document.createElement("a"); el.className = "embed-card"; el.href = s.url; el.target = "_blank"; el.rel = "noopener"; el.innerHTML = `<b>${esc(s.title || "Open the interactive explorer")} ↗</b>${s.description ? `<span>${esc(s.description)}</span>` : ""}`; }
+      else if (kind === "boundary") { el = document.createElement("div"); el.className = "callout"; el.innerHTML = `<div class="eyebrow">Boundary</div>` + mdHtml(src); }
       else if (kind === "mermaid") { el = document.createElement("pre"); el.className = "mermaid"; el.textContent = src; }
     } catch (err) {
-      el = document.createElement("div");
-      el.className = "callout";
+      el = document.createElement("div"); el.className = "callout";
       el.innerHTML = `<div class="eyebrow">Could not draw this ${esc(kind)} block</div><span class="muted">${esc(err.message)}</span>`;
     }
-    if (el) { el.dataset.viz = kind; pre.replaceWith(el); }
+    if (el) { el.dataset.viz = kind; code.parentElement.replaceWith(el); }
   });
   wireTips(root);
   return root;
 }
-function htmlEl(html, cls = "prose") {
-  const d = document.createElement("div");
-  d.className = cls; d.innerHTML = html;
-  return enhance(d);
-}
-function callout(md) {
-  const d = document.createElement("div");
-  d.className = "callout";
-  d.innerHTML = `<div class="eyebrow">Boundary</div>` + mdToHtml(md);
-  return d;
-}
-function embedCard(spec) {
-  const a = document.createElement("a");
-  a.className = "embed-card"; a.href = spec.url; a.target = "_blank"; a.rel = "noopener";
-  a.innerHTML = `<b>${esc(spec.title || "Open the interactive explorer")} ↗</b>` +
-    (spec.description ? `<span>${esc(spec.description)}</span>` : "");
-  return a;
-}
+function prose(md, cls = "prose") { const d = document.createElement("div"); d.className = cls; d.innerHTML = mdHtml(md); return enhance(d); }
 
-/* ---------- tooltip ---------- */
+/* ---------- small tooltips (evidence bars, map nodes) ---------- */
 function wireTips(root) {
   root.querySelectorAll("[data-tip]").forEach(el => {
-    el.addEventListener("pointerenter", e => showTip(el.dataset.tip, e));
-    el.addEventListener("pointermove", e => moveTip(e));
-    el.addEventListener("pointerleave", hideTip);
-    el.addEventListener("focus", () => { const r = el.getBoundingClientRect(); showTip(el.dataset.tip, { clientX: r.left + r.width / 2, clientY: r.top }); });
-    el.addEventListener("blur", hideTip);
+    if (el.dataset.tipWired) return; el.dataset.tipWired = "1";
+    el.addEventListener("pointerenter", e => { tip.textContent = el.dataset.tip; tip.hidden = false; moveTip(e); });
+    el.addEventListener("pointermove", moveTip);
+    el.addEventListener("pointerleave", () => { tip.hidden = true; });
   });
 }
-function showTip(text, e) { tip.textContent = text; tip.hidden = false; moveTip(e); }
 function moveTip(e) {
   const w = tip.offsetWidth, h = tip.offsetHeight;
   let x = e.clientX + 14, y = e.clientY - h - 10;
@@ -511,432 +529,434 @@ function moveTip(e) {
   if (y < 8) y = e.clientY + 18;
   tip.style.left = Math.max(8, x) + "px"; tip.style.top = y + "px";
 }
-function hideTip() { tip.hidden = true; }
 
-/* ---------- frontier chart (from a ```frontier JSON block) ---------- */
+/* ---------- paper popover ---------- */
+const authorsShort = a => !a || !a.length ? "" : a.length <= 3 ? a.join(", ") : `${a.slice(0, 3).join(", ")} and ${a.length - 3} more`;
+function popHtml(id) {
+  const p = P[id] || {};
+  const used = [...(p.cards || []).map(s => `<a href="#card-${s}">${esc(shortName(s))}</a>`), ...(p.radars || []).map(r => `<a href="#radar-${r}">radar ${esc(r)}</a>`)];
+  const checks = Object.entries(p.checks || {}).map(([s, v]) => `${esc(shortName(s))}: ${esc(v)}`);
+  const links = `<div class="links"><a href="https://arxiv.org/abs/${id}" target="_blank" rel="noopener">arXiv</a><a href="https://arxiv.org/pdf/${id}" target="_blank" rel="noopener">PDF</a><a href="https://www.alphaxiv.org/abs/${id}" target="_blank" rel="noopener">alphaXiv</a></div>`;
+  if (!p.found) {
+    return `<div class="meta"><span>arXiv ${id}</span></div><div class="title">${p.found === false ? "Not found on arXiv" : "No details cached yet"}</div>` +
+      `<p class="abs">${p.found === false ? `The arXiv lookup on ${esc(p.checked)} returned nothing for this id. Treat it as unverified.` : "Rebuild the viewer with network access to fetch the title and abstract."}</p>${links}`;
+  }
+  return `<div class="meta"><span>${esc(p.year)}</span><span>${esc(p.category)}</span><span>arXiv ${id}</span></div>` +
+    `<div class="title">${esc(p.title)}</div><div class="authors">${esc(authorsShort(p.authors))}</div>` +
+    (p.summary ? `<p class="abs">${esc(p.summary)}</p>` : "") + links +
+    (used.length ? `<div class="used">Cited in ${used.join(", ")}${checks.length ? `<br>Checked: ${checks.join("; ")}` : ""}</div>` : "");
+}
+let popFor = null, popTimer = null, lastPointer = "mouse";
+function showPop(anchor) {
+  clearTimeout(popTimer);
+  popFor = anchor;
+  pop.innerHTML = popHtml(anchor.dataset.paper);
+  pop.hidden = false;
+  const r = anchor.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  let x = Math.min(Math.max(12, r.left), innerWidth - w - 12);
+  let y = r.bottom + 8;
+  if (y + h > innerHeight - 12 && r.top - h - 8 > 12) y = r.top - h - 8;
+  pop.style.left = x + "px"; pop.style.top = Math.max(12, y) + "px";
+}
+function hidePop(delay = 180) { clearTimeout(popTimer); popTimer = setTimeout(() => { pop.hidden = true; popFor = null; }, delay); }
+document.addEventListener("pointerdown", e => { lastPointer = e.pointerType; if (!pop.hidden && !pop.contains(e.target) && !e.target.closest("[data-paper]")) hidePop(0); }, true);
+document.addEventListener("pointerover", e => {
+  const a = e.target.closest("[data-paper]");
+  if (a && e.pointerType === "mouse") { clearTimeout(popTimer); popTimer = setTimeout(() => showPop(a), 140); }
+  else if (e.target.closest("#pop")) clearTimeout(popTimer);
+});
+document.addEventListener("pointerout", e => {
+  const a = e.target.closest("[data-paper], #pop");
+  if (a && !(e.relatedTarget && (a.contains(e.relatedTarget) || pop.contains(e.relatedTarget)))) hidePop();
+});
+document.addEventListener("click", e => {
+  const a = e.target.closest("[data-paper]");
+  if (a && lastPointer !== "mouse" && popFor !== a) { e.preventDefault(); showPop(a); }
+});
+document.addEventListener("focusin", e => { const a = e.target.closest("[data-paper]"); if (a) showPop(a); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") hidePop(0); });
+addEventListener("scroll", () => { if (!pop.hidden) hidePop(0); }, { passive: true });
+
+/* ---------- frontier chart ---------- */
 function niceTicks(lo, hi, n = 5) {
-  const span = hi - lo || Math.abs(hi) || 1;
-  const step0 = span / n, mag = 10 ** Math.floor(Math.log10(step0));
+  const span = hi - lo || 1, mag = 10 ** Math.floor(Math.log10(span / n));
   const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => span / s <= n) || 10 * mag;
-  const out = [];
-  for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step) out.push(+v.toFixed(10));
+  const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step) out.push(+v.toFixed(10));
   return out;
 }
-function fmt(v) { return Math.abs(v) >= 1000 ? v.toLocaleString("en") : String(+v.toPrecision(4)); }
+const fmtN = v => Math.abs(v) >= 1000 ? v.toLocaleString("en") : String(+v.toPrecision(4));
 function frontierChart(spec) {
   const series = (spec.series || []).slice(0, 4);
   if (!series.length) throw new Error("A frontier block needs a non-empty series list.");
   const W = 640, H = 300, m = { l: 52, r: 110, t: 12, b: 44 };
-  const pts = series.flatMap(s => s.points);
-  const xl = !!(spec.x && spec.x.log), xs = pts.map(p => p.x), ys = pts.map(p => p.y);
-  let x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-  const ypad = (y1 - y0 || Math.abs(y1) || 1) * 0.12; y0 -= ypad; y1 += ypad;
+  const pts = series.flatMap(s => s.points), xl = !!(spec.x && spec.x.log);
+  let x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)), y1 = Math.max(...pts.map(p => p.y));
+  const yp = (y1 - y0 || 1) * 0.12; y0 -= yp; y1 += yp;
   let xt;
-  if (xl) { x0 = x0 / 1.25; x1 = x1 * 1.25; xt = []; for (let e = Math.floor(Math.log2(x0)); e <= Math.ceil(Math.log2(x1)); e++) { const v = 2 ** e; if (v >= x0 && v <= x1) xt.push(v); } }
+  if (xl) { x0 /= 1.25; x1 *= 1.25; xt = []; for (let e = Math.floor(Math.log2(x0)); e <= Math.ceil(Math.log2(x1)); e++) { const v = 2 ** e; if (v >= x0 && v <= x1) xt.push(v); } }
   else { const xp = (x1 - x0 || 1) * 0.08; x0 -= xp; x1 += xp; xt = niceTicks(x0, x1); }
   const yt = niceTicks(y0, y1).filter(v => v >= y0 && v <= y1);
   const X = v => m.l + (xl ? (Math.log(v) - Math.log(x0)) / (Math.log(x1) - Math.log(x0)) : (v - x0) / (x1 - x0)) * (W - m.l - m.r);
   const Y = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
   const colors = ["var(--ev-proven)", "var(--ev-emp)", "var(--ev-int)", "var(--ev-spec)"];
   const better = spec.y && spec.y.better ? ` (${spec.y.better} is better)` : "";
-  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title || "Trade-off chart")}">`;
-  svg += `<g class="grid">` + yt.map(v => `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}"/>`).join("") + `</g>`;
-  svg += `<g class="axis">` + yt.map(v => `<text x="${m.l - 8}" y="${Y(v) + 4}" text-anchor="end">${fmt(v)}</text>`).join("") +
-    xt.map(v => `<text x="${X(v)}" y="${H - m.b + 16}" text-anchor="middle">${fmt(v)}</text>`).join("") + `</g>`;
-  svg += `<text class="axis-title" x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">${esc((spec.x && spec.x.label) || "")}</text>`;
-  svg += `<text class="axis-title" x="12" y="${(m.t + H - m.b) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(m.t + H - m.b) / 2})">${esc(((spec.y && spec.y.label) || "") + better)}</text>`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(spec.title || "Trade-off chart")}"><g class="grid">` +
+    yt.map(v => `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}"/>`).join("") + `</g><g class="axis">` +
+    yt.map(v => `<text x="${m.l - 8}" y="${Y(v) + 4}" text-anchor="end">${fmtN(v)}</text>`).join("") +
+    xt.map(v => `<text x="${X(v)}" y="${H - m.b + 16}" text-anchor="middle">${fmtN(v)}</text>`).join("") + `</g>` +
+    `<text class="axis-title" x="${(m.l + W - m.r) / 2}" y="${H - 6}" text-anchor="middle">${esc(spec.x?.label || "")}</text>` +
+    `<text class="axis-title" x="12" y="${(m.t + H - m.b) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(m.t + H - m.b) / 2})">${esc((spec.y?.label || "") + better)}</text>`;
   series.forEach((s, i) => {
     const p = [...s.points].sort((a, b) => a.x - b.x);
-    svg += `<path d="${p.map((q, j) => (j ? "L" : "M") + X(q.x).toFixed(1) + " " + Y(q.y).toFixed(1)).join("")}" fill="none" stroke="${colors[i]}" stroke-width="2" stroke-linejoin="round"/>`;
+    svg += `<path d="${p.map((q, j) => (j ? "L" : "M") + X(q.x).toFixed(1) + " " + Y(q.y).toFixed(1)).join("")}" fill="none" stroke="${colors[i]}" stroke-width="2"/>`;
     p.forEach(q => {
-      const t = `${s.name}${q.label ? " · " + q.label : ""}: ${spec.x?.label || "x"} ${fmt(q.x)}, ${spec.y?.label || "y"} ${fmt(q.y)}`;
-      svg += `<circle cx="${X(q.x)}" cy="${Y(q.y)}" r="5" fill="${colors[i]}" stroke="var(--surface)" stroke-width="2"/>`;
-      svg += `<circle cx="${X(q.x)}" cy="${Y(q.y)}" r="12" fill="transparent" data-tip="${esc(t)}" tabindex="0"/>`;
+      svg += `<circle cx="${X(q.x)}" cy="${Y(q.y)}" r="5" fill="${colors[i]}" stroke="var(--surface)" stroke-width="2"/>` +
+        `<circle cx="${X(q.x)}" cy="${Y(q.y)}" r="12" fill="transparent" data-tip="${esc(`${s.name}${q.label ? " · " + q.label : ""}: ${fmtN(q.x)}, ${fmtN(q.y)}`)}"/>`;
     });
     const last = p[p.length - 1];
     svg += `<text class="dlabel" x="${X(last.x) + 10}" y="${Y(last.y) + 4}">${esc(s.name)}</text>`;
   });
   svg += `</svg>`;
-  const rows = series.flatMap(s => s.points.map(q => `<tr><td>${esc(s.name)}</td><td>${esc(q.label || "")}</td><td>${fmt(q.x)}</td><td>${fmt(q.y)}</td></tr>`)).join("");
-  const d = document.createElement("figure");
-  d.className = "chart";
-  d.style.margin = "0 0 1em";
-  d.innerHTML = (spec.title ? `<h4>${esc(spec.title)}</h4>` : "") +
-    (series.length > 1 ? `<div class="legend">` + series.map((s, i) => `<span><i style="--c:${colors[i]}"></i>${esc(s.name)}</span>`).join("") + `</div>` : "") +
-    svg + (spec.note || spec.source ? `<p class="note">${mdInline([spec.note, spec.source].filter(Boolean).join(" · "))}</p>` : "") +
+  const rows = series.flatMap(s => s.points.map(q => `<tr><td>${esc(s.name)}</td><td>${esc(q.label || "")}</td><td>${fmtN(q.x)}</td><td>${fmtN(q.y)}</td></tr>`)).join("");
+  const f = document.createElement("figure"); f.className = "chart"; f.style.margin = "0 0 1em";
+  f.innerHTML = (spec.title ? `<h4>${esc(spec.title)}</h4>` : "") +
+    (series.length > 1 ? `<div class="legend">` + series.map((s, i) => `<span><i style="--c:${colors[i]}"></i>${esc(s.name)}</span>`).join("") + `</div>` : "") + svg +
+    (spec.note || spec.source ? `<p class="note">${mdInline([spec.note, spec.source].filter(Boolean).join(" · "))}</p>` : "") +
     `<details><summary>Show the data as a table</summary><div class="table-wrap"><table><thead><tr><th>Series</th><th>Point</th><th>${esc(spec.x?.label || "x")}</th><th>${esc(spec.y?.label || "y")}</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
-  return d;
+  return f;
 }
 
-/* ---------- derived card facts ---------- */
+/* ---------- derived facts ---------- */
 const backlinks = {};
-V.cards.forEach(c => [...c.related, ...c.links].forEach(t => { (backlinks[t] = backlinks[t] || new Set()).add(c.slug); }));
+V.cards.forEach(c => [...c.related, ...c.links].forEach(t => (backlinks[t] = backlinks[t] || new Set()).add(c.slug)));
 function depthCoverage(c) {
-  const has = k => c.sections.find(s => s.kind === k);
-  const nq = Object.keys(c.questions).length;
-  const l3 = has("l3");
-  return [
-    has("l0") ? "full" : "none",
-    has("l1") ? "full" : "none",
-    has("l2") && nq === 7 ? "full" : (has("l2") || has("extra") || nq ? "part" : "none"),
-    l3 ? (l3.planned ? "part" : "full") : "none",
-    has("l4") ? "full" : "none",
-  ];
+  const has = k => c.sections.find(s => s.kind === k), nq = Object.keys(c.questions).length, l3 = has("l3");
+  return [has("l0") ? "full" : "", has("l1") ? "full" : "", has("l2") && nq === 7 ? "full" : (has("l2") || has("extra") || nq ? "part" : ""),
+    l3 ? (l3.planned ? "part" : "full") : "", has("l4") ? "full" : ""];
 }
-function summarize(md, max = 170) {
-  const d = document.createElement("div");
-  d.innerHTML = mdToHtml(md);
-  const first = d.querySelector("p, li");
-  if (!first) return "";
-  const c = first.cloneNode(true);
-  c.querySelectorAll(".ev").forEach(x => x.remove());
-  // Include nested bullets, so a short bold lead gets its first detail too.
+function summarize(md, max = 190) {
+  const d = document.createElement("div"); d.innerHTML = mdHtml(md);
+  const first = d.querySelector("p, li"); if (!first) return "";
+  const c = first.cloneNode(true); c.querySelectorAll(".ev").forEach(x => x.remove());
   let t = c.textContent.replace(/\s+/g, " ").trim().replace(/\.(?=[A-Z])/g, ". ");
-  const s = t.match(/^(.{60,}?[.!?:])(\s|$)/);
-  if (s) t = s[1];
+  const s = t.match(/^(.{60,}?[.!?:])(\s|$)/); if (s) t = s[1];
   return t.length > max ? t.slice(0, max - 1).replace(/\s+\S*$/, "") + "…" : t;
 }
-function countPoints(md) {
-  const d = document.createElement("div"); d.innerHTML = mdToHtml(md);
-  return d.querySelectorAll(":scope > ul > li, :scope > ol > li, :scope > p").length;
-}
-function statusChip(st) { return `<span class="chip st-${esc(st)}"><i></i>${esc(st)}</span>`; }
-function coverageBlock(c) {
-  const q = QUESTIONS.map((_, i) => `<i class="${c.questions[i + 1] ? "full" : ""}" title="${QUESTIONS[i][0]}"></i>`).join("");
-  const dc = depthCoverage(c).map((s, i) => `<i class="${s === "none" ? "" : s}" title="${DEPTHS[i].lv} ${DEPTHS[i].name}${s === "part" ? " (partial)" : ""}"></i>`).join("");
-  return `<div class="coverage"><span>7 questions</span><span class="dots" aria-label="${Object.keys(c.questions).length} of 7 questions filled">${q}</span>` +
-    `<span>Depth L0–L4</span><span class="dots" aria-label="Depth coverage">${dc}</span>` +
-    `<span>Evidence</span>${mixBar(evCount(cardText(c)))}</div>`;
-}
+const openCount = V.cards.reduce((s, c) => s + c.open.filter(o => !o.done).length, 0);
 
-/* ---------- concept map ---------- */
+/* ---------- rail ---------- */
+function renderRail() {
+  const groups = [["draft", "Drafts"], ["solid", "Solid"], ["stub", "Stubs"]];
+  document.getElementById("rail-cards").innerHTML = groups.map(([st, label]) => {
+    const cs = V.cards.filter(c => c.status === st); if (!cs.length) return "";
+    return `<div class="rail-group"><h3>${label}</h3>${cs.map(c => `<a href="#card-${c.slug}" data-card="${c.slug}" title="${esc(c.title)}"><span class="dot ${c.status}"></span><span class="t">${esc(shortName(c.slug))}</span></a>`).join("")}</div>`;
+  }).join("");
+  document.getElementById("n-q").textContent = openCount;
+  document.getElementById("n-p").textContent = Object.keys(P).length;
+  document.getElementById("rail-foot").innerHTML = `Built ${esc(V.built || "")}${V.commit ? ` from <span class="mono">${esc(V.commit)}</span>` : ""}.<br>Source: Markdown cards in <code>exploration/cards</code>.`;
+}
+function setCurrent(nav, slug) {
+  document.querySelectorAll("[data-nav]").forEach(a => a.dataset.nav === nav ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+  document.querySelectorAll("[data-card]").forEach(a => a.dataset.card === slug ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+}
+const rail = document.getElementById("rail"), scrim = document.getElementById("scrim"), menu = document.getElementById("menu");
+function setMenu(open) { rail.classList.toggle("open", open); scrim.classList.toggle("open", open); menu.setAttribute("aria-expanded", String(open)); }
+menu.addEventListener("click", () => setMenu(!rail.classList.contains("open")));
+scrim.addEventListener("click", () => setMenu(false));
+
+/* ---------- table of contents with scrollspy ---------- */
+let spy = null;
+function buildToc(tocEl, entries) {
+  if (spy) spy.disconnect();
+  tocEl.innerHTML = `<div class="eyebrow">On this page</div>` + entries.map((e, i) => `<button type="button" data-i="${i}">${esc(e.label)}</button>`).join("");
+  const btns = [...tocEl.querySelectorAll("button")];
+  btns.forEach((b, i) => b.addEventListener("click", () => entries[i].go()));
+  const refresh = () => btns.forEach((b, i) => b.classList.toggle("deep", !!entries[i].el.closest("[hidden]") || entries[i].el.hidden));
+  spy = new IntersectionObserver(obs => {
+    const vis = obs.filter(o => o.isIntersecting).map(o => entries.findIndex(e => e.el === o.target));
+    if (vis.length) { const i = Math.min(...vis); btns.forEach((b, j) => b.classList.toggle("on", j === i)); }
+  }, { rootMargin: "-10% 0px -70% 0px" });
+  entries.forEach(e => spy.observe(e.el));
+  refresh();
+  return refresh;
+}
+const scrollTo = el => el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+
+/* ---------- views ---------- */
+const footer = () => `<footer class="site"><span>Built ${esc(V.built || "")}${V.commit ? ` from commit <span class="mono">${esc(V.commit)}</span>` : ""}</span><span>Rebuild with <code>py viewer/build.py</code></span></footer>`;
+
 function conceptMap() {
-  const W = 640, H = 380;
-  const nodes = V.cards.map((c, i) => ({ c, i }));
-  const idx = Object.fromEntries(nodes.map(n => [n.c.slug, n]));
-  const key = (a, b) => [a, b].sort().join("|");
-  const edges = new Map();
+  const W = 640, H = 380, nodes = V.cards.map(c => ({ c })), idx = Object.fromEntries(nodes.map(n => [n.c.slug, n]));
+  const key = (a, b) => [a, b].sort().join("|"), edges = new Map();
   V.cards.forEach(c => {
     c.related.forEach(t => idx[t] && t !== c.slug && edges.set(key(c.slug, t), { a: c.slug, b: t, strong: true }));
     c.links.forEach(t => { const k = key(c.slug, t); if (idx[t] && !edges.has(k)) edges.set(k, { a: c.slug, b: t, strong: false }); });
   });
   const E = [...edges.values()];
-  nodes.forEach((n, i) => {
-    const a = 2 * Math.PI * i / nodes.length;
-    n.x = W / 2 + Math.cos(a) * 200; n.y = H / 2 + Math.sin(a) * 120; n.vx = 0; n.vy = 0;
-    n.r = 9 + Math.sqrt(n.c.words) / 7;
-  });
+  nodes.forEach((n, i) => { const a = 2 * Math.PI * i / nodes.length; n.x = W / 2 + Math.cos(a) * 200; n.y = H / 2 + Math.sin(a) * 120; n.vx = n.vy = 0; n.r = 8 + Math.sqrt(n.c.words) / 7; });
   for (let it = 0; it < 500; it++) {
     for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
-      const p = nodes[i], q = nodes[j];
-      let dx = p.x - q.x, dy = p.y - q.y; const d2 = Math.max(dx * dx + dy * dy, 25), d = Math.sqrt(d2);
-      const f = 34000 / d2; dx /= d; dy /= d;
-      p.vx += dx * f; p.vy += dy * f; q.vx -= dx * f; q.vy -= dy * f;
+      const p = nodes[i], q = nodes[j]; let dx = p.x - q.x, dy = p.y - q.y; const d2 = Math.max(dx * dx + dy * dy, 25), d = Math.sqrt(d2), f = 52000 / d2;
+      dx /= d; dy /= d; p.vx += dx * f; p.vy += dy * f; q.vx -= dx * f; q.vy -= dy * f;
     }
-    E.forEach(e => {
-      const p = idx[e.a], q = idx[e.b];
-      const dx = q.x - p.x, dy = q.y - p.y, d = Math.max(Math.hypot(dx, dy), 1);
-      const f = (d - (e.strong ? 150 : 190)) * 0.03;
-      p.vx += dx / d * f; p.vy += dy / d * f; q.vx -= dx / d * f; q.vy -= dy / d * f;
-    });
-    nodes.forEach(n => {
-      n.vx += (W / 2 - n.x) * 0.006; n.vy += (H / 2 - n.y) * 0.012;
-      n.x += n.vx * 0.2; n.y += n.vy * 0.2; n.vx *= 0.6; n.vy *= 0.6;
-      n.x = Math.min(W - 70, Math.max(70, n.x)); n.y = Math.min(H - 34, Math.max(26, n.y));
-    });
+    E.forEach(e => { const p = idx[e.a], q = idx[e.b], dx = q.x - p.x, dy = q.y - p.y, d = Math.max(Math.hypot(dx, dy), 1), f = (d - (e.strong ? 150 : 190)) * 0.03; p.vx += dx / d * f; p.vy += dy / d * f; q.vx -= dx / d * f; q.vy -= dy / d * f; });
+    nodes.forEach(n => { n.vx += (W / 2 - n.x) * 0.006; n.vy += (H / 2 - n.y) * 0.012; n.x += n.vx * 0.2; n.y += n.vy * 0.2; n.vx *= 0.6; n.vy *= 0.6; n.x = Math.min(W - 80, Math.max(80, n.x)); n.y = Math.min(H - 34, Math.max(26, n.y)); });
   }
-  const fill = st => st === "solid" ? `fill="var(--st-solid)"` : st === "draft" ? `fill="var(--st-draft)" fill-opacity="0.55" stroke="var(--st-draft)" stroke-width="1.5"`
+  const fill = st => st === "solid" ? `fill="var(--st-solid)"` : st === "draft" ? `fill="var(--st-draft)" fill-opacity="0.85"`
     : `fill="var(--surface)" stroke="var(--st-stub)" stroke-width="1.5" stroke-dasharray="3 3"`;
   let svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of cards and the links between them">`;
-  E.forEach(e => { const p = idx[e.a], q = idx[e.b]; svg += `<line class="edge ${e.strong ? "" : "weak"}" x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}"/>`; });
+  E.forEach(e => { const p = idx[e.a], q = idx[e.b]; svg += `<line class="edge ${e.strong ? "" : "weak"}" data-a="${e.a}" data-b="${e.b}" x1="${p.x}" y1="${p.y}" x2="${q.x}" y2="${q.y}"/>`; });
   nodes.forEach(n => {
     const open = n.c.open.filter(o => !o.done).length;
-    const t = `${n.c.title} · ${n.c.status} · ${open} open question${open === 1 ? "" : "s"}`;
-    svg += `<a class="node" href="#card-${n.c.slug}" data-tip="${esc(t)}" aria-label="${esc(n.c.title)}">` +
-      `<circle cx="${n.x}" cy="${n.y}" r="${n.r}" ${fill(n.c.status)}/>` +
-      `<text x="${n.x}" y="${n.y + n.r + 15}" text-anchor="middle">${esc(shortName(n.c.slug))}</text></a>`;
+    svg += `<a class="node" href="#card-${n.c.slug}" data-slug="${n.c.slug}" data-tip="${esc(`${n.c.title} · ${n.c.status} · ${open} open question${open === 1 ? "" : "s"}`)}" aria-label="${esc(n.c.title)}">` +
+      `<circle cx="${n.x}" cy="${n.y}" r="${n.r}" ${fill(n.c.status)}/><text x="${n.x}" y="${n.y + n.r + 16}" text-anchor="middle">${esc(shortName(n.c.slug))}</text></a>`;
   });
-  svg += `</svg>`;
-  const sw = (st, label) => `<span><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" ${fill(st)}/></svg>${label}</span>`;
-  return `<div class="panel map"><div class="section-head" style="margin:0"><h2>Concept map</h2><span class="eyebrow">Size shows card length</span></div>${svg}` +
-    `<div class="map-legend">${sw("stub", "stub")}${sw("draft", "draft")}${sw("solid", "solid")}` +
-    `<span><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke="var(--line)" stroke-width="2"/></svg>listed as related</span>` +
-    `<span><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 4"/></svg>mentioned in text</span></div></div>`;
+  const sw = (st, l) => `<span><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="5.5" ${fill(st)}/></svg>${l}</span>`;
+  return `<section class="panel map"><div class="section-title"><h2>Concept map</h2><span class="eyebrow">size = card length</span></div>${svg}` +
+    `<div class="map-legend">${sw("stub", "stub")}${sw("draft", "draft")}${sw("solid", "solid")}<span><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke="var(--line)" stroke-width="2"/></svg>listed as related</span><span><svg width="22" height="6" aria-hidden="true"><line x1="0" y1="3" x2="22" y2="3" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 4"/></svg>mentioned in text</span></div></section>`;
 }
 
-/* ---------- views ---------- */
 function viewHome() {
-  const open = V.cards.reduce((s, c) => s + c.open.filter(o => !o.done).length, 0);
-  const changes = V.cards.flatMap(c => c.log.map(l => ({ ...l, c }))).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 7);
+  const changes = V.cards.flatMap(c => c.log.map(l => ({ ...l, c }))).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 6);
   const order = { solid: 0, draft: 1, stub: 2 };
   const cards = [...V.cards].sort((a, b) => (order[a.status] ?? 3) - (order[b.status] ?? 3) || b.updated.localeCompare(a.updated));
   const latest = V.radars[0];
-  app.innerHTML = `
-    <section class="home-hero">
-      <span class="eyebrow">Research companion</span>
-      <h1>What the vault knows, and how sure it is</h1>
-      <p>Every card answers the same seven questions at five depths. Start from the map or a card; the open questions are what the weekly radar watches.</p>
-      <div class="stats"><span><b>${V.cards.length}</b> cards</span>
-        <span><b>${V.cards.filter(c => c.status !== "stub").length}</b> beyond stub</span>
-        <span><b>${open}</b> open questions</span>
-        ${latest ? `<span>latest radar <a href="#radar-${esc(latest.id)}" class="mono">${esc(latest.id)}</a></span>` : ""}</div>
-    </section>
-    <div class="home-grid">
-      ${conceptMap()}
-      <section class="panel changes" aria-labelledby="ch-h">
-        <div class="section-head" style="margin:0"><h2 id="ch-h">Recently changed</h2><span class="eyebrow">from card logs</span></div>
-        ${changes.map(l => `<div class="change"><span class="when">${esc(l.date)}</span><div>
-          <a class="card-ref" href="#card-${l.c.slug}">${esc(shortName(l.c.slug))}</a>
-          <p>${mdInline(l.md.split(/\n\s*(?:[-*] |\n)/)[0].replace(/\s*\n\s*/g, " "))}</p></div></div>`).join("")}
-      </section>
-    </div>
-    <section aria-labelledby="cards-h">
-      <div class="section-head"><h2 id="cards-h">Cards</h2>${mixLegend()}</div>
-      <div class="card-list">${cards.map(c => `
-        <a class="card-tile" href="#card-${c.slug}">
-          <div class="row">${statusChip(c.status)}<span class="mono muted" style="font-size:12px">${esc(c.updated)}</span></div>
-          <h3>${esc(c.title)}</h3>
-          ${c.oneLine ? `<p>${mdInline(c.oneLine)}</p>` : ""}
-          ${coverageBlock(c)}
-        </a>`).join("")}</div>
-    </section>`;
-  enhance(app);
+  main.innerHTML = `<div class="page single"><div class="content">
+    <section class="hero"><span class="eyebrow">Exploration vault</span><h1>What the vault knows, and how sure it is</h1>
+      <p>Every card asks the same seven questions at five depths. Each claim carries an evidence label, and every paper links to its source.</p>
+      <div class="stats"><div class="stat"><b>${V.cards.length}</b><span>cards</span></div><div class="stat"><b>${V.cards.filter(c => c.status !== "stub").length}</b><span>beyond stub</span></div>
+        <div class="stat"><b>${openCount}</b><span>open questions</span></div><div class="stat"><b>${Object.keys(P).length}</b><span>papers cited</span></div>
+        ${latest ? `<div class="stat"><b><a href="#radar-${esc(latest.id)}" style="text-decoration:none">${esc(latest.id)}</a></b><span>latest radar</span></div>` : ""}</div></section>
+    <div class="home-grid">${conceptMap()}
+      <section class="panel"><div class="section-title"><h2>Recently changed</h2></div><div class="changes">${changes.map(l => `<div class="change"><div class="top"><span class="when">${esc(fmtDate(l.date))}</span><a href="#card-${l.c.slug}">${esc(shortName(l.c.slug))}</a></div><p>${mdInline(l.md.split(/\n\s*(?:[-*] |\n)/)[0].replace(/\s*\n\s*/g, " "))}</p></div>`).join("")}</div></section></div>
+    <section><div class="section-title"><h2>Cards</h2>${evLegend()}</div><div class="cards">${cards.map(c => {
+      const dc = depthCoverage(c);
+      return `<a class="card-row" href="#card-${c.slug}"><div class="l"><div class="top"><span class="pill"><span class="dot ${c.status}"></span>${esc(c.status)}</span><span>updated ${esc(fmtDate(c.updated))}</span><span>${c.cites.length} papers</span></div>
+        <h3>${esc(c.title)}</h3>${c.oneLine ? `<p>${mdInline(c.oneLine)}</p>` : ""}</div>
+        <div class="cov"><span>7 questions</span><span class="cells">${QUESTIONS.map((q, i) => `<i class="${c.questions[i + 1] ? "full" : ""}" title="${q[0]}"></i>`).join("")}</span>
+        <span>Depth</span><span class="cells">${dc.map((s, i) => `<i class="${s}" title="${DEPTHS[i].join(" ")}"></i>`).join("")}</span>
+        <span>Evidence</span>${mixBar(evCount(cardText(c)))}</div></a>`;
+    }).join("")}</div></section>${footer()}</div></div>`;
+  enhance(main);
+  main.querySelectorAll(".map .node").forEach(n => {
+    const s = n.dataset.slug, lines = main.querySelectorAll(`.map .edge[data-a="${s}"], .map .edge[data-b="${s}"]`);
+    n.addEventListener("pointerenter", () => lines.forEach(l => l.classList.add("hot")));
+    n.addEventListener("pointerleave", () => lines.forEach(l => l.classList.remove("hot")));
+  });
+}
+
+function paperRow(id, n, extra = "") {
+  const p = P[id] || {};
+  const title = p.found ? esc(p.title) : `arXiv ${id}${p.found === false ? " (not found on arXiv)" : ""}`;
+  const used = (p.cards || []).map(s => `<a href="#card-${s}">${esc(shortName(s))}</a>`).join(", ");
+  const checks = Object.values(p.checks || {});
+  return `<div class="paper-row"><span class="n">${n}</span><div class="body">
+    <div class="t"><a class="paper-link" href="https://arxiv.org/abs/${id}" target="_blank" rel="noopener" data-paper="${id}">${title}</a></div>
+    ${p.found ? `<div class="a">${esc(authorsShort(p.authors))}</div>` : ""}
+    <div class="m"><span class="mono">${esc(p.year || "")}${p.category ? " · " + esc(p.category) : ""} · ${id}</span>${checks.length ? `<span class="chk">✓ ${esc(checks[0])}</span>` : ""}${used ? `<span class="used">in ${used}</span>` : ""}</div>
+    ${extra}<div class="links"><a href="https://arxiv.org/abs/${id}" target="_blank" rel="noopener">arXiv</a><a href="https://arxiv.org/pdf/${id}" target="_blank" rel="noopener">PDF</a><a href="https://www.alphaxiv.org/abs/${id}" target="_blank" rel="noopener">alphaXiv</a></div></div></div>`;
 }
 
 function viewCard(slug) {
-  const c = bySlug[slug];
-  if (!c) return viewMissing();
-  const l0 = c.sections.find(s => s.kind === "l0");
-  const long = c.sections.filter(s => s.kind !== "l0");
-  const nOpen = c.open.filter(o => !o.done).length;
-  const ev = evCount(cardText(c));
-  const minutes = Math.max(1, Math.round(c.words / 220));
-  let depth = store.get("vault-depth", 2);
-  const qFilled = Object.keys(c.questions).length;
+  const c = bySlug[slug]; if (!c) return viewMissing();
+  setCurrent(null, slug);
+  const l0 = c.sections.find(s => s.kind === "l0"), rest = c.sections.filter(s => s.kind !== "l0");
+  const nOpen = c.open.filter(o => !o.done).length, minutes = Math.max(1, Math.round(c.words / 230));
+  const nq = Object.keys(c.questions).length;
   const connected = [...new Set([...c.related, ...c.links, ...(backlinks[slug] || [])])].filter(s => s !== slug && bySlug[s]);
+  main.innerHTML = `<div class="page"><article class="content" id="art">
+    <header class="card-head"><nav class="crumbs"><a href="#home">Overview</a> / ${esc(shortName(slug))}</nav>
+      <h1>${esc(c.title)}</h1>${l0 ? `<div class="deck" id="deck"></div>` : ""}
+      <div class="meta-row"><span class="pill"><span class="dot ${c.status}"></span>${esc(c.status)}</span><span>Updated ${esc(fmtDate(c.updated))}</span><span class="sep"></span>
+        <span>${minutes} min read</span><span class="sep"></span><span>${c.cites.length} papers</span><span class="sep"></span><span>${nOpen} open question${nOpen === 1 ? "" : "s"}</span>${mixBar(evCount(cardText(c)))}</div>
+      <div class="depth"><span class="eyebrow">Reading depth</span><div class="seg" role="group" aria-label="Reading depth" id="seg">${DEPTHS.map(([lv, n], i) => `<button type="button" data-d="${i}"><span class="lv">${lv}</span>${n}</button>`).join("")}</div><span class="depth-hint" id="hint"></span></div>
+    </header>
+    <section id="glance-sec"><div class="section-title"><h2>At a glance</h2>${evLegend()}</div><div class="glance" id="glance"></div>
+      ${nq ? "" : `<p class="note">This card is a stub, so the seven questions are still empty. Run <code>/investigate ${esc(slug)}</code> to fill them.</p>`}</section>
+    <div id="body" style="display:grid;gap:44px"></div>
+    <section id="papers-sec"><div class="section-title"><h2>Papers in this card</h2><span class="eyebrow">${c.cites.length} cited · in order of first mention</span></div>
+      <div class="paper-list">${c.cites.map((id, i) => paperRow(id, i + 1)).join("") || `<p class="empty-state">No arXiv papers cited yet.</p>`}</div></section>
+    <section id="oq-sec"><div class="section-title"><h2>Open questions</h2><span class="eyebrow">watched by the radar</span></div><div class="oq" id="oq"></div></section>
+    <section id="log-sec"><div class="section-title"><h2>Log</h2></div><div id="log"></div></section>
+    ${connected.length ? `<section id="rel-sec"><div class="section-title"><h2>Connected cards</h2></div><div class="links-row">${connected.map(s => `<a href="#card-${s}">${esc(bySlug[s].title)}<small>${esc(bySlug[s].status)}</small></a>`).join("")}</div></section>` : ""}
+    ${footer()}</article><nav class="toc" id="toc" aria-label="On this page"></nav></div>`;
+  if (l0) document.getElementById("deck").append(...prose(l0.md, "").childNodes);
+  enhance(main.querySelector(".card-head"));
 
-  app.innerHTML = `
-    <div class="card-head">
-      <nav class="crumbs"><a href="#home">Vault</a> / ${esc(shortName(slug))}</nav>
-      <h1>${esc(c.title)}</h1>
-      <div class="meta">${statusChip(c.status)}<span>updated <span class="mono">${esc(c.updated)}</span></span>
-        <span>${nOpen} open question${nOpen === 1 ? "" : "s"}</span><span>about ${minutes} min in full</span>
-        ${mixBar(ev)}</div>
-      ${l0 ? `<div class="lead" id="lead"></div>` : ""}
-    </div>
-    <section aria-labelledby="q-h">
-      <div class="section-head"><h2 id="q-h">The seven questions</h2>${mixLegend()}</div>
-      <div class="compass-grid" id="compass"></div>
-      <div id="qpanel"></div>
-      ${qFilled ? "" : `<p class="stub-note">This card is a stub, so the seven questions are not filled yet. Run <code>/investigate ${esc(slug)}</code> to fill them. Its notes are in the sections below.</p>`}
-    </section>
-    <section aria-labelledby="v-h">
-      <div class="section-head"><h2 id="v-h">Visuals</h2></div>
-      <div class="slots" id="slots"></div>
-    </section>
-    <div>
-      <div class="depthbar" id="depthbar"></div>
-      <div class="longform" id="long" style="margin-top:20px"></div>
-    </div>
-    <section aria-labelledby="oq-h"><div class="section-head"><h2 id="oq-h">Open questions</h2><span class="eyebrow">watched by the radar</span></div>
-      <div class="oq" id="oq"></div></section>
-    <section aria-labelledby="log-h"><div class="section-head"><h2 id="log-h">Log</h2></div><div id="log"></div></section>
-    ${connected.length ? `<section aria-labelledby="rel-h"><div class="section-head"><h2 id="rel-h">Connected cards</h2></div>
-      <div class="link-row">${connected.map(s => `<a href="#card-${s}">${esc(bySlug[s].title)}<small>${esc(bySlug[s].status)}</small></a>`).join("")}</div></section>` : ""}`;
-
-  if (l0) document.getElementById("lead").append(...htmlEl(mdToHtml(l0.md), "").childNodes);
-  enhance(app.querySelector(".card-head"));
-
-  // Seven-question compass
-  const compass = document.getElementById("compass"), qpanel = document.getElementById("qpanel");
-  QUESTIONS.forEach(([name, hint], i) => {
-    const md = c.questions[i + 1];
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "q-tile"; b.id = "q-" + (i + 1);
-    if (!md) {
-      b.disabled = true;
-      b.innerHTML = `<span class="qn"><span>${i + 1}</span>${name}</span><span class="qs">Not investigated yet · ${esc(hint)}</span><span class="qf"></span>`;
-    } else {
-      const n = evCount(md), pts = countPoints(md);
-      b.setAttribute("aria-expanded", "false");
-      b.innerHTML = `<span class="qn"><span>${i + 1}</span>${name}</span><span class="qs">${esc(summarize(md))}</span>` +
-        `<span class="qf"><span>${pts} point${pts === 1 ? "" : "s"}</span>` +
-        EV.filter(e => n[e.key]).map(e => `<span><i class="${e.key === "cond" ? "cond" : ""}" style="--c:var(--ev-${e.key === "cond" ? "proven" : e.key})"></i>${n[e.key]} ${e.label}</span>`).join("") + `</span>`;
-      b.addEventListener("click", () => {
-        const open = b.getAttribute("aria-expanded") === "true";
-        compass.querySelectorAll(".q-tile").forEach(t => t.getAttribute("aria-expanded") && t.setAttribute("aria-expanded", "false"));
-        qpanel.innerHTML = "";
-        if (!open) {
-          b.setAttribute("aria-expanded", "true");
-          const p = document.createElement("div");
-          p.className = "panel q-panel";
-          p.innerHTML = `<h3>${i + 1}. ${name}</h3><p class="muted" style="margin:0 0 12px;font-size:13px">${esc(hint)}</p>`;
-          p.appendChild(htmlEl(mdToHtml(md)));
-          qpanel.appendChild(p);
-        }
-      });
-    }
-    compass.appendChild(b);
-  });
-
-  // Long-form sections by depth
-  const longEl = document.getElementById("long"), bar = document.getElementById("depthbar");
-  const rendered = long.map(s => {
+  const body = document.getElementById("body"), docs = [];
+  const addDoc = (kind, heading, md, opts = {}) => {
     const el = document.createElement("section");
-    el.className = "doc-section";
-    el.dataset.depth = KIND_DEPTH[s.kind] ?? 2;
-    el.innerHTML = `<header><span class="lvl">${KIND_LABEL[s.kind] || "L2"}</span><h2>${esc(s.heading.replace(/^L\d\s+/, ""))}</h2>${s.planned ? `<span class="planned">outline only</span>` : ""}</header>`;
-    el.appendChild(htmlEl(mdToHtml(s.md), "prose" + (s.kind === "l4" ? " wide" : "")));
-    longEl.appendChild(el);
-    return { s, el };
+    el.className = "doc" + (opts.q ? " q-doc" : "");
+    el.dataset.depth = opts.depth ?? KIND_DEPTH[kind] ?? 2;
+    el.innerHTML = `<header>${opts.q ? `<span class="qnum">Q${opts.q}</span>` : `<span class="lvl">${["L0", "L1", "L2", "L3", "L4"][el.dataset.depth]}</span>`}<h2>${esc(heading)}</h2>${opts.planned ? `<span class="planned">outline only</span>` : ""}</header>` +
+      (opts.hint ? `<div class="hint">${esc(opts.hint)}</div>` : "");
+    el.appendChild(prose(md, "prose" + (kind === "l4" ? " wide" : "")));
+    docs.push({ el, label: opts.q ? `${opts.q}. ${heading}` : heading });
+    return el;
+  };
+  rest.filter(s => s.kind === "l1").forEach(s => body.appendChild(addDoc(s.kind, s.heading.replace(/^L\d\s+/, ""), s.md)));
+  if (nq) {
+    const blk = document.createElement("div"); blk.className = "q-block"; blk.dataset.depth = 2;
+    blk.innerHTML = `<div class="eyebrow">The seven questions</div>`;
+    QUESTIONS.forEach(([name, hint], i) => { const md = c.questions[i + 1]; if (md) blk.appendChild(addDoc("q", name, md, { q: i + 1, hint, depth: 2 })); });
+    body.appendChild(blk);
+  }
+  rest.filter(s => s.kind !== "l1").forEach(s => body.appendChild(addDoc(s.kind, s.heading.replace(/^L\d\s+/, ""), s.md, { planned: s.planned })));
+
+  // At a glance
+  const glance = document.getElementById("glance");
+  QUESTIONS.forEach(([name, hint], i) => {
+    const md = c.questions[i + 1], row = document.createElement(md ? "button" : "div");
+    row.className = "glance-row" + (md ? "" : " empty");
+    if (md) {
+      const n = evCount(md);
+      row.type = "button";
+      row.innerHTML = `<span class="gnum">Q${i + 1}</span><span class="gname">${name}</span><span class="gsum">${esc(summarize(md))}</span>` +
+        `<span class="gev" aria-hidden="true">${EV.filter(([k]) => n[k]).map(([k]) => Array.from({ length: Math.min(n[k], 6) }, () => `<i class="${k === "cond" ? "cond" : ""}" style="--c:${evVar(k)}"></i>`).join("")).join("")}</span>`;
+      row.addEventListener("click", () => { const d = docs.find(x => x.label.startsWith(`${i + 1}. `)); if (depth < 2) applyDepth(2); scrollTo(d.el); });
+    } else row.innerHTML = `<span class="gnum">Q${i + 1}</span><span class="gname">${name}</span><span class="gsum">Not investigated yet · ${esc(hint)}</span><span></span>`;
+    glance.appendChild(row);
   });
+
+  // Figure slots, placed after the glance list
+  const figs = document.createElement("div"); figs.className = "figs"; figs.style.marginTop = "18px";
+  SLOTS.forEach(([kind, name, empty]) => {
+    const target = body.querySelector(`[data-viz="${kind}"]`), el = document.createElement(target ? "button" : "div");
+    el.className = "fig" + (target ? " filled" : "");
+    el.innerHTML = `<b>${name}</b><span>${target ? "Show it in the card" : empty}</span>`;
+    if (target) { el.type = "button"; el.addEventListener("click", () => { const d = target.closest("[data-depth]"); if (d && +d.dataset.depth > depth) applyDepth(+d.dataset.depth); target.scrollIntoView({ behavior: "smooth", block: "center" }); }); }
+    figs.appendChild(el);
+  });
+  document.getElementById("glance-sec").appendChild(figs);
+
+  // Depth
+  let depth = store.get("vault-depth", 2), refreshToc = () => {};
+  const seg = document.getElementById("seg"), hint = document.getElementById("hint");
   function applyDepth(d) {
     depth = d; store.set("vault-depth", d);
-    rendered.forEach(r => { r.el.hidden = +r.el.dataset.depth > d; });
-    const hidden = rendered.filter(r => r.el.hidden).length;
-    bar.querySelectorAll("button").forEach(btn => btn.setAttribute("aria-pressed", String(+btn.dataset.d === d)));
-    bar.querySelector(".depth-hint").textContent = hidden ? `${hidden} deeper section${hidden === 1 ? "" : "s"} hidden` : (rendered.length ? "Showing every section" : "No long-form sections yet");
+    const blocks = [...body.children];
+    blocks.forEach(b => { b.hidden = +b.dataset.depth > d; });
+    const hidden = blocks.filter(b => b.hidden).length;
+    seg.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.d === d)));
+    hint.textContent = hidden ? `${hidden} deeper section${hidden === 1 ? "" : "s"} hidden` : "Showing everything";
+    refreshToc();
   }
-  bar.innerHTML = `<span class="eyebrow">Read to depth</span><div class="seg" role="group" aria-label="Reading depth">` +
-    DEPTHS.map((d, i) => `<button type="button" data-d="${i}"><span class="lv">${d.lv}</span>${d.name}</button>`).join("") +
-    `</div><span class="depth-hint"></span>`;
-  bar.querySelectorAll("button").forEach(btn => btn.addEventListener("click", () => applyDepth(+btn.dataset.d)));
-  applyDepth(depth);
+  seg.querySelectorAll("button").forEach(b => b.addEventListener("click", () => applyDepth(+b.dataset.d)));
 
-  // Visual slots
-  const slots = document.getElementById("slots");
-  SLOTS.forEach(sl => {
-    const target = longEl.querySelector(`[data-viz="${sl.kind}"]`) || qpanel.querySelector(`[data-viz="${sl.kind}"]`);
-    const qWith = !target && Object.entries(c.questions).find(([, md]) => md.includes("```" + sl.kind));
-    const el = document.createElement(target || qWith ? "button" : "div");
-    if (target || qWith) {
-      el.type = "button"; el.className = "slot filled";
-      el.innerHTML = `<b>${sl.name}</b><span>Show it in the card</span>`;
-      el.addEventListener("click", () => {
-        if (qWith) { const t = document.getElementById("q-" + qWith[0]); if (t.getAttribute("aria-expanded") !== "true") t.click(); qpanel.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
-        const sec = target.closest(".doc-section");
-        if (sec && sec.hidden) applyDepth(+sec.dataset.depth);
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
-      });
-    } else {
-      el.className = "slot";
-      el.innerHTML = `<b>${sl.name}</b><span>${sl.empty}</span>`;
-    }
-    slots.appendChild(el);
-  });
-
+  // Open questions and log
   renderOpen(document.getElementById("oq"), c.open.map(o => ({ ...o, c })), false);
+  const logEl = document.getElementById("log"), entries = [...c.log].reverse();
+  const tl = list => { const t = document.createElement("div"); t.className = "timeline"; list.forEach(l => { const r = document.createElement("div"); r.className = "tl"; r.innerHTML = `<span class="when">${esc(fmtDate(l.date))}</span>`; r.appendChild(prose(l.md)); t.appendChild(r); }); return t; };
+  logEl.appendChild(tl(entries.slice(0, 3)));
+  if (entries.length > 3) { const det = document.createElement("details"); det.className = "more"; det.innerHTML = `<summary>Show ${entries.length - 3} older entr${entries.length === 4 ? "y" : "ies"}</summary>`; det.appendChild(tl(entries.slice(3))); logEl.appendChild(det); }
 
-  // Log, newest first
-  const logEl = document.getElementById("log");
-  const entries = [...c.log].reverse();
-  const item = l => { const d = document.createElement("div"); d.className = "tl-item"; d.innerHTML = `<span class="when">${esc(l.date)}</span>`; d.appendChild(htmlEl(mdToHtml(l.md))); return d; };
-  const tl = document.createElement("div"); tl.className = "timeline";
-  entries.slice(0, 3).forEach(l => tl.appendChild(item(l)));
-  logEl.appendChild(tl);
-  if (entries.length > 3) {
-    const det = document.createElement("details"); det.className = "more";
-    det.innerHTML = `<summary>Show ${entries.length - 3} older entr${entries.length - 3 === 1 ? "y" : "ies"}</summary>`;
-    const tl2 = document.createElement("div"); tl2.className = "timeline";
-    entries.slice(3).forEach(l => tl2.appendChild(item(l)));
-    det.appendChild(tl2); logEl.appendChild(det);
-  }
-  wireTips(app);
+  // Contents
+  const tocEntries = [{ label: "At a glance", el: document.getElementById("glance-sec") },
+    ...docs.map(d => ({ label: d.label, el: d.el })),
+    { label: "Papers", el: document.getElementById("papers-sec") }, { label: "Open questions", el: document.getElementById("oq-sec") }, { label: "Log", el: document.getElementById("log-sec") }]
+    .map(e => ({ ...e, go: () => { const b = e.el.closest("#body > *"); if (b && b.hidden) applyDepth(+b.dataset.depth); scrollTo(e.el); } }));
+  refreshToc = buildToc(document.getElementById("toc"), tocEntries);
+  applyDepth(depth);
+  wireTips(main);
 }
 
 const NOTE_RE = /\s*\(((?:[^()]|\([^()]*\))*)\)\s*$/;
-function splitNote(md) {
-  const m = md.match(NOTE_RE);
-  if (!m || m[1].length < 12) return { main: md, note: "" };
-  return { main: md.slice(0, m.index), note: m[1] };
-}
-const touchedByRadar = note => /\b\d{4}-W\d{2}\b|radar|update/i.test(note);
+const splitNote = md => { const m = md.match(NOTE_RE); return !m || m[1].length < 12 ? { main: md, note: "" } : { main: md.slice(0, m.index), note: m[1] }; };
+const touched = note => /\b\d{4}-W\d{2}\b|radar|update/i.test(note);
 function renderOpen(root, items, showCard) {
-  if (!items.length) { root.innerHTML = `<div class="panel empty-state">No open questions on this card yet.</div>`; return; }
-  root.innerHTML = items.map(o => {
-    const { main, note } = splitNote(o.md);
-    return `<div class="panel oq-item ${o.done ? "done" : ""}"><span class="oq-box" aria-label="${o.done ? "answered" : "open"}"></span><div>
-      ${showCard ? `<a class="oq-card" href="#card-${o.c.slug}">${esc(shortName(o.c.slug))}</a>` : ""}
-      <div class="oq-text">${mdInline(main)}</div>
-      ${note ? `<div class="oq-note"><span class="tag">${touchedByRadar(note) ? "Radar" : "Note"}</span><span>${mdInline(note)}</span></div>` : ""}
-    </div></div>`;
-  }).join("");
+  if (!items.length) { root.innerHTML = `<p class="empty-state">No open questions on this card yet.</p>`; return; }
+  root.innerHTML = items.map(o => { const { main: m, note } = splitNote(o.md);
+    return `<div class="oq-item ${o.done ? "done" : ""}"><span class="oq-box" aria-label="${o.done ? "answered" : "open"}"></span><div>
+      ${showCard ? `<a class="oq-card" href="#card-${o.c.slug}">${esc(shortName(o.c.slug))}</a>` : ""}<div class="oq-text">${mdInline(m)}</div>
+      ${note ? `<div class="oq-note"><span class="tag">${touched(note) ? "Radar" : "Note"}</span><span>${mdInline(note)}</span></div>` : ""}</div></div>`; }).join("");
   enhance(root);
 }
 
 function viewQuestions() {
-  const all = V.cards.flatMap(c => c.open.filter(o => !o.done).map(o => ({ ...o, c })));
-  const touched = all.filter(o => touchedByRadar(splitNote(o.md).note));
+  setCurrent("questions");
+  const all = V.cards.flatMap(c => c.open.filter(o => !o.done).map(o => ({ ...o, c }))), hit = all.filter(o => touched(splitNote(o.md).note));
   let filter = "all";
-  app.innerHTML = `
-    <section class="home-hero"><span class="eyebrow">What the radar watches</span><h1>Open questions</h1>
-      <p>${all.length} open questions across ${V.cards.filter(c => c.open.length).length} cards. ${touched.length} have a note from a radar update, which usually means a paper partly answered them.</p></section>
-    <div class="filters" role="group" aria-label="Filter questions">
-      <button type="button" data-f="all">All (${all.length})</button>
-      <button type="button" data-f="touched">Touched by radar (${touched.length})</button>
-      <button type="button" data-f="untouched">Not touched yet (${all.length - touched.length})</button>
-    </div>
-    <div id="groups" style="display:grid;gap:28px"></div>`;
+  main.innerHTML = `<div class="page single"><div class="content"><section class="hero"><span class="eyebrow">What the radar watches</span><h1>Open questions</h1>
+    <p>${all.length} open questions across ${V.cards.filter(c => c.open.length).length} cards. ${hit.length} carry a note from a radar update, which usually means a paper partly answered them.</p></section>
+    <div class="chips" role="group" aria-label="Filter questions"><button type="button" data-f="all">All · ${all.length}</button><button type="button" data-f="hit">Touched by radar · ${hit.length}</button><button type="button" data-f="new">Not touched yet · ${all.length - hit.length}</button></div>
+    <div id="groups" style="display:grid;gap:36px"></div>${footer()}</div></div>`;
   const groups = document.getElementById("groups");
-  function draw() {
-    app.querySelectorAll(".filters button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === filter)));
+  const draw = () => {
+    main.querySelectorAll(".chips button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === filter)));
     groups.innerHTML = "";
     V.cards.forEach(c => {
-      const items = c.open.filter(o => !o.done).map(o => ({ ...o, c })).filter(o => {
-        const t = touchedByRadar(splitNote(o.md).note);
-        return filter === "all" || (filter === "touched" ? t : !t);
-      });
+      const items = c.open.filter(o => !o.done).map(o => ({ ...o, c })).filter(o => { const t = touched(splitNote(o.md).note); return filter === "all" || (filter === "hit" ? t : !t); });
       if (!items.length) return;
-      const g = document.createElement("section"); g.className = "q-group";
+      const g = document.createElement("section"); g.className = "group";
       g.innerHTML = `<h3><a href="#card-${c.slug}">${esc(c.title)}</a> <span class="muted" style="font-weight:400">· ${items.length}</span></h3><div class="oq"></div>`;
-      renderOpen(g.querySelector(".oq"), items, false);
-      groups.appendChild(g);
+      renderOpen(g.querySelector(".oq"), items, false); groups.appendChild(g);
     });
-  }
-  app.querySelectorAll(".filters button").forEach(b => b.addEventListener("click", () => { filter = b.dataset.f; draw(); }));
+  };
+  main.querySelectorAll(".chips button").forEach(b => b.addEventListener("click", () => { filter = b.dataset.f; draw(); }));
+  draw();
+}
+
+function viewPapers() {
+  setCurrent("papers");
+  const ids = Object.keys(P).sort((a, b) => (P[b].year || "").localeCompare(P[a].year || "") || b.localeCompare(a));
+  let q = "", card = "all";
+  const usedCards = V.cards.filter(c => c.cites.length);
+  main.innerHTML = `<div class="page single"><div class="content"><section class="hero"><span class="eyebrow">Library</span><h1>Papers</h1>
+    <p>Every arXiv paper the cards and radar reports cite, ${ids.length} in all, newest first. Titles and abstracts come from arXiv; hover or tap a title for the abstract.</p></section>
+    <div class="toolbar"><input id="pf" type="search" placeholder="Filter by title, author or id" autocomplete="off"></div>
+    <div class="chips" role="group" aria-label="Filter by card"><button type="button" data-c="all">All cards</button>${usedCards.map(c => `<button type="button" data-c="${c.slug}">${esc(shortName(c.slug))} · ${c.cites.length}</button>`).join("")}</div>
+    <div class="paper-list" id="plist"></div>${footer()}</div></div>`;
+  const list = document.getElementById("plist");
+  const draw = () => {
+    main.querySelectorAll(".chips button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.c === card)));
+    const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    const shown = ids.filter(id => {
+      const p = P[id]; if (card !== "all" && !(p.cards || []).includes(card)) return false;
+      const hay = `${id} ${p.title || ""} ${(p.authors || []).join(" ")}`.toLowerCase();
+      return terms.every(t => hay.includes(t));
+    });
+    list.innerHTML = shown.map((id, i) => paperRow(id, i + 1)).join("") || `<p class="empty-state">No paper matches. Try fewer words.</p>`;
+  };
+  document.getElementById("pf").addEventListener("input", e => { q = e.target.value; draw(); });
+  main.querySelectorAll(".chips button").forEach(b => b.addEventListener("click", () => { card = b.dataset.c; draw(); }));
   draw();
 }
 
 function viewRadarList() {
-  app.innerHTML = `<section class="home-hero"><span class="eyebrow">Weekly scans</span><h1>Radar reports</h1>
+  setCurrent("radar");
+  main.innerHTML = `<div class="page single"><div class="content"><section class="hero"><span class="eyebrow">Weekly scans</span><h1>Radar reports</h1>
     <p>Each report checks new papers against the open questions. Suggested card updates are applied only after you agree.</p></section>
-    <div class="results">${V.radars.map(r => `<a class="panel result" href="#radar-${esc(r.id)}"><span class="where mono">${esc(r.id)}</span>
-      <b>${esc(r.title)}</b>${r.note ? `<span class="snip">${mdInline(r.note)}</span>` : ""}</a>`).join("") || `<div class="panel empty-state">No radar reports yet.</div>`}</div>`;
-  enhance(app);
+    <div class="results">${V.radars.map(r => `<a class="result" href="#radar-${esc(r.id)}"><span class="where mono">${esc(r.id)} · ${r.cites.length} papers</span><b>${esc(r.title)}</b>${r.note ? `<span class="snip">${mdInline(r.note)}</span>` : ""}</a>`).join("") || `<p class="empty-state">No radar reports yet.</p>`}</div>${footer()}</div></div>`;
 }
 function viewRadar(id) {
-  const r = V.radars.find(x => x.id === id);
-  if (!r) return viewMissing();
-  app.innerHTML = `<nav class="crumbs"><a href="#radar">Radar</a> / <span class="mono">${esc(r.id)}</span></nav><div id="rd"></div>`;
-  document.getElementById("rd").appendChild(htmlEl(mdToHtml(r.md)));
+  const r = V.radars.find(x => x.id === id); if (!r) return viewMissing();
+  setCurrent("radar");
+  main.innerHTML = `<div class="page"><article class="content"><nav class="crumbs"><a href="#radar">Radar</a> / <span class="mono">${esc(r.id)}</span></nav><div id="rd"></div>${footer()}</article><nav class="toc" id="toc" aria-label="On this page"></nav></div>`;
+  const doc = prose(r.md); document.getElementById("rd").appendChild(doc);
+  const heads = [...doc.querySelectorAll("h1, h2")];
+  buildToc(document.getElementById("toc"), heads.map(h => ({ label: h.textContent, el: h, go: () => scrollTo(h) })));
 }
-function viewMissing() {
-  app.innerHTML = `<div class="panel empty-state">That page is not in this build of the vault. <a href="#home">Back to the map</a>.</div>`;
-}
+function viewMissing() { main.innerHTML = `<div class="page single"><div class="content"><p class="empty-state">That page is not in this build of the vault. <a href="#home">Back to the overview</a>.</p></div></div>`; }
 
 /* ---------- search ---------- */
 const plain = md => String(md).replace(/```[\s\S]*?```/g, " ").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/[`*_>#|]/g, "").replace(/\s+/g, " ").trim();
 const INDEX = [];
 V.cards.forEach(c => {
-  INDEX.push({ href: `#card-${c.slug}`, where: shortName(c.slug), title: c.title, text: plain(c.title + " " + (c.oneLine || "")) });
-  c.sections.forEach(s => INDEX.push({ href: `#card-${c.slug}`, where: `${shortName(c.slug)} · ${s.heading}`, title: c.title, text: plain(s.md) }));
-  Object.entries(c.questions).forEach(([n, md]) => INDEX.push({ href: `#card-${c.slug}`, where: `${shortName(c.slug)} · ${n}. ${QUESTIONS[n - 1][0]}`, title: c.title, text: plain(md) }));
-  c.open.forEach(o => INDEX.push({ href: `#card-${c.slug}`, where: `${shortName(c.slug)} · open question`, title: c.title, text: plain(o.md) }));
+  INDEX.push({ href: `#card-${c.slug}`, where: shortName(c.slug), text: plain(c.title + " " + (c.oneLine || "")) });
+  c.sections.forEach(s => INDEX.push({ href: `#card-${c.slug}`, where: `${shortName(c.slug)} · ${s.heading}`, text: plain(s.md) }));
+  Object.entries(c.questions).forEach(([n, md]) => INDEX.push({ href: `#card-${c.slug}`, where: `${shortName(c.slug)} · ${n}. ${QUESTIONS[n - 1][0]}`, text: plain(md) }));
+  c.open.forEach(o => INDEX.push({ href: `#card-${c.slug}`, where: `${shortName(c.slug)} · open question`, text: plain(o.md) }));
 });
-V.radars.forEach(r => INDEX.push({ href: `#radar-${r.id}`, where: `radar ${r.id}`, title: r.title, text: plain(r.md) }));
+V.radars.forEach(r => INDEX.push({ href: `#radar-${r.id}`, where: `radar ${r.id}`, text: plain(r.md) }));
+Object.entries(P).forEach(([id, p]) => p.found && INDEX.push({ href: `https://arxiv.org/abs/${id}`, paper: id, where: `paper · ${p.year} · ${id}`, text: `${p.title}. ${(p.authors || []).join(", ")}` }));
 function viewSearch(q) {
+  setCurrent(null);
   const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
-  const hits = INDEX.filter(e => terms.every(t => e.text.toLowerCase().includes(t))).slice(0, 40);
-  const snippet = text => {
-    const i = text.toLowerCase().indexOf(terms[0]);
-    const s = text.slice(Math.max(0, i - 80), i + 160);
-    let h = esc((i > 80 ? "…" : "") + s + (i + 160 < text.length ? "…" : ""));
-    terms.forEach(t => { h = h.replace(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), m => `<mark>${m}</mark>`); });
-    return h;
-  };
-  app.innerHTML = `<section class="home-hero"><span class="eyebrow">Search</span><h1>${hits.length} result${hits.length === 1 ? "" : "s"} for “${esc(q)}”</h1></section>
-    <div class="results">${hits.map(e => `<a class="panel result" href="${e.href}"><span class="where">${esc(e.where)}</span><span class="snip">${snippet(e.text)}</span></a>`).join("") ||
-    `<div class="panel empty-state">Nothing matches every word. Try fewer words.</div>`}</div>`;
+  const hits = INDEX.filter(e => terms.every(t => e.text.toLowerCase().includes(t))).slice(0, 50);
+  const snip = t => { const i = t.toLowerCase().indexOf(terms[0]); let h = esc((i > 80 ? "…" : "") + t.slice(Math.max(0, i - 80), i + 170) + (i + 170 < t.length ? "…" : ""));
+    terms.forEach(x => { h = h.replace(new RegExp(x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), m => `<mark>${m}</mark>`); }); return h; };
+  main.innerHTML = `<div class="page single"><div class="content"><section class="hero"><span class="eyebrow">Search</span><h1>${hits.length} result${hits.length === 1 ? "" : "s"} for “${esc(q)}”</h1></section>
+    <div class="results">${hits.map(e => `<a class="result" href="${e.href}"${e.paper ? ` target="_blank" rel="noopener" data-paper="${e.paper}"` : ""}><span class="where">${esc(e.where)}</span><span class="snip">${snip(e.text)}</span></a>`).join("") || `<p class="empty-state">Nothing matches every word. Try fewer words.</p>`}</div></div></div>`;
 }
 const qInput = document.getElementById("q");
 qInput.addEventListener("input", () => { const q = qInput.value.trim(); if (q.length >= 2) viewSearch(q); else route(); });
@@ -944,23 +964,18 @@ qInput.addEventListener("keydown", e => { if (e.key === "Escape") { qInput.value
 
 /* ---------- routing ---------- */
 function route() {
-  hideTip();
+  tip.hidden = true; pop.hidden = true; setMenu(false);
   const h = decodeURIComponent(location.hash.slice(1)) || "home";
-  let nav = "home";
   if (h.startsWith("card-")) viewCard(h.slice(5));
-  else if (h === "questions") { viewQuestions(); nav = "questions"; }
-  else if (h === "radar") { viewRadarList(); nav = "radar"; }
-  else if (h.startsWith("radar-")) { viewRadar(h.slice(6)); nav = "radar"; }
-  else viewHome();
-  document.querySelectorAll("[data-nav]").forEach(a => { if (a.dataset.nav === nav) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  else if (h === "questions") viewQuestions();
+  else if (h === "papers") viewPapers();
+  else if (h === "radar") viewRadarList();
+  else if (h.startsWith("radar-")) viewRadar(h.slice(6));
+  else { setCurrent("home"); viewHome(); }
 }
 addEventListener("hashchange", () => { qInput.value = ""; route(); window.scrollTo(0, 0); });
-
-document.getElementById("brand-sub").textContent = V.commit ? `build ${V.commit}` : "";
-document.getElementById("foot").innerHTML =
-  `<span>Built ${esc(V.built || "")}${V.commit ? ` from commit <span class="mono">${esc(V.commit)}</span>` : ""}</span>` +
-  `<span>Source: the Markdown cards in <code>exploration/cards</code></span><span>Rebuild with <code>py viewer/build.py</code></span>`;
-if (!window.marked) app.insertAdjacentHTML("beforebegin", `<div class="wrap"><p class="muted">The Markdown library did not load, so sections show as plain text.</p></div>`);
+renderRail();
+if (!window.marked) main.insertAdjacentHTML("beforebegin", `<p class="muted" style="padding:12px 20px">The Markdown library did not load, so sections show as plain text.</p>`);
 route();
 })();
 </script>
