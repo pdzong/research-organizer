@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "alphaxiv": {
+      "type": "http",
+      "url": "https://api.alphaxiv.org/mcp/v1"
+    },
+    "huggingface": {
+      "type": "http",
+      "url": "https://huggingface.co/mcp?login"
+    },
+    "asta": {
+      "type": "http",
+      "url": "https://asta-tools.allen.ai/mcp/v1"
+    },
+    "undermind": {
+      "type": "http",
+      "url": "https://mcp.undermind.ai/mcp"
+    }
+  }
+}
