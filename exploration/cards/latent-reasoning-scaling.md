@@ -85,13 +85,18 @@ Does the work move the frontier, or pick a different point on it?
 - **At 1–3B with a looped language model: more reasoning per parameter,
   paid in FLOPs.** Ouro's 1.4B and 2.6B models match 4B and 8B standard
   transformers on most benchmarks, a claimed 2–3x parameter efficiency
-  (Zhu et al. 2025, arXiv:2510.25741). Each loop costs another forward
-  pass, and the comparison is not FLOP-matched. `[empirical, self-reported]`
+  (Zhu et al. 2025, arXiv:2510.25741). The win is on reasoning, not
+  knowledge: Ouro 1.4B beats Qwen3-4B on MATH500 (82.4 vs 59.6) but trails
+  it on MMLU (67.4 vs 73.2) (Table 7). Each loop costs another forward
+  pass, so the comparison is not FLOP-matched. It is not token-matched
+  either: Ouro saw 7.7T tokens, Qwen3 36T. `[empirical, self-reported]`
 - **At 3B with a latent chain grafted onto a pretrained model: parity at
-  lower latency, when supervised.** LOTUS reports near-parity with a
-  written chain on GSM8K and 2.5–6.9x less time spent thinking (Fan, Svete
-  & Lee 2026, arXiv:2606.31779). That is a latency gain, not an accuracy
-  gain. `[empirical, self-reported]`
+  lower latency, when supervised.** On Llama-3.2-3B, LOTUS scores 70.0% on
+  GSM8K against 71.5% for a written chain (3 seeds), and 63.9% against
+  62.1% on the out-of-domain average. Its thinking phase takes 133 ms
+  against 339 ms (2.5x faster), and 6.9x faster on natural-language chains
+  (Fan, Svete & Lee 2026, arXiv:2606.31779, Tables 1–3). That is a latency
+  gain, not an accuracy gain. `[empirical, self-reported]`
 
 None of these shows a latent method beating a written chain at matched
 compute and at scale.
@@ -106,20 +111,24 @@ compute and at scale.
   BDH-CQ's memory `S`, whose size the paper does not disclose.
 - `[empirical, self-reported, synthetic]` **Looping does not add knowledge
   capacity.** Looped and non-looped models store about 2 bits per
-  parameter. Looping improves manipulation and multi-hop questions
-  (Ouro, synthetic biographies). On MMLU, going from 1 to 4 loops raises
-  elementary mathematics by 155.6% but global facts by only 8.3% (Ouro,
-  Table 15).
+  parameter. The capacity test uses small GPT-2-style models (1M to 40M
+  parameters) on synthetic biographies. Looping improves manipulation and
+  multi-hop questions (Ouro, Sec. 6). On MMLU, going from 1 to 4 loops
+  raises elementary mathematics from 31% to 79% (+155.6%) but global facts
+  only from 36% to 39% (+8.3%) (Ouro, Table 15).
 - `[empirical, self-reported]` **The latent-chain gap grows with scale.**
-  The LOTUS abstract states that existing latent chain-of-thought methods
-  (CODI, SIM-CoT) underperform written chains beyond 1B parameters, and
-  that the gap widens with size. Evidence: GPT-2, Llama-3.2 1B and 3B, on
-  GSM8K-family math only.
+  LOTUS's own Table 1 shows it: CODI + SIM-CoT ties a written chain on
+  GPT-2 (42.6% vs 42.7% on GSM8K), trails by 2.3 points at Llama-3.2-1B
+  and by 9.2 points at 3B (62.3% vs 71.5%). Evidence: GSM8K-family math
+  only.
 - `[empirical]` **Depth extrapolation runs out.** BDH-CQ fails ordering
   beyond 6 objects and nesting at depth 5. A latent loop retrofitted into
-  Qwen2.5-0.5B holds up to about 1.5x its training depth, then falls
-  (Shapiro 2026, arXiv:2608.11233; numbers from a summary, unverified).
-  Ouro degrades beyond its 4 trained loops.
+  Qwen2.5-0.5B holds 70% accuracy up to 1.44–1.50x its supervised depth,
+  then falls (Shapiro 2026, arXiv:2608.11233; the deepest run is a single
+  seed). Ouro peaks at its 4 trained loops. Past that, base-model scores
+  slip a few points (MMLU 67.5% at 4 loops, 64.5% at 8). Reasoning scores
+  can collapse: Ouro-2.6B-Thinking falls from 76.4% to 39.3% on
+  OlympiadBench (Tables 10–13).
 - `[interpretation]` **No known result rules out scaling.** Every obstacle
   above is empirical or a capacity bound that a larger state can relax.
 
@@ -211,15 +220,30 @@ evidence differs by route:
    - This is the route BDH-CQ takes. It works, but every published case
      beyond 150M is a looped transformer, not BDH.
 2. **Retrofit a loop into a pretrained model.**
-   - On Qwen2.5-0.5B, a retrofitted loop is used, extrapolates past its
-     training depth and keeps the original ARC-Easy/Challenge scores, on
-     generated tasks (Shapiro 2026, single author, single seed for key
-     results).
+   - On Qwen2.5-0.5B, a retrofitted loop does one task step per loop and
+     extrapolates past its training depth, on generated tasks (Shapiro
+     2026, single author, single seed for key results).
+   - It beats the same model fine-tuned to write its steps out: 84.0%
+     against 72.1% overall, and 53.1% against 2.5% beyond depth 10. It also
+     answers 7.6x faster. Training and inference compute are not matched,
+     so this is a comparison of whole systems (Sec. 9).
+   - General ability survives only at one loop. ARC-Easy and
+     ARC-Challenge stay within 3 points of the base model at loop 1. On an
+     earlier checkpoint, ARC-Challenge fell sharply at 8 forced loops
+     (Sec. 7).
+   - A second skill could not be added without erasing the first. The
+     reverse rule was learnable on its own, but never alongside the
+     installed one (Sec. 11).
    - This softens the "retrofits fail" reading, but only on synthetic tasks.
 3. **Graft a latent chain onto a pretrained model** (Coconut, CODI).
    - Trails written chains beyond 1B, with the gap growing (LOTUS).
-   - LOTUS closes most of the gap at 3B by looping the whole model and
-     supervising each latent position against a written-chain token.
+   - LOTUS closes most of the gap at 3B. It starts from a model fine-tuned
+     on written chains and adds 6 blocks of 25 latent positions. It runs the
+     whole model over them 6 times, then supervises each position against a
+     written-chain token.
+   - The loops do the work: trained with 2 loops it scores 14.6%, with 6
+     loops 70.0% (Table 5). Limits: math only, and chains longer than 6
+     steps fall back to written decoding.
 
 `[interpretation]` Taken together: latent computation scales when it is
 part of the architecture and training from the start, and when its steps
@@ -245,9 +269,9 @@ Planned outline (fill with `/deepen latent-reasoning-scaling L3`):
 |---|---|---|---|
 | 1 | Engdahl, Kosowski, Chorowski et al. 2026, "BDH-CQ: In-Context Learning with Recurrent Latent Reasoning", arXiv:2608.09888 | The claim under test; Sec. 9 on scaling and future work. | yes (full text) |
 | 2 | Kosowski, Uznański, Chorowski, Stamirowska & Bartoszkiewicz 2025, "The Dragon Hatchling", arXiv:2509.26507 | Base architecture; GPT-2 parity from 10M to 1B. | yes (abstract) |
-| 3 | Zhu et al. 2025, "Scaling Latent Reasoning via Looped Language Models" (Ouro), arXiv:2510.25741 | Largest open looped models; knowledge storage versus manipulation. | partly (intro and appendix verbatim; benchmark tables from a summary) |
-| 4 | Fan, Svete & Lee 2026, "Bridging the Gap Between Latent and Explicit Reasoning with Looped Transformers" (LOTUS), arXiv:2606.31779 | The latent-chain gap grows with scale; step-grounded fix. | partly (abstract and Sec. 3; table numbers unverified) |
-| 5 | Shapiro 2026, "Retrofitting Recurrent Depth into a Pretrained Language Model", arXiv:2608.11233 | Retrofitting a loop at 0.5B, on synthetic tasks. | partly (abstract and first part) |
+| 3 | Zhu et al. 2025, "Scaling Latent Reasoning via Looped Language Models" (Ouro), arXiv:2510.25741 | Largest open looped models; knowledge storage versus manipulation. | yes (Sec. 1, 5–6, Tables 7–13 and 15, read with alphaXiv) |
+| 4 | Fan, Svete & Lee 2026, "Bridging the Gap Between Latent and Explicit Reasoning with Looped Transformers" (LOTUS), arXiv:2606.31779 | The latent-chain gap grows with scale; step-grounded fix. | yes (Sec. 1–4, Tables 1–6, 13–14, limitations, read with alphaXiv) |
+| 5 | Shapiro 2026, "Retrofitting Recurrent Depth into a Pretrained Language Model: Installation, Extrapolation, Transfer, and Retention at Two Parameter Budgets", arXiv:2608.11233 | Retrofitting a loop at 0.5B, on synthetic tasks; a system comparison with a written-chain model. | yes (abstract, Sec. 1–3, 7, 9, 14, read with alphaXiv) |
 | 6 | Cheng & Zhang 2026, "Not All Thinking is Created Equal", arXiv:2609.35643 | From-scratch latent models learn a search circuit. | abstract only |
 | 7 | Geiping et al. 2025, "Scaling up Test-Time Compute with Latent Reasoning: A Recurrent Depth Approach", arXiv:2502.05171 | Huginn 3.5B. | yes (full text, via the looped-transformers card) |
 | 8 | Jelassi et al. 2024, "Repeat After Me: Transformers are Better than State Space Models at Copying", arXiv:2402.01032 | The fixed-state copying bound. | yes (via the associative-memory card) |
@@ -281,3 +305,13 @@ Planned outline (fill with `/deepen latent-reasoning-scaling L3`):
   - alphaXiv was not connected in this session; sources were found with web
     search and read from arXiv HTML.
   - Core ideas proposed, awaiting approval.
+- 2026-11-25: re-read Ouro, LOTUS and Shapiro with alphaXiv (left
+  unfinished when alphaXiv was not connected).
+  - Ouro: confirmed the 2–3x claim, 2 bits per parameter and Table 15.
+    Added that the win is on reasoning, not MMLU, and that the token
+    budgets differ. Added extrapolation numbers (Tables 10–13).
+  - LOTUS: replaced the abstract-level claims with Table 1–3 numbers and
+    the loop-count ablation.
+  - Shapiro: verified the 1.5x extrapolation. Added the comparison with a
+    written-chain model, the loop-1-only preservation and the interference
+    limit.

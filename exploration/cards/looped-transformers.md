@@ -21,10 +21,11 @@ of thought at equal cost is open.
 Proposed on 2026-11-25. They take effect only after the user approves them
 (see `curation-policy.md`).
 
-1. **Looping saves parameters, not FLOPs.** At matched FLOPs, a looped 1B
-   model loses on perplexity and closed-book QA. It matches or beats the
-   deeper model on reasoning primitives and sometimes on math.
-   `[empirical, one group, 1B]`
+1. **Looping saves parameters, not FLOPs.** At matched FLOPs, a plainly
+   looped 1B model loses on perplexity and closed-book QA. It matches or
+   beats the deeper model on reasoning primitives and sometimes on math.
+   One residual redesign (Loopback) claims a small loss win at matched
+   compute. `[empirical, one group each, up to 3B]`
 2. **Loops help reasoning, not memorization.** Looping leaves knowledge
    storage at about 2 bits per parameter. It improves how stored knowledge
    is combined. `[empirical, self-reported, two groups]`
@@ -93,7 +94,9 @@ Does the work move the frontier, or pick a different point on it?
 - **Matched parameters: loops win clearly.** In every Saunshi et al. setting
   a looped model beats the same-size model run once (arXiv:2502.17416).
   Ouro's 1.4B and 2.6B match 4B and 8B standard transformers on most
-  benchmarks (Zhu et al. 2025, arXiv:2510.25741). `[empirical]`
+  benchmarks (Zhu et al. 2025, arXiv:2510.25741). The gain is on reasoning:
+  Ouro 1.4B beats Qwen3-4B on MATH500 (82.4 vs 59.6) and trails it on MMLU
+  (67.4 vs 73.2) (Table 7). `[empirical, self-reported]`
 - **Matched FLOPs: a different point, not a better one.** For a 1B language
   model on 250B tokens (Saunshi et al., Table 3):
   - Perplexity: 7.40 for the 24-layer model, against 7.90 for 12 layers
@@ -105,14 +108,29 @@ Does the work move the frontier, or pick a different point on it?
 - **Matched training FLOPs with per-token depth: close to a tie.**
   Mixture-of-Recursions beats a vanilla model at 360M but trails it
   slightly at 1.7B. These numbers come from a summary and are unverified.
-- **One claimed matched-depth win.** The Loopback Transformer reports lower
-  loss than standard transformers with 40–75% of the parameters, from 191M
-  to 3B (Ouyang et al. 2026, arXiv:2611.07226, abstract only). That is in
-  tension with Saunshi et al.; the residual design may be the difference.
-  `[empirical, self-reported]`
+- **One claimed matched-compute win, by a small margin.** The Loopback
+  Transformer matches training tokens and executed depth, which also
+  matches FLOPs to within 0.1%. It reaches lower loss than a standard
+  transformer with 40–75% of its parameters, from 191M to 3B (Ouyang et al.
+  2026, arXiv:2611.07226). `[empirical, self-reported]`
+  - The margins are small: 0.005 to 0.039 nats. At 1.4B and 3B there is
+    one run per arm. At 191M the win over the standard model is not
+    consistent across three seeds (Sec. E.1).
+  - Downstream gains are near noise. The 13-task mean moves from 46.3% to
+    46.5% at 1.4B and from 48.6% to 49.5% at 3B, with a standard error of
+    0.4 points (Table 9).
+  - Fewer parameters do not mean faster: 3B training throughput is 6% lower.
+  - `[interpretation]` Why it differs from Saunshi et al.:
+    - Residual design: a plain loop does about 0.07 nats worse than
+      Loopback at 191M.
+    - Less sharing: Loopback loops only a middle stack and keeps 68–75% of
+      the parameters at 1.4B and 3B. Saunshi's 12 ⊗ 2 keeps 50%.
+    - Shorter training: 20 tokens per parameter, against about 250 in
+      Saunshi. The paper does not test any of these explanations.
 
-Verdict: looping moves the parameter-efficiency frontier. It has not been
-shown to move the compute frontier for language modelling.
+Verdict: looping moves the parameter-efficiency frontier. For language
+modelling at matched compute, the only claimed win is Loopback's small one
+from a single group, with single runs at scale.
 
 ### 3. Boundary
 
@@ -124,18 +142,30 @@ shown to move the compute frontier for language modelling.
   thought steps for these problems. Looping is a cheap way to get that
   depth. (Abstract read; exact assumptions not checked.)
 - `[proven, under the paper's assumptions]` **Loops can simulate a chain of
-  thought.** A looped model can simulate `T` steps of chain of thought with
-  `T` loops (Saunshi et al., abstract). The assumptions (fixed input length,
-  extra embedding width, finite precision) are from a summary, unverified.
+  thought.** Theorem 5.4 of Saunshi et al.: take any `L`-layer transformer,
+  a fixed input length `n` and `m` chain-of-thought steps. A looped
+  transformer with `L + O(1)` layers, `Ω(log(n+m))` extra embedding width
+  and a constant number of extra heads reproduces the output. It runs `m`
+  loops over the input plus `m` padding tokens, at finite precision.
+  - Each loop is a whole model, so this shows loops are as expressive as
+    chain of thought. It does not show they are cheaper or learnable.
+  - The same paper shows that `⌈log₂ n⌉` loops of one layer compose `n`
+    group elements. `⌊log₂ p⌋ + 2` loops solve `p`-hop induction, which
+    matches a known lower bound for non-looped depth (Theorem 5.1,
+    Corollary 5.3).
 - `[proven, constructive]` **A fixed looped network is a programmable
   computer.** A 13-layer looped transformer can run programs given in its
   input (Giannou et al. 2023, arXiv:2301.13196). This shows expressivity,
   not learnability.
 - `[empirical, self-reported, synthetic]` **Looping adds no knowledge
   capacity.** Looped and non-looped models store about 2 bits per
-  parameter (Ouro).
-- `[empirical]` **Extrapolating past trained depth runs out.** Ouro
-  degrades beyond its 4 trained loops (from a summary). A loop retrofitted
+  parameter (Ouro, Sec. 6.1; GPT-2-style models from 1M to 40M on synthetic
+  biographies).
+- `[empirical]` **Extrapolating past trained depth runs out.** Ouro peaks
+  at its 4 trained loops. Base-model scores slip a few points by 8 loops,
+  and Ouro-2.6B-Thinking falls from 76.4% to 39.3% on OlympiadBench
+  (Tables 10–13). Loopback degrades less than a plain loop when visits
+  are added, but extra visits never lowered its loss. A loop retrofitted
   into a 0.5B model holds to about 1.5x its trained depth (see
   [latent reasoning at scale](latent-reasoning-scaling.md)).
 
@@ -254,7 +284,11 @@ parts:
 - **Fixed:** the same `R` for every token. Simple, and wasteful on easy
   tokens.
 - **Learned halting:** a gate decides when to stop, as in ACT. Ouro uses an
-  entropy-regularized exit gate (details not verified here). TRM uses a
+  exit gate trained in two stages. First, an entropy penalty with a uniform
+  prior over exit steps keeps the gate from collapsing to always-shallow
+  or always-deep. Then a second stage, with the language model frozen,
+  trains the gate to exit when another loop stops improving the loss
+  (Ouro, Sec. 3). TRM uses a
   single binary halting loss.
 - **Per-token routing:** Mixture-of-Recursions lets a router choose how
   many loops each token gets. That saves compute, but it complicates the
@@ -280,7 +314,7 @@ Planned outline (fill with `/deepen looped-transformers L3`):
 - Merrill & Sabharwal's log-depth constructions for regular languages and
   graph connectivity, and the conjectures behind the lower bound.
 - Saunshi et al.'s simulation of `T` chain-of-thought steps with `T` loops,
-  with its assumptions checked against the full text.
+  with its assumptions (now checked; see Boundary) and the proof sketch.
 - Iso-FLOP accounting: when do `L` loops of `k` layers beat `kL` layers, in
   a scaling-law fit of loss against depth?
 
@@ -288,10 +322,10 @@ Planned outline (fill with `/deepen looped-transformers L3`):
 
 | # | Source | Why read it | Verified |
 |---|---|---|---|
-| 1 | Saunshi, Dikkala, Li, Kumar & Reddi 2025, "Reasoning with Latent Thoughts: On the Power of Looped Transformers", arXiv:2502.17416 (ICLR 2025) | The iso-parameter and iso-FLOP comparison; reasoning against memorization; theory. | partly (abstract, Sec. 1–3.1 and Tables 1–3 verbatim; theory unverified) |
+| 1 | Saunshi, Dikkala, Li, Kumar & Reddi 2025, "Reasoning with Latent Thoughts: On the Power of Looped Transformers", arXiv:2502.17416 (ICLR 2025) | The iso-parameter and iso-FLOP comparison; reasoning against memorization; theory. | yes (abstract, Sec. 1–3, Table 8, Sec. 5 theorems and App. B.3, read with alphaXiv; full proofs skimmed) |
 | 2 | Merrill & Sabharwal 2025, "A Little Depth Goes a Long Way: The Expressive Power of Log-Depth Transformers", arXiv:2503.03961 (NeurIPS 2025) | Why depth matters, with proofs. | abstract only |
 | 3 | Geiping et al. 2025, "Scaling up Test-Time Compute with Latent Reasoning: A Recurrent Depth Approach", arXiv:2502.05171 (NeurIPS 2025) | Huginn 3.5B: prelude, recurrent block, coda. | yes (full text) |
-| 4 | Zhu et al. 2025, "Scaling Latent Reasoning via Looped Language Models" (Ouro), arXiv:2510.25741 | The largest open looped models; knowledge storage. | partly (intro verbatim; tables from a summary) |
+| 4 | Zhu et al. 2025, "Scaling Latent Reasoning via Looped Language Models" (Ouro), arXiv:2510.25741 | The largest open looped models; knowledge storage. | yes (Sec. 1, 3–6, Tables 7–13 and 15, read with alphaXiv) |
 | 5 | ARC Prize 2025, "The Hidden Drivers of HRM's Performance on ARC-AGI", https://arcprize.org/blog/hrm-analysis | Independent ablation: the outer loop matters, the hierarchy does not. | yes (read) |
 | 6 | Jolicoeur-Martineau 2025, "Less is More: Recursive Reasoning with Tiny Networks" (TRM), arXiv:2510.04871 | A 7M recursive reasoner; ablations of depth and layers. | partly (abstract and method; tables from a summary) |
 | 7 | Bae et al. 2025, "Mixture-of-Recursions", arXiv:2507.10524 | Per-token depth and KV caching. | partly (numbers from a summary) |
@@ -301,7 +335,7 @@ Planned outline (fill with `/deepen looped-transformers L3`):
 | 11 | Giannou et al. 2023, "Looped Transformers as Programmable Computers", arXiv:2301.13196 | Expressivity by construction. | abstract only |
 | 12 | Yang, Lee, Nowak & Papailiopoulos 2023, "Looped Transformers are Better at Learning Learning Algorithms", arXiv:2311.12424 (ICLR 2024) | In-context learning with under 10% of the parameters. | abstract only |
 | 13 | Wang et al. 2025, "Hierarchical Reasoning Model", arXiv:2506.21734 | HRM, the model the ARC Prize analysis tested. | partly (abstract and intro) |
-| 14 | Ouyang et al. 2026, "Loopback Transformer: Towards a Unified View of Residual Looped Transformers", arXiv:2611.07226 | A matched-depth loss win from 191M to 3B. | abstract only |
+| 14 | Ouyang et al. 2026, "Loopback Transformer: Towards a Unified View of Residual Looped Transformers", arXiv:2611.07226 | A small matched-compute loss win from 191M to 3B; residual design for loops. | yes (Sec. 1–5, 7–8, Tables 3, 9, 15, App. E.1, read with alphaXiv) |
 | 15 | Jin, Li, Xu & Sun 2026, "Late Entry in Looped Language Models", arXiv:2611.24576 | Inference speedups for Ouro and Huginn. | abstract only |
 | 16 | Grau García et al. 2026, "From Chain-of-Thought to Loops: Non-Autoregressive Latent Reasoning via Looped Transformers" (LLoCoT), arXiv:2610.11472 | Looped refinement of latent slots for code. | abstract only |
 | 17 | Huang, Dwivedi, Ma, Moreno & Liu 2026, "Latent Feedback Is a Compute and Data Amplifier", arXiv:2611.20404 | Feedback across tokens instead of loops in depth; the cost contrast in Combination. | abstract (this card); spot-checked on the latent-reasoning card |
@@ -311,8 +345,10 @@ Planned outline (fill with `/deepen looped-transformers L3`):
 
 - [ ] Does the iso-FLOP split (worse memorization, better reasoning) hold at
       7B and above, and on standard math and code benchmarks?
-- [ ] Why does the Loopback Transformer win on loss at matched depth when
-      Saunshi et al.'s looped models lose: residual design, data or scale?
+- [ ] Which explains Loopback's small matched-compute win where Saunshi et
+      al.'s plain loops lose: residual design, less weight sharing, or
+      shorter training (20 against about 250 tokens per parameter)? Does
+      the win survive longer training and more seeds?
 - [ ] At matched inference FLOPs, does a looped model beat a written chain
       of thought on math or code?
 - [ ] Does running a looped model past its trained depth hurt for the same
@@ -347,3 +383,13 @@ Planned outline (fill with `/deepen looped-transformers L3`):
     models.
   - alphaXiv was not connected; sources were found with web search and read
     from arXiv and the ARC Prize blog.
+- 2026-11-25: re-read Saunshi, Ouro and Loopback with alphaXiv (left
+  unfinished when alphaXiv was not connected).
+  - Saunshi: checked Theorem 5.4's exact assumptions and added Theorem 5.1
+    and Corollary 5.3. Table 3 numbers re-confirmed.
+  - Loopback: read in full. Its comparison is matched in compute, not only
+    in depth. Added margins, seeds and throughput, and three candidate
+    explanations for the conflict with Saunshi. Narrowed the open question
+    and amended proposed core idea 1.
+  - Ouro: verified the extrapolation tables, the exit-gate training and
+    the capacity setup; added the MMLU against MATH500 split.
