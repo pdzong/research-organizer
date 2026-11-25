@@ -13,7 +13,7 @@
 | [Do LLM agents reason better together, and does latent talk help?](cards/multi-agent-communication.md) | draft | Voting explains most debate gains (pooled: about 4 points below matched baselines); latent beliefs cut tokens but do not yet beat text debate. |
 | [Can a model reason in continuous vectors instead of words?](cards/latent-reasoning.md) | draft | Continuous thoughts can search in parallel in theory, but pretrained models collapse them to one path: pretraining reads inputs as single tokens, the feedback loop amplifies the leader, and answer-only training rewards shortcuts. Models built for it from scratch (BDH-CQ) do use their latent steps. |
 | [Can in-context latent reasoners like BDH-CQ scale to frontier models?](cards/latent-reasoning-scaling.md) | draft | Not shown: the 1B–600B claim has no data. Looping adds reasoning per parameter but no knowledge, and grafted latent chains trail written ones above 1B. |
-| [What do looped (recurrent-depth) transformers buy?](cards/looped-transformers.md) | stub | Rerun the same layers per token for more test-time compute; not yet compared at matched FLOPs. |
+| [What do looped (recurrent-depth) transformers buy?](cards/looped-transformers.md) | draft | Depth without parameters, not without compute: at matched FLOPs loops lose on memorization and win on reasoning primitives; log depth is provably powerful. |
 
 ## Open questions (collected from cards)
 
@@ -113,10 +113,19 @@ The `/radar` skill checks new papers against this list.
   parity with written chains above 3B?
 - [latent-reasoning-scaling] Does looping stay neutral for knowledge and
   positive for reasoning at 7B and above?
-- [looped-transformers] At matched FLOPs, does a looped transformer beat a
-  wider fixed-depth model on reasoning?
-- [looped-transformers] Do looped models need adaptive halting, as latent
-  chains do?
+- [looped-transformers] Does the iso-FLOP split (worse memorization,
+  better reasoning) hold at 7B+ and on standard math and code benchmarks?
+  (Saunshi et al. show it at 1B.)
+- [looped-transformers] Why does Loopback win on loss at matched depth when
+  Saunshi et al.'s looped models lose?
+- [looped-transformers] At matched inference FLOPs, does a looped model beat
+  a written chain of thought on math or code?
+- [looped-transformers] Does running past trained depth hurt as overlong
+  latent chains do, and does learned halting fix it?
+- [looped-transformers] Do needed loop counts on state tracking grow like
+  `log n`, as depth theory predicts?
+- [looped-transformers] Do late-entry and early-exit speedups keep accuracy
+  on harder benchmarks at 7B+?
 
 ## Radar reports
 
