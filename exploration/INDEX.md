@@ -12,6 +12,7 @@
 | [When should parameters be reserved for some tokens?](cards/mixture-of-experts.md) | stub | Mixture of experts and modality-specific parameters. |
 | [Do LLM agents reason better together, and does latent talk help?](cards/multi-agent-communication.md) | draft | Voting explains most debate gains (pooled: about 4 points below matched baselines); latent beliefs cut tokens but do not yet beat text debate. |
 | [Can a model reason in continuous vectors instead of words?](cards/latent-reasoning.md) | draft | Continuous thoughts can search in parallel in theory, but pretrained models collapse them to one path: pretraining reads inputs as single tokens, the feedback loop amplifies the leader, and answer-only training rewards shortcuts. Models built for it from scratch (BDH-CQ) do use their latent steps. |
+| [Can in-context latent reasoners like BDH-CQ scale to frontier models?](cards/latent-reasoning-scaling.md) | draft | Not shown: the 1B–600B claim has no data. Looping adds reasoning per parameter but no knowledge, and grafted latent chains trail written ones above 1B. |
 | [What do looped (recurrent-depth) transformers buy?](cards/looped-transformers.md) | stub | Rerun the same layers per token for more test-time compute; not yet compared at matched FLOPs. |
 
 ## Open questions (collected from cards)
@@ -100,6 +101,18 @@ The `/radar` skill checks new papers against this list.
 - [latent-reasoning] Does BDH-CQ-style in-context latent reasoning carry to
   language or math, and beat a same-size model that writes its reasoning out
   at matched compute?
+- [latent-reasoning-scaling] Will Pathway publish loss and latent-effort
+  curves for BDH or BDH-CQ at 1B and above, against a matched transformer?
+- [latent-reasoning-scaling] Can BDH-CQ's memory learn tasks from textual
+  demonstrations?
+- [latent-reasoning-scaling] At matched FLOPs on math or code, does a
+  BDH-style latent reasoner beat a same-size transformer writing its chain?
+- [latent-reasoning-scaling] How much context can a BDH-CQ memory hold
+  before recall fails (MQAR-style)?
+- [latent-reasoning-scaling] Does step-grounded latent training (LOTUS) keep
+  parity with written chains above 3B?
+- [latent-reasoning-scaling] Does looping stay neutral for knowledge and
+  positive for reasoning at 7B and above?
 - [looped-transformers] At matched FLOPs, does a looped transformer beat a
   wider fixed-depth model on reasoning?
 - [looped-transformers] Do looped models need adaptive halting, as latent

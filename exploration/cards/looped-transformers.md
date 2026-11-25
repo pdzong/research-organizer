@@ -26,6 +26,12 @@ spending the same compute on a wider model or on a written chain of thought.
 
   Source: Geiping et al. 2025, arXiv:2502.05171, NeurIPS (verified, full
   text).
+- **Ouro** (Zhu et al. 2025, arXiv:2510.25741): open looped language models
+  of 1.4B and 2.6B, trained on 7.7T tokens. They match 4B and 8B standard
+  transformers on most benchmarks, but the comparison is not FLOP-matched.
+  Looping leaves knowledge storage at about 2 bits per parameter and helps
+  knowledge manipulation. `[empirical, self-reported]` (partly read). See
+  [latent reasoning at scale](latent-reasoning-scaling.md).
 - Loopback Transformer (Ouyang et al. 2026, arXiv:2611.07226, abstract
   only).
 - Late Entry in Looped Language Models (Jin et al. 2026, arXiv:2611.24576,
@@ -53,3 +59,4 @@ spending the same compute on a wider model or on a written chain of thought.
 
 - 2026-11-20: stub created from the latent-reasoning card.
 - 2026-11-22: added a pointer to BDH-CQ.
+- 2026-11-25: added Ouro, from the latent-reasoning-scaling investigation.

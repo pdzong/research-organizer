@@ -114,8 +114,8 @@ The exchange is tokens and latency against accuracy and readability.
   BDH-CQ is a 150M model that reasons with no written chain. It reaches
   29.5% pass@2 on ARC-AGI-1 at about $0.0007 per task. That is a new point
   on the cost-versus-accuracy plane, not higher accuracy. See the BDH-CQ
-  section below. `[empirical, self-reported, independently reproduced
-  score]`
+  section below. `[empirical, self-reported; score reproduced by co-authors
+  from other institutions]`
 
 Verdict: latent reasoning moves the token-efficiency frontier on small tasks,
 and in BDH-CQ the cost frontier on ARC. It does not yet move the accuracy
@@ -289,8 +289,9 @@ frontier for pretrained language models at scale.
   chains as its main reasoning mode. Frontier reasoning models still write
   text chains of thought. `[interpretation]`, based on these sources only.
 - **A commercial latent reasoner outside language.** Pathway runs BDH-CQ as
-  an ARC reasoning service, and an independent black-box audit reproduced
-  its score. The exact architecture is proprietary.
+  an ARC reasoning service. A black-box audit by its Bielik AI and NYU
+  co-authors reproduced the score, so it is not fully independent. The
+  exact architecture is proprietary.
 - **Safety pushback.** Korbak et al. 2025 (arXiv:2507.11473) argue that
   readable chains of thought are a "new and fragile opportunity" for
   oversight. Xu et al. frame latent-reasoning limits as what keeps that
@@ -560,7 +561,9 @@ for latent reasoning. That is the regime where Rizvi-Martel et al. found
 latents are actually used, and the effort-scaling result agrees. So it
 supports the reading that latent reasoning works when a model is built for
 it, and fails mainly when it is retrofitted onto a pretrained language model.
-Whether BDH-CQ's design carries over to language is open.
+Whether BDH-CQ's design carries over to language is open. Whether it
+scales is covered on its own card:
+[latent reasoning at scale](latent-reasoning-scaling.md).
 
 ## L3 Math
 
@@ -636,7 +639,8 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
 - [ ] Does BDH-CQ-style in-context latent reasoning (separate memory and
       workspace, trained from scratch) carry over to language or math tasks?
       At matched compute, does it beat a same-size model that writes its
-      reasoning out?
+      reasoning out? (Tracked in detail on
+      [latent reasoning at scale](latent-reasoning-scaling.md).)
 
 ## Log
 
@@ -673,3 +677,7 @@ Planned outline (fill with `/deepen latent-reasoning L3`):
     2026 (arXiv:2509.23365), Chen et al. 2026 (arXiv:2606.20075), Yerram et
     al. 2026 (arXiv:2607.16972), and Rizvi-Martel et al. again for their
     causal explanation.
+- 2026-11-25: corrected the BDH-CQ audit wording in Trade-off and Adoption.
+  The audit was run by co-authors (Bielik AI, NYU), not an independent
+  group. Linked the new
+  [latent reasoning at scale](latent-reasoning-scaling.md) card.
